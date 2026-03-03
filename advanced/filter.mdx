@@ -253,6 +253,61 @@ You can add custom classes:
 </x-forms::filter>
 ```
 
+## Filter Submit Component
+
+The `<x-forms::filter-submit>` component provides submit, reset, and export buttons for filter forms.
+
+### Attributes
+
+<ParamField path="cancel-url" type="string" required>
+  URL to redirect when the cancel/reset button is clicked
+</ParamField>
+
+<ParamField path="export" type="bool|array" default="false">
+  Export options. Pass `true` for default export, or an array of export formats with labels
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework
+</ParamField>
+
+### Basic Usage
+
+```blade
+<x-forms::filter-submit 
+    :cancel-url="route('users.index')"
+/>
+```
+
+### With Export Options
+
+Single export format:
+
+```blade
+<x-forms::filter-submit 
+    :cancel-url="route('users.index')"
+    export="xlsx"
+/>
+```
+
+Multiple export formats:
+
+```blade
+<x-forms::filter-submit 
+    :cancel-url="route('users.index')"
+    :export="[
+        'xlsx' => 'Export to Excel',
+        'csv' => 'Export to CSV',
+        'pdf' => 'Export to PDF'
+    ]"
+/>
+```
+
+The component renders:
+- **Apply Filters** button - Submits the form
+- **Reset** button - Clears filters and redirects to cancel URL
+- **Export** dropdown (if enabled) - Triggers export with selected format
+
 ## Related Components
 
 - [Per Page](/advanced/per-page) - Items per page selector
