@@ -1,0 +1,264 @@
+---
+title: Model Binding
+description: Bind Eloquent models or arrays to form components for automatic data population
+---
+
+## Overview
+
+Model binding allows you to automatically populate form inputs with data from Eloquent models, arrays, or any data source. The package provides two ways to bind data:
+
+1. The `@model` and `@endmodel` Blade directives
+2. The `:model` prop on form components
+
+## The FormsDataBinder Class
+
+At the core of model binding is the `FormsDataBinder` class (`src/FormsDataBinder.php:8`), which maintains a stack of bound data:
+
+```php
+class FormsDataBinder
+{
+    private array $bindings = [];
+
+    public function bind($target): void
+    {
+        $this->bindings[] = $target;
+    }
+
+    public function get()
+    {
+        return Arr::last($this->bindings);
+    }
+
+    public function pop(): void
+    {
+        array_pop($this->bindings);
+    }
+}
+```
+
+The binder is registered as a singleton in the service container (`src/FormsServiceProvider.php:55`):
+
+```php
+$this->app->singleton(FormsDataBinder::class, fn () => new FormsDataBinder());
+```
+
+## Using @model Directive
+
+The `@model` directive pushes data onto the binding stack, making it available to all form components within its scope.
+
+### With Eloquent Models
+
+```blade
+@model($article)
+    <x-forms::text-entry name="status"/>
+@endmodel
+```
+
+The component automatically retrieves the `status` attribute from the `$article` model.
+
+### With Arrays
+
+```blade
+@php
+    $org = [
+        'name' => "Javaabu\nCompany"
+    ];
+@endphp
+
+@model($org)
+    <x-forms::text-entry label="Name" name="name" multiline />
+@endmodel
+```
+
+### Nested Model Binding
+
+Model bindings can be nested, with the most recent binding taking precedence:
+
+```blade
+@model($company)
+    <x-forms::input name="name" label="Company Name" />
+    
+    @model($company->address)
+        <x-forms::input name="street" label="Street" />
+        <x-forms::input name="city" label="City" />
+    @endmodel
+@endmodel
+```
+
+## Using :model Prop
+
+Components that support the `:model` prop can bind data directly without directives:
+
+```blade
+<x-forms::form :model="$address">
+    <x-forms::checkbox label="Check Me" name="check_me"/>
+</x-forms::form>
+```
+
+```blade
+<x-forms::infolist :model="$org">
+    <x-forms::text-entry label="Name" name="name" />
+</x-forms::infolist>
+```
+
+When a component receives a `:model` prop, it automatically binds that model to the data binder (`src/Support/HandlesBoundValues.php:42`):
+
+```php
+protected function bindModel($model)
+{
+    if ($model) {
+        $this->getFormsDataBinder()->bind($model);
+    } else {
+        $model = $this->getBoundTarget();
+    }
+
+    $this->model = $model;
+}
+```
+
+## How Values Are Retrieved
+
+The `HandlesBoundValues` trait (`src/Support/HandlesBoundValues.php:70`) handles value extraction:
+
+```php
+protected function getBoundValue($bind, string $name)
+{
+    if ($bind === false) {
+        return null;
+    }
+
+    $bind = $bind ?: $this->getBoundTarget();
+
+    if ($this->relation) {
+        return $this->getAttachedKeysFromRelation($bind, $name);
+    }
+
+    $boundValue = data_get($bind, $name);
+
+    if ($bind instanceof Model && $boundValue instanceof DateTimeInterface) {
+        return $this->formatDateTime($bind, $name, $boundValue);
+    }
+
+    return $boundValue;
+}
+```
+
+### Value Priority
+
+The `HandlesDefaultAndOldValue` trait (`src/Support/HandlesDefaultAndOldValue.php:9`) establishes the value priority:
+
+```php
+protected function getValue(string $name, $bind = null, $default = null)
+{
+    $inputName = static::convertBracketsToDots($name);
+
+    $boundValue = $this->getBoundValue($bind, $inputName);
+
+    $default = is_null($boundValue) ? $default : $boundValue;
+
+    return old($inputName, $default);
+}
+```
+
+<Steps>
+  <Step title="Old Input (highest priority)">
+    Values from `old()` helper (after validation failures)
+  </Step>
+  <Step title="Bound Model Value">
+    Values from the bound model or array
+  </Step>
+  <Step title="Default Value (lowest priority)">
+    The `default` parameter passed to the component
+  </Step>
+</Steps>
+
+## Relation Support
+
+The package automatically handles Eloquent relationships:
+
+### BelongsTo Relationships
+
+```blade
+@model($post)
+    {{-- Automatically uses $post->user_id --}}
+    <x-forms::select name="user" :options="$users" relation />
+@endmodel
+```
+
+### BelongsToMany Relationships
+
+```blade
+@model($post)
+    {{-- Automatically retrieves attached tag IDs --}}
+    <x-forms::select name="tags" :options="$tags" relation multiple />
+@endmodel
+```
+
+### MorphMany Relationships
+
+The package handles morph relationships by retrieving the related keys (`src/Support/HandlesBoundValues.php:166`).
+
+## DateTime Formatting
+
+When binding models with date attributes, the package respects Eloquent date casting (`src/Support/HandlesBoundValues.php:99`):
+
+```php
+protected function formatDateTime(Model $model, string $key, DateTimeInterface $date)
+{
+    if (! config('forms.use_eloquent_date_casting')) {
+        return $date;
+    }
+
+    $cast = $model->getCasts()[$key] ?? null;
+
+    if (! $cast || $cast === 'date' || $cast === 'datetime') {
+        return Carbon::instance($date)->toJSON();
+    }
+
+    if ($this->isCustomDateTimeCast($cast)) {
+        return $date->format(explode(':', $cast, 2)[1]);
+    }
+
+    return $date;
+}
+```
+
+Enable this feature in `config/forms.php`:
+
+```php
+'use_eloquent_date_casting' => true,
+```
+
+## Disabling Model Binding
+
+To prevent a component from using bound values, pass `model=false`:
+
+```blade
+@model($user)
+    <x-forms::input name="name" label="Name" />
+    {{-- This input will not use $user data --}}
+    <x-forms::input name="search" label="Search" :model="false" />
+@endmodel
+```
+
+## Directive Registration
+
+The `@model` and `@endmodel` directives are registered in `FormsServiceProvider` (`src/FormsServiceProvider.php:36`):
+
+```php
+Blade::directive('model', function ($model) {
+    return '<?php app(\Javaabu\Forms\FormsDataBinder::class)->bind(' . $model . '); ?>';
+});
+
+Blade::directive('endmodel', function ($model) {
+    return '<?php app(\Javaabu\Forms\FormsDataBinder::class)->pop(); ?>';
+});
+```
+
+<Note>
+  Model binding works seamlessly with validation. Old input from failed validation always takes priority over bound model values.
+</Note>
+
+<Warning>
+  Always use `@endmodel` to close `@model` blocks. Unclosed bindings remain on the stack and can cause unexpected behavior in subsequent components.
+</Warning>

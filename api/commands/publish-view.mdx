@@ -1,0 +1,387 @@
+---
+title: PublishViewCommand
+description: Artisan command to publish individual form view files for customization
+---
+
+## Overview
+
+The `PublishViewCommand` is an Artisan command that allows you to selectively publish form view files from the package to your application for customization. It provides an interactive interface to choose specific views and handles overwrite confirmations.
+
+**Namespace:** `Javaabu\Forms\Commands`
+
+**Extends:** `Illuminate\Console\Command`
+
+## Class Definition
+
+```php
+class PublishViewCommand extends Command
+```
+
+## Properties
+
+<ParamField path="signature" type="string">
+```
+forms:publish-view
+    {--all : Publish all view files}
+    {--force : Overwrite existing files without prompting}
+```
+</ParamField>
+
+<ParamField path="description" type="string">
+  Publish one or more form view files to your application for customization.
+</ParamField>
+
+## Command Signature
+
+```bash
+php artisan forms:publish-view [options]
+```
+
+### Options
+
+<ParamField path="--all" type="flag">
+  Publish all view files at once without prompting for selection.
+</ParamField>
+
+<ParamField path="--force" type="flag">
+  Overwrite existing files without prompting for confirmation.
+</ParamField>
+
+## Methods
+
+### handle
+
+```php
+public function handle()
+```
+
+Main command execution method. Handles the view publishing process including:
+- Scanning available view files
+- Prompting user for file selection
+- Publishing selected files
+- Handling overwrites
+
+**Returns:** `int` - Exit code (0 for success, 1 for error)
+
+### getViewFiles
+
+```php
+protected function getViewFiles(string $sourcePath, Filesystem $filesystem): array
+```
+
+<ParamField path="sourcePath" type="string" required>
+  The package views directory path.
+</ParamField>
+
+<ParamField path="filesystem" type="Illuminate\Filesystem\Filesystem" required>
+  The filesystem instance.
+</ParamField>
+
+Scans the package views directory and returns an array of all `.blade.php` files.
+
+**Returns:** `array` - Indexed array of file information:
+```php
+[
+    0 => [
+        'relative_path' => 'bootstrap5/input.blade.php',
+        'real_path' => '/vendor/.../resources/views/bootstrap5/input.blade.php',
+    ],
+    // ...
+]
+```
+
+### promptForFileSelection
+
+```php
+protected function promptForFileSelection(
+    array $files, 
+    string $targetBase, 
+    Filesystem $filesystem
+): ?int
+```
+
+<ParamField path="files" type="array" required>
+  Array of available view files.
+</ParamField>
+
+<ParamField path="targetBase" type="string" required>
+  The target directory path in the application.
+</ParamField>
+
+<ParamField path="filesystem" type="Illuminate\Filesystem\Filesystem" required>
+  The filesystem instance.
+</ParamField>
+
+Displays an interactive list of view files and prompts the user to select one.
+
+**Returns:** `int|null` - The selected file index, or null if cancelled
+
+**Interface:**
+- On Windows: Uses `select()` prompt with arrow key navigation
+- On Unix/Mac: Uses `search()` prompt with fuzzy search
+- Shows status for each file:
+  - **New** (green): File not yet published
+  - **Published** (yellow): File already exists in application
+
+### parseChoice
+
+```php
+public function parseChoice(string $choice): string
+```
+
+<ParamField path="choice" type="string" required>
+  The formatted choice string from the prompt.
+</ParamField>
+
+Parses the selected choice to extract the relative file path.
+
+**Returns:** `string` - The relative file path
+
+**Example:**
+```php
+$choice = '<fg=green>New</>: bootstrap5/input.blade.php';
+$path = $this->parseChoice($choice);
+// Returns: "bootstrap5/input.blade.php"
+```
+
+### publishFiles
+
+```php
+protected function publishFiles(
+    array $selected, 
+    array $files, 
+    string $targetBase, 
+    Filesystem $filesystem
+): void
+```
+
+<ParamField path="selected" type="array" required>
+  Array of file indices to publish.
+</ParamField>
+
+<ParamField path="files" type="array" required>
+  Array of all available view files.
+</ParamField>
+
+<ParamField path="targetBase" type="string" required>
+  The target directory path.
+</ParamField>
+
+<ParamField path="filesystem" type="Illuminate\Filesystem\Filesystem" required>
+  The filesystem instance.
+</ParamField>
+
+Publishes the selected files to the application.
+
+**Returns:** `void`
+
+**Behavior:**
+- Creates target directories if they don't exist
+- Checks if files already exist
+- Prompts for overwrite confirmation (unless `--force` used)
+- Displays status for each file:
+  - **PUBLISHED**: New file successfully published
+  - **UPDATED**: Existing file overwritten
+  - **SKIPPED**: User chose not to overwrite
+  - **FAILED**: Error during publish
+- Shows summary at the end
+
+## Usage Examples
+
+### Interactive Single File Selection
+
+```bash
+php artisan forms:publish-view
+```
+
+Output:
+```
+Available view files:
+
+Which view would you like to publish?
+  New: bootstrap5/alert.blade.php
+  New: bootstrap5/button.blade.php
+  Published: bootstrap5/input.blade.php
+  New: bootstrap5/select.blade.php
+  ...
+
+  PUBLISHED bootstrap5/button.blade.php
+
+Successfully published 1 file(s).
+```
+
+### Publish All Files
+
+```bash
+php artisan forms:publish-view --all
+```
+
+Output:
+```
+  PUBLISHED bootstrap5/alert.blade.php
+  PUBLISHED bootstrap5/button.blade.php
+  UPDATED bootstrap5/input.blade.php
+  SKIPPED bootstrap5/select.blade.php
+  ...
+
+Successfully published 45 file(s).
+Overwritten 1 existing file(s).
+Skipped 1 file(s).
+```
+
+### Force Overwrite Without Prompts
+
+```bash
+php artisan forms:publish-view --all --force
+```
+
+Output:
+```
+  PUBLISHED bootstrap5/alert.blade.php
+  UPDATED bootstrap5/input.blade.php
+  UPDATED bootstrap5/select.blade.php
+  ...
+
+Successfully published 47 file(s).
+Overwritten 2 existing file(s).
+```
+
+### Search for Specific View (Unix/Mac)
+
+```bash
+php artisan forms:publish-view
+```
+
+Then type to search:
+```
+Which view would you like to publish?
+> input
+
+  New: bootstrap5/input.blade.php
+  New: tailwind/input.blade.php
+  New: bootstrap5/map-input.blade.php
+```
+
+## File Publishing Locations
+
+**Source:** `vendor/javaabu/forms/resources/views/`
+
+**Target:** `resources/views/vendor/forms/`
+
+**Example:**
+```
+vendor/javaabu/forms/resources/views/bootstrap5/input.blade.php
+  ↓
+resources/views/vendor/forms/bootstrap5/input.blade.php
+```
+
+## Overwrite Confirmation
+
+When a file already exists and `--force` is not used:
+
+```
+File bootstrap5/input.blade.php already exists. Overwrite?
+  Yes, overwrite
+› No, skip
+```
+
+Selecting "No, skip":
+```
+  SKIPPED bootstrap5/input.blade.php
+```
+
+Selecting "Yes, overwrite":
+```
+  UPDATED bootstrap5/input.blade.php
+```
+
+## Use Cases
+
+### Customize a Specific Component
+
+```bash
+# Publish just the input view
+php artisan forms:publish-view
+# Select: bootstrap5/input.blade.php
+```
+
+Then edit:
+```blade
+{{-- resources/views/vendor/forms/bootstrap5/input.blade.php --}}
+<input 
+    type="{{ $type }}"
+    class="form-control my-custom-class"
+    {{-- Add your customizations --}}
+/>
+```
+
+### Customize All Components for a Framework
+
+```bash
+# Publish all views
+php artisan forms:publish-view --all
+
+# Only overwrite files you want to customize
+# Skip the rest
+```
+
+### Update Published Views After Package Update
+
+```bash
+# First, check which views have changed
+php artisan forms:diff-views
+
+# Then republish specific views
+php artisan forms:publish-view
+# Select the views that need updating
+```
+
+### Reset Customizations
+
+```bash
+# Force republish to restore original
+php artisan forms:publish-view --force
+# Select the view to reset
+```
+
+## Error Handling
+
+The command handles various error scenarios:
+
+**Source directory not found:**
+```
+Source view directory not found.
+```
+
+**No view files found:**
+```
+No view files found to publish.
+```
+
+**No file selected:**
+```
+No file selected for publishing.
+```
+
+**File copy failed:**
+```
+  FAILED bootstrap5/input.blade.php: Permission denied
+```
+
+## Platform Differences
+
+The command adapts to the operating system:
+
+**Windows:**
+- Uses simple arrow-key selection
+- Displays full list with scrolling
+
+**Unix/Mac/Linux:**
+- Uses fuzzy search interface
+- Type to filter results
+- Faster for large number of files
+
+## Related
+
+- [DiffViewsCommand](/api/commands/diff-views) - Compare published views with package views
+- [FormsServiceProvider](/api/forms-service-provider) - Service provider that registers this command

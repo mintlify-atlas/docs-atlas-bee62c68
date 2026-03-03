@@ -1,0 +1,189 @@
+---
+title: Card
+description: Display content in a card container with optional header, footer, title, and subtitle
+---
+
+The Card component provides a flexible container for displaying content with Bootstrap card styling. It supports nested components for headers, footers, titles, and subtitles.
+
+## Basic Usage
+
+```blade
+<x-forms::card title="Card Title">
+    <p>Card content goes here.</p>
+</x-forms::card>
+```
+
+## Card Component
+
+### Attributes
+
+<ParamField path="title" type="string" default="">
+  The title text to display in the card body
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use (e.g., 'bootstrap-5')
+</ParamField>
+
+<ParamField path="class" type="string">
+  Additional CSS classes to apply to the card container
+</ParamField>
+
+### Slots
+
+<ParamField path="header" type="slot">
+  Custom header content
+</ParamField>
+
+<ParamField path="image_top" type="slot">
+  Image to display at the top of the card
+</ParamField>
+
+<ParamField path="subtitle" type="slot">
+  Custom subtitle content
+</ParamField>
+
+<ParamField path="footer" type="slot">
+  Custom footer content
+</ParamField>
+
+## Nested Components
+
+### Card Header
+
+Display content in a card header section.
+
+```blade
+<x-forms::card>
+    <x-slot:header>
+        <strong>Header Content</strong>
+    </x-slot:header>
+    
+    <p>Card body content</p>
+</x-forms::card>
+```
+
+**Blade View:** `resources/views/bootstrap-5/card/header.blade.php`
+
+**Bootstrap Class:** `card-header`
+
+### Card Footer
+
+Display content in a card footer section.
+
+```blade
+<x-forms::card>
+    <p>Card body content</p>
+    
+    <x-slot:footer>
+        <button class="btn btn-primary">Action</button>
+    </x-slot:footer>
+</x-forms::card>
+```
+
+**Blade View:** `resources/views/bootstrap-5/card/footer.blade.php`
+
+**Bootstrap Class:** `card-footer`
+
+### Card Title
+
+Display a title heading within the card body.
+
+```blade
+<x-forms::card.title>
+    My Card Title
+</x-forms::card.title>
+```
+
+**Blade View:** `resources/views/bootstrap-5/card/title.blade.php`
+
+**HTML Element:** `<h5>` with class `card-title`
+
+### Card Subtitle
+
+Display a subtitle heading within the card body.
+
+```blade
+<x-forms::card>
+    <x-slot:subtitle>
+        Subtitle text
+    </x-slot:subtitle>
+    
+    <p>Card content</p>
+</x-forms::card>
+```
+
+**Blade View:** `resources/views/bootstrap-5/card/subtitle.blade.php`
+
+**HTML Element:** `<h6>` with class `card-subtitle`
+
+## Complete Example
+
+```blade
+<x-forms::card class="mb-3">
+    <x-slot:image_top>
+        <img src="/images/banner.jpg" class="card-img-top" alt="Banner">
+    </x-slot:image_top>
+    
+    <x-slot:header>
+        <strong>Featured Item</strong>
+    </x-slot:header>
+    
+    <x-forms::card.title>
+        Product Name
+    </x-forms::card.title>
+    
+    <x-slot:subtitle class="text-muted">
+        Category Name
+    </x-slot:subtitle>
+    
+    <p class="card-text">
+        This is a detailed description of the product with all relevant information.
+    </p>
+    
+    <x-slot:footer class="text-muted">
+        Last updated 3 mins ago
+    </x-slot:footer>
+</x-forms::card>
+```
+
+## Component Structure
+
+The card component is structured as follows:
+
+```
+<div class="card">
+    <!-- Optional: image_top slot -->
+    
+    <!-- Optional: Card Header -->
+    <div class="card-header">...</div>
+    
+    <!-- Card Body -->
+    <div class="card-body">
+        <!-- Optional: Card Title -->
+        <h5 class="card-title">...</h5>
+        
+        <!-- Optional: Card Subtitle -->
+        <h6 class="card-subtitle">...</h6>
+        
+        <!-- Main Content -->
+        ...
+    </div>
+    
+    <!-- Optional: Card Footer -->
+    <div class="card-footer">...</div>
+</div>
+```
+
+## Bootstrap Integration
+
+This component uses Bootstrap 5 card components:
+- `.card` - Main container
+- `.card-header` - Header section
+- `.card-body` - Main content area
+- `.card-title` - Title heading (h5)
+- `.card-subtitle` - Subtitle heading (h6)
+- `.card-footer` - Footer section
+- `.card-img-top` - Image at the top of the card
+
+For more information, see [Bootstrap Cards Documentation](https://getbootstrap.com/docs/5.0/components/card/).

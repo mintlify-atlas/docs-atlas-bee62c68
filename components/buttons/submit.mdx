@@ -1,0 +1,135 @@
+---
+title: Submit
+description: A specialized submit button with built-in animation
+---
+
+The Submit component is a specialized button that extends the Button component, automatically configured for form submissions with animation enabled.
+
+## Basic Usage
+
+```blade
+<x-forms::submit>
+    Submit Form
+</x-forms::submit>
+```
+
+## Attributes
+
+<ParamField path="color" type="string" default="primary">
+  The Bootstrap button color variant. Available options:
+  - `primary` - Primary brand color (default)
+  - `secondary` - Secondary color
+  - `success` - Success state (green)
+  - `danger` - Danger/delete actions (red)
+  - `warning` - Warning state (yellow)
+  - `info` - Informational (blue)
+  - `light` - Light background
+  - `dark` - Dark background
+  
+  Renders as `btn-{color}` class.
+</ParamField>
+
+## Examples
+
+### Basic Submit Button
+
+```blade
+<form method="POST" action="/submit">
+    @csrf
+    
+    {{-- Form fields --}}
+    
+    <x-forms::submit>
+        Save
+    </x-forms::submit>
+</form>
+```
+
+### Different Colors
+
+```blade
+{{-- Primary submit (default) --}}
+<x-forms::submit>
+    Submit
+</x-forms::submit>
+
+{{-- Success submit --}}
+<x-forms::submit color="success">
+    Confirm
+</x-forms::submit>
+
+{{-- Danger submit --}}
+<x-forms::submit color="danger">
+    Delete Account
+</x-forms::submit>
+```
+
+### With Icons
+
+```blade
+<x-forms::submit color="success">
+    <i class="fas fa-check"></i> Submit
+</x-forms::submit>
+
+<x-forms::submit color="primary">
+    <i class="fas fa-paper-plane"></i> Send
+</x-forms::submit>
+```
+
+### Disabled State
+
+```blade
+<x-forms::submit disabled>
+    Processing...
+</x-forms::submit>
+```
+
+### With Additional Attributes
+
+```blade
+<x-forms::submit 
+    color="primary"
+    class="w-100"
+    id="submit-btn"
+    form="my-form"
+>
+    Submit Form
+</x-forms::submit>
+```
+
+### Form with Cancel and Submit
+
+```blade
+<form method="POST" action="/users">
+    @csrf
+    
+    <x-forms::input name="name" label="Name" />
+    <x-forms::input name="email" label="Email" type="email" />
+    
+    <div class="mt-3">
+        <x-forms::link-button url="/users" color="secondary">
+            Cancel
+        </x-forms::link-button>
+        
+        <x-forms::submit>
+            Create User
+        </x-forms::submit>
+    </div>
+</form>
+```
+
+## Implementation Details
+
+The Submit component:
+- Extends the Button component
+- Automatically sets `type="submit"`
+- Enables animation by default (`animate=true`)
+- Applies the `animate-submit` class for click animations
+- Inherits all Bootstrap button styling from the parent Button component
+
+**Key Differences from Button**:
+- Type is always `submit` (cannot be changed)
+- Animation is always enabled
+- Optimized specifically for form submission scenarios
+
+**Source**: `/src/Views/Components/Submit.php:12`

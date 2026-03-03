@@ -1,0 +1,195 @@
+---
+title: 'Framework Settings'
+description: 'Configure the CSS framework and framework-specific settings'
+icon: 'gear'
+---
+
+## Default Framework
+
+The package supports multiple CSS frameworks out of the box. You can configure the default framework in your `config/forms.php` file.
+
+<ParamField path="framework" type="string" default="bootstrap-5">
+  The default CSS framework to use for rendering form components.
+  
+  **Supported values:**
+  - `bootstrap-5` - Bootstrap 5
+  - `material-admin-26` - Material Admin 2.6
+</ParamField>
+
+```php config/forms.php
+return [
+    'framework' => 'bootstrap-5',
+    
+    // Other configuration...
+];
+```
+
+## Framework-Specific Configuration
+
+Each framework has its own set of configuration options that control icons, CSS classes, and other framework-specific settings.
+
+### Bootstrap 5 Settings
+
+<ParamField path="frameworks.bootstrap-5.icon-prefix" type="string" default="fa-regular">
+  The default icon prefix for Font Awesome icons.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.date-icon" type="string" default="fa-calendar">
+  Icon class for date picker inputs.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.date-icon-wrapper-class" type="string" default="date-icon-wrapper">
+  CSS class for the date icon wrapper element.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.datetime-icon" type="string" default="fa-calendar">
+  Icon class for datetime picker inputs.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.time-icon" type="string" default="fa-clock">
+  Icon class for time picker inputs.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.date-clear-icon" type="string" default="fa-close">
+  Icon class for the date picker clear button.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.date-clear-btn-class" type="string" default="btn btn-outline-secondary btn-date-clear disable-w-input">
+  CSS classes for the date picker clear button.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.file-download-icon" type="string" default="fa-arrow-to-bottom">
+  Icon class for file download buttons.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.file-upload-icon" type="string" default="fa-arrow-to-top">
+  Icon class for file upload inputs.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.file-clear-icon" type="string" default="fa-close">
+  Icon class for file input clear buttons.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.image-icon" type="string" default="fa-image">
+  Icon class for image upload inputs.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.inline-label-class" type="string" default="col-sm-3 col-lg-2 col-form-label">
+  CSS classes for inline form labels.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.inline-input-class" type="string" default="col-sm-9 col-lg-10">
+  CSS classes for inline form input wrappers.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.inline-entry-label-class" type="string" default="col-sm-6 col-md-4">
+  CSS classes for inline entry labels (used in repeater fields).
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.inline-entry-class" type="string" default="col-sm-6 col-md-8">
+  CSS classes for inline entry wrappers (used in repeater fields).
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.search-icon" type="string" default="fa-search">
+  Icon class for search inputs.
+</ParamField>
+
+<ParamField path="frameworks.bootstrap-5.no-items-icon" type="string" default="fa-file">
+  Icon class displayed when no items are found.
+</ParamField>
+
+### Material Admin 2.6 Settings
+
+The Material Admin framework uses Zurb Material Design icons (zmdi) instead of Font Awesome.
+
+<ParamField path="frameworks.material-admin-26.icon-prefix" type="string" default="zmdi">
+  The default icon prefix for Material Design icons.
+</ParamField>
+
+<ParamField path="frameworks.material-admin-26.date-icon" type="string" default="zmdi-calendar">
+  Icon class for date picker inputs.
+</ParamField>
+
+<ParamField path="frameworks.material-admin-26.date-clear-btn-class" type="string" default="text-body btn-date-clear disable-w-input">
+  CSS classes for the date picker clear button.
+</ParamField>
+
+<ParamField path="frameworks.material-admin-26.file-download-icon" type="string" default="zmdi-open-in-new">
+  Icon class for file download buttons.
+</ParamField>
+
+<ParamField path="frameworks.material-admin-26.file-upload-icon" type="string" default="zmdi-upload">
+  Icon class for file upload inputs.
+</ParamField>
+
+<Info>
+  Material Admin 2.6 shares the same inline class configurations as Bootstrap 5 for consistent grid layouts.
+</Info>
+
+## Complete Configuration Example
+
+```php config/forms.php
+return [
+    'framework' => 'bootstrap-5',
+    
+    'frameworks' => [
+        'bootstrap-5' => [
+            'icon-prefix' => 'fa-regular',
+            'date-icon' => 'fa-calendar',
+            'date-icon-wrapper-class' => 'date-icon-wrapper',
+            'datetime-icon' => 'fa-calendar',
+            'time-icon' => 'fa-clock',
+            'date-clear-icon' => 'fa-close',
+            'date-clear-btn-class' => 'btn btn-outline-secondary btn-date-clear disable-w-input',
+            'file-download-icon' => 'fa-arrow-to-bottom',
+            'file-upload-icon' => 'fa-arrow-to-top',
+            'file-clear-icon' => 'fa-close',
+            'image-icon' => 'fa-image',
+            'inline-label-class' => 'col-sm-3 col-lg-2 col-form-label',
+            'inline-input-class' => 'col-sm-9 col-lg-10',
+            'inline-entry-label-class' => 'col-sm-6 col-md-4',
+            'inline-entry-class' => 'col-sm-6 col-md-8',
+            'search-icon' => 'fa-search',
+            'no-items-icon' => 'fa-file',
+        ],
+        
+        'material-admin-26' => [
+            'icon-prefix' => 'zmdi',
+            'date-icon' => 'zmdi-calendar',
+            'date-icon-wrapper-class' => 'date-icon-wrapper',
+            'datetime-icon' => 'zmdi-calendar',
+            'time-icon' => 'zmdi-clock',
+            'date-clear-icon' => 'zmdi-close',
+            'date-clear-btn-class' => 'text-body btn-date-clear disable-w-input',
+            'file-download-icon' => 'zmdi-open-in-new',
+            'file-upload-icon' => 'zmdi-upload',
+            'file-clear-icon' => 'zmdi-close',
+            'image-icon' => 'zmdi-image',
+            'inline-label-class' => 'col-sm-3 col-lg-2 col-form-label',
+            'inline-input-class' => 'col-sm-9 col-lg-10',
+            'inline-entry-label-class' => 'col-sm-6 col-md-4',
+            'inline-entry-class' => 'col-sm-6 col-md-8',
+            'search-icon' => 'zmdi-search',
+            'no-items-icon' => 'zmdi-file',
+        ]
+    ],
+];
+```
+
+## Eloquent Date Casting
+
+<ParamField path="use_eloquent_date_casting" type="boolean" default="false">
+  Whether to use Eloquent's native date casting when binding model data to date/time inputs.
+  
+  When enabled, the package will use the model's date casting configuration to format date values.
+</ParamField>
+
+```php config/forms.php
+return [
+    'use_eloquent_date_casting' => false,
+];
+```
+
+## Runtime Configuration
+
+You can override framework settings at runtime using middleware. See [Customization](/configuration/customization) for more details.

@@ -1,0 +1,309 @@
+---
+title: Bulk Actions
+description: Component for performing bulk operations on selected items
+---
+
+## Overview
+
+The Bulk Actions component provides a dropdown selector and submit button for performing bulk operations on multiple selected items. It's commonly used with checkboxes in data tables.
+
+## Basic Usage
+
+```blade
+<x-forms::bulk-actions
+    model="user"
+    :actions="[
+        'delete' => 'Delete Selected',
+        'activate' => 'Activate Selected',
+        'deactivate' => 'Deactivate Selected'
+    ]"
+/>
+```
+
+## Component Attributes
+
+<ParamField path="model" type="string" required>
+  The model name (used for generating field names)
+</ParamField>
+
+<ParamField path="actions" type="array" required>
+  Associative array of action values and labels
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework (bootstrap-5, material-admin-26)
+</ParamField>
+
+## Template Structure
+
+The component renders a select dropdown with an apply button:
+
+```blade
+<div class="row">
+    <div class="col-lg-3 col-md-8">
+        <div class="form-group mb-2">
+            <x-forms::select
+                name="action"
+                class="select2-basic form-control mb-4"
+                :options="['' => ''] + $actions"
+                :placeholder="__('Bulk Action')"
+                hide-search
+                allow-clear
+                required
+            />
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-4">
+        <div class="btn-group">
+            <x-forms::button
+                type="submit"
+                color="warning"
+            >
+                {{ __('Apply') }}
+            </x-forms::button>
+        </div>
+    </div>
+</div>
+
+<x-forms::hidden name="redirect" :value="Request::fullUrl()" />
+```
+
+## Complete Example with Table
+
+```blade
+<x-forms::form method="POST" action="{{ route('users.bulk-action') }}">
+    {{-- Bulk Actions --}}
+    <x-forms::bulk-actions
+        model="user"
+        :actions="[
+            'delete' => 'Delete Selected',
+            'activate' => 'Activate',
+            'deactivate' => 'Deactivate',
+            'export' => 'Export Selected'
+        ]"
+    />
+
+    {{-- Data Table --}}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        <x-forms::checkbox 
+                            name="select_all" 
+                            id="select-all"
+                            show-label="false"
+                        />
+                    </th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($users as $user)
+                    <tr>
+                        <td>
+                            <x-forms::checkbox 
+                                name="users[]" 
+                                :value="$user->id"
+                                show-label="false"
+                                class="user-checkbox"
+                            />
+                        </td>
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>
+                            <span class="badge bg-{{ $user->is_active ? 'success' : 'secondary' }}">
+                                {{ $user->is_active ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-primary">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    {{ $users->links('forms::bootstrap-5.pagination') }}
+</x-forms::form>
+
+@push('scripts')
+<script>
+    // Select/deselect all checkboxes
+    document.getElementById('select-all').addEventListener('change', function(e) {
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = e.target.checked;
+        });
+    });
+</script>
+@endpush
+```
+
+## Controller Implementation
+
+```php
+public function bulkAction(Request $request)
+{
+    $request->validate([
+        'action' => 'required|string',
+        'users' => 'required|array',
+        'users.*' => 'exists:users,id'
+    ]);
+
+    $action = $request->input('action');
+    $userIds = $request->input('users');
+
+    switch ($action) {
+        case 'delete':
+            User::whereIn('id', $userIds)->delete();
+            $message = 'Selected users have been deleted.';
+            break;
+
+        case 'activate':
+            User::whereIn('id', $userIds)->update(['is_active' => true]);
+            $message = 'Selected users have been activated.';
+            break;
+
+        case 'deactivate':
+            User::whereIn('id', $userIds)->update(['is_active' => false]);
+            $message = 'Selected users have been deactivated.';
+            break;
+
+        case 'export':
+            return $this->exportUsers($userIds);
+
+        default:
+            return back()->withErrors(['action' => 'Invalid action']);
+    }
+
+    return redirect($request->input('redirect', route('users.index')))
+        ->with('success', $message);
+}
+```
+
+## Route Configuration
+
+```php
+Route::post('users/bulk-action', [UserController::class, 'bulkAction'])
+    ->name('users.bulk-action');
+```
+
+## Advanced Example with Confirmation
+
+```blade
+<x-forms::form 
+    method="POST" 
+    action="{{ route('users.bulk-action') }}"
+    id="bulk-action-form"
+>
+    <x-forms::bulk-actions
+        model="user"
+        :actions="[
+            'delete' => 'Delete Selected',
+            'activate' => 'Activate',
+            'deactivate' => 'Deactivate'
+        ]"
+    />
+
+    <!-- Table markup -->
+</x-forms::form>
+
+@push('scripts')
+<script>
+    document.getElementById('bulk-action-form').addEventListener('submit', function(e) {
+        const action = document.querySelector('select[name="action"]').value;
+        const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+
+        if (checkedBoxes.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one user.');
+            return false;
+        }
+
+        if (action === 'delete') {
+            if (!confirm(`Are you sure you want to delete ${checkedBoxes.length} user(s)?`)) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+</script>
+@endpush
+```
+
+## Features
+
+### Auto-Redirect
+
+The component includes a hidden `redirect` field that preserves the current URL, allowing users to return to the same page with filters after performing bulk actions.
+
+### Select2 Integration
+
+The action dropdown uses Select2 with the following options:
+
+- `hide-search` - Disables search (not needed for short action lists)
+- `allow-clear` - Allows clearing the selection
+- `required` - Ensures an action is selected
+
+### Validation
+
+The component validates that:
+
+1. An action is selected
+2. At least one item is selected
+3. The selected action is valid
+
+## Styling
+
+The component uses Bootstrap grid classes:
+
+```
+col-lg-3 col-md-8  - Action dropdown column
+col-lg-6 col-md-4  - Button column
+```
+
+Customize with additional classes:
+
+```blade
+<div class="bulk-actions-wrapper mb-4">
+    <x-forms::bulk-actions
+        model="product"
+        :actions="$actions"
+    />
+</div>
+```
+
+## Security Considerations
+
+1. **Authorization**: Always verify the user has permission to perform the action:
+
+```php
+public function bulkAction(Request $request)
+{
+    $this->authorize('bulk-action', User::class);
+    // ...
+}
+```
+
+2. **Validation**: Validate that all selected IDs exist and belong to the correct model
+
+3. **CSRF Protection**: The form component automatically includes CSRF token
+
+4. **Confirmation**: Use JavaScript confirmation for destructive actions
+
+## Common Actions
+
+- `delete` - Delete selected items
+- `activate` / `deactivate` - Toggle status
+- `export` - Export selected items
+- `assign` - Assign to category/user
+- `tag` - Add tags
+- `archive` - Archive items
+- `restore` - Restore soft-deleted items

@@ -1,0 +1,296 @@
+---
+title: 'Customization'
+description: 'Customize component defaults and behavior'
+icon: 'sliders'
+---
+
+## Overview
+
+Javaabu Forms provides multiple ways to customize form component behavior:
+
+1. **Configuration files** - Set default values in `config/forms.php`
+2. **Runtime middleware** - Override settings for specific routes or route groups
+3. **Component attributes** - Override defaults on individual components
+4. **View customization** - Publish and modify Blade templates
+
+## Configuration File Customization
+
+The primary way to customize the package is through the `config/forms.php` file. This sets the global defaults for all form components.
+
+### Publishing the Configuration
+
+First, publish the configuration file:
+
+```bash
+php artisan vendor:publish --tag=forms-config
+```
+
+This creates `config/forms.php` in your application.
+
+### Available Configuration Options
+
+<ParamField path="framework" type="string" default="bootstrap-5">
+  The default CSS framework used by all form components.
+</ParamField>
+
+<ParamField path="use_eloquent_date_casting" type="boolean" default="false">
+  Use Eloquent's date casting when binding model data to date/time inputs.
+</ParamField>
+
+<ParamField path="scripts_stack" type="string" default="scripts">
+  The Blade stack name where form JavaScript will be pushed.
+</ParamField>
+
+<ParamField path="map_api_key" type="string">
+  Google Maps API key for map input components. Can be set via `MAP_API_KEY` environment variable.
+</ParamField>
+
+<ParamField path="frameworks" type="array">
+  Framework-specific settings including icons and CSS classes. See [Framework Settings](/configuration/framework-settings) for details.
+</ParamField>
+
+### Example Configuration
+
+```php config/forms.php
+return [
+    'framework' => 'bootstrap-5',
+    'use_eloquent_date_casting' => false,
+    'scripts_stack' => 'scripts',
+    'map_api_key' => env('MAP_API_KEY'),
+    
+    'frameworks' => [
+        'bootstrap-5' => [
+            'icon-prefix' => 'fa-solid', // Changed to solid icons
+            'date-icon' => 'fa-calendar-days',
+            // Other settings...
+        ],
+    ],
+];
+```
+
+## Runtime Configuration with Middleware
+
+The `OverrideFormsDefaults` middleware allows you to change form configuration at runtime for specific routes or route groups.
+
+### Middleware Registration
+
+The middleware is automatically registered as `forms` by the package's service provider:
+
+```php FormsServiceProvider.php (src/FormsServiceProvider.php:57)
+app('router')->aliasMiddleware('forms', OverrideFormsDefaults::class);
+```
+
+### Using the Middleware
+
+Apply the middleware to routes or route groups with a framework parameter:
+
+```php routes/web.php
+use Javaabu\Forms\Http\Middleware\OverrideFormsDefaults;
+
+// Apply to a single route
+Route::get('/admin/dashboard', [DashboardController::class, 'index'])
+    ->middleware('forms:material-admin-26');
+
+// Apply to a route group
+Route::middleware(['forms:material-admin-26'])->group(function () {
+    Route::get('/admin/users', [UserController::class, 'index']);
+    Route::get('/admin/posts', [PostController::class, 'index']);
+});
+
+// Apply to admin panel routes
+Route::prefix('admin')
+    ->middleware(['auth', 'forms:material-admin-26'])
+    ->group(function () {
+        // All admin routes use Material Admin framework
+    });
+```
+
+### Middleware Implementation
+
+The middleware works by updating the configuration at runtime:
+
+```php OverrideFormsDefaults.php (src/Http/Middleware/OverrideFormsDefaults.php:19-26)
+public function handle(Request $request, Closure $next, string $framework)
+{
+    config([
+        'forms.framework' => $framework
+    ]);
+    
+    return $next($request);
+}
+```
+
+<Note>
+  The middleware only overrides the framework setting. To override other configuration values, you can extend the middleware or use the `config()` helper in your controller.
+</Note>
+
+## Advanced Runtime Customization
+
+For more complex runtime customization, you can modify configuration in your controllers or service providers:
+
+### In Controllers
+
+```php
+class AdminController extends Controller
+{
+    public function __construct()
+    {
+        // Override framework for all methods
+        config(['forms.framework' => 'material-admin-26']);
+        
+        // Override specific icon
+        config(['forms.frameworks.bootstrap-5.search-icon' => 'fa-magnifying-glass']);
+    }
+    
+    public function index()
+    {
+        // Forms in this view will use the overridden settings
+        return view('admin.index');
+    }
+}
+```
+
+### In Service Providers
+
+```php app/Providers/AppServiceProvider.php
+public function boot()
+{
+    // Override based on environment
+    if (request()->is('admin/*')) {
+        config(['forms.framework' => 'material-admin-26']);
+    }
+    
+    // Override based on user preferences
+    if (auth()->check() && auth()->user()->prefers_material_admin) {
+        config(['forms.framework' => 'material-admin-26']);
+    }
+}
+```
+
+## Component-Level Customization
+
+Individual form components can override configuration through attributes:
+
+```blade
+{{-- Override icon on a specific input --}}
+<x-forms::date
+    name="start_date"
+    icon="fa-calendar-check"
+/>
+
+{{-- Override CSS classes --}}
+<x-forms::text
+    name="email"
+    wrapper-class="custom-wrapper"
+    input-class="custom-input"
+/>
+```
+
+## Customizing CSS Classes
+
+Framework-specific CSS classes can be customized in the configuration:
+
+```php config/forms.php
+'frameworks' => [
+    'bootstrap-5' => [
+        // Inline form layout classes
+        'inline-label-class' => 'col-sm-4 col-lg-3 col-form-label',
+        'inline-input-class' => 'col-sm-8 col-lg-9',
+        
+        // Date picker button classes
+        'date-clear-btn-class' => 'btn btn-sm btn-outline-danger',
+        
+        // Icon wrapper classes
+        'date-icon-wrapper-class' => 'date-icon-wrapper custom-wrapper',
+    ],
+]
+```
+
+See [Framework Settings](/configuration/framework-settings) for all available class customization options.
+
+## Scripts Stack Customization
+
+If your layout uses a different stack name for JavaScript, update the configuration:
+
+```php config/forms.php
+return [
+    'scripts_stack' => 'footer-scripts', // Changed from 'scripts'
+];
+```
+
+Make sure your layout includes the corresponding stack:
+
+```blade resources/views/layouts/app.blade.php
+<!DOCTYPE html>
+<html>
+<head>
+    {{-- Head content --}}
+</head>
+<body>
+    {{-- Body content --}}
+    
+    @stack('footer-scripts') {{-- Must match config value --}}
+</body>
+</html>
+```
+
+## Google Maps API Configuration
+
+For map input components, configure your Google Maps API key:
+
+```env .env
+MAP_API_KEY=your_google_maps_api_key_here
+```
+
+Or directly in the configuration:
+
+```php config/forms.php
+return [
+    'map_api_key' => 'your_google_maps_api_key_here',
+];
+```
+
+## Deep Merging Framework Configuration
+
+The package performs deep merging of framework configuration, allowing you to override only specific settings:
+
+```php FormsServiceProvider.php (src/FormsServiceProvider.php:68-85)
+protected function mergeConfig(): void
+{
+    $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'forms');
+    
+    // Deep merge for nested 'framework' config
+    $default = require __DIR__.'/../config/config.php';
+    $default_frameworks = $default['frameworks'];
+    
+    foreach ($default_frameworks as $framework => $configs) {
+        $user_config = config('forms.frameworks.' . $framework);
+        
+        config()->set(
+            'forms.frameworks.' . $framework,
+            array_merge($configs, is_array($user_config) ? $user_config : [])
+        );
+    }
+}
+```
+
+This means you only need to override the specific values you want to change:
+
+```php config/forms.php
+return [
+    'frameworks' => [
+        'bootstrap-5' => [
+            // Only override these two values
+            'icon-prefix' => 'fa-solid',
+            'search-icon' => 'fa-magnifying-glass',
+            // All other defaults are preserved
+        ],
+    ],
+];
+```
+
+## Next Steps
+
+- [Framework Settings](/configuration/framework-settings) - Complete framework configuration reference
+- [Icon Configuration](/configuration/icons) - Detailed icon customization guide
+- [Publishing Views](/configuration/publishing-views) - Customize Blade templates

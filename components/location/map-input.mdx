@@ -1,0 +1,422 @@
+---
+title: Map Input
+description: Interactive Google Maps component for selecting coordinates, radius, and polygon boundaries
+---
+
+The Map Input component provides an interactive Google Maps interface for selecting geographic locations, drawing radius circles, and defining polygon boundaries.
+
+## Prerequisites
+
+### Google Maps API Key
+
+Set your Google Maps API key in the environment file:
+
+```bash
+MAP_API_KEY=your_google_maps_api_key_here
+```
+
+The key is automatically loaded from `config/forms.php`:
+
+```php
+'map_api_key' => env('MAP_API_KEY'),
+```
+
+### Geospatial Package (Optional)
+
+For Point and Polygon model casting, install the recommended package:
+
+```bash
+composer require javaabu/geospatial
+```
+
+The component supports `matanyadaev/laravel-eloquent-spatial` Point and Polygon objects.
+
+## Basic Usage
+
+### Coordinate Selection
+
+```blade
+<x-forms::map-input
+    name="location"
+    label="Venue Location"
+/>
+```
+
+### With Model Binding
+
+```blade
+<x-forms::map-input
+    name="location"
+    label="Delivery Location"
+    :model="$order"
+    lat-name="latitude"
+    lng-name="longitude"
+/>
+```
+
+## Component Attributes
+
+### Core Attributes
+
+<ParamField path="name" type="string" required>
+  The input field name
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  Label text displayed above the map
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  Model instance for automatic value binding
+</ParamField>
+
+### Field Names
+
+<ParamField path="latName" type="string" default="lat">
+  Name attribute for the latitude input field
+</ParamField>
+
+<ParamField path="lngName" type="string" default="lng">
+  Name attribute for the longitude input field
+</ParamField>
+
+<ParamField path="radiusName" type="string" default="radius">
+  Name attribute for the radius input field
+</ParamField>
+
+<ParamField path="polygonName" type="string" default="boundary">
+  Name attribute for the polygon boundary field
+</ParamField>
+
+### Feature Flags
+
+<ParamField path="enableCoordinates" type="boolean" default="true">
+  Enable latitude/longitude marker selection
+</ParamField>
+
+<ParamField path="enableRadius" type="boolean" default="false">
+  Enable radius circle drawing (delivery zones, etc.)
+</ParamField>
+
+<ParamField path="enablePolygon" type="boolean" default="false">
+  Enable polygon boundary drawing
+</ParamField>
+
+<ParamField path="hideInputs" type="boolean" default="false">
+  Hide coordinate/radius/polygon input fields (uses hidden inputs)
+</ParamField>
+
+<ParamField path="disabled" type="boolean" default="false">
+  Disable map interaction and input fields
+</ParamField>
+
+### Values
+
+<ParamField path="lat" type="float" default="null">
+  Initial latitude value
+</ParamField>
+
+<ParamField path="lng" type="float" default="null">
+  Initial longitude value
+</ParamField>
+
+<ParamField path="radius" type="float" default="null">
+  Initial radius value
+</ParamField>
+
+<ParamField path="polygon" type="string" default="null">
+  Initial polygon WKT string
+</ParamField>
+
+### Default Values
+
+<ParamField path="defaultLat" type="float" default="null">
+  Default latitude when no value exists
+</ParamField>
+
+<ParamField path="defaultLng" type="float" default="null">
+  Default longitude when no value exists
+</ParamField>
+
+<ParamField path="defaultRadius" type="float" default="null">
+  Default radius when no value exists
+</ParamField>
+
+<ParamField path="defaultPolygon" type="string" default="null">
+  Default polygon WKT when no value exists
+</ParamField>
+
+### Map Center
+
+<ParamField path="defaultMapCenterLat" type="float" default="null">
+  Map center latitude (falls back to `get_setting('default_lat')`)
+</ParamField>
+
+<ParamField path="defaultMapCenterLng" type="float" default="null">
+  Map center longitude (falls back to `get_setting('default_lng')`)
+</ParamField>
+
+### Radius Configuration
+
+<ParamField path="radiusPrecision" type="integer" default="0">
+  Number of decimal places for radius input
+</ParamField>
+
+<ParamField path="maxRadius" type="integer" default="6371000">
+  Maximum allowed radius (Earth's radius in meters)
+</ParamField>
+
+<ParamField path="radiusUnit" type="string" default="m">
+  Unit display for radius (`m` for meters, `km` for kilometers)
+</ParamField>
+
+### Layout Attributes
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Display validation errors
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Show or hide the label
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark field as required
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Display label and input inline
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="">
+  Additional CSS classes for inline label
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="">
+  Additional CSS classes for inline input wrapper
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript validation error display
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  CSS framework override (bootstrap-5, material-admin-26)
+</ParamField>
+
+## Examples
+
+### Simple Location Picker
+
+```blade
+<x-forms::map-input
+    name="venue_location"
+    label="Venue Location"
+    lat-name="venue_lat"
+    lng-name="venue_lng"
+    :model="$venue"
+/>
+```
+
+### Delivery Zone with Radius
+
+```blade
+<x-forms::map-input
+    name="delivery_zone"
+    label="Delivery Coverage Area"
+    :enable-coordinates="true"
+    :enable-radius="true"
+    radius-name="delivery_radius"
+    radius-unit="km"
+    :max-radius="50000"
+    :radius-precision="1"
+    :model="$restaurant"
+/>
+```
+
+### Polygon Boundary
+
+```blade
+<x-forms::map-input
+    name="service_area"
+    label="Service Area Boundary"
+    :enable-polygon="true"
+    polygon-name="service_boundary"
+    :model="$region"
+/>
+```
+
+### Hidden Inputs Mode
+
+```blade
+<x-forms::map-input
+    name="coordinates"
+    label="Select Location on Map"
+    :hide-inputs="true"
+    :model="$location"
+/>
+```
+
+### Read-Only Map Display
+
+```blade
+<x-forms::map-input
+    name="location"
+    label="Current Location"
+    :model="$delivery"
+    :disabled="true"
+/>
+```
+
+### Custom Map Center
+
+```blade
+<x-forms::map-input
+    name="location"
+    label="Office Location"
+    :default-map-center-lat="4.1755"
+    :default-map-center-lng="73.5093"
+    :model="$office"
+/>
+```
+
+## Eloquent Spatial Integration
+
+The component automatically handles Point and Polygon objects from the eloquent-spatial package.
+
+### Point Casting
+
+```php
+use MatanYadaev\EloquentSpatial\Objects\Point;
+
+class Venue extends Model
+{
+    protected $fillable = ['name', 'location'];
+    
+    protected $casts = [
+        'location' => Point::class,
+    ];
+}
+```
+
+```blade
+<x-forms::map-input
+    name="location"
+    label="Venue Location"
+    :model="$venue"
+/>
+```
+
+The component automatically extracts latitude and longitude from the Point object.
+
+### Polygon Casting
+
+```php
+use MatanYadaev\EloquentSpatial\Objects\Polygon;
+
+class Region extends Model
+{
+    protected $fillable = ['name', 'boundary'];
+    
+    protected $casts = [
+        'boundary' => Polygon::class,
+    ];
+}
+```
+
+```blade
+<x-forms::map-input
+    name="boundary"
+    label="Region Boundary"
+    :enable-polygon="true"
+    polygon-name="boundary"
+    :model="$region"
+/>
+```
+
+The component converts Polygon objects to WKT (Well-Known Text) format.
+
+## Google Maps Integration
+
+The component automatically loads the Google Maps JavaScript API when rendered:
+
+```blade
+{{-- Automatically included via @pushonce --}}
+<script>
+    (g=>{...})({key: 'YOUR_API_KEY', v: 'weekly'});
+</script>
+```
+
+The script is pushed to the stack defined in `config/forms.php` (`scripts_stack`).
+
+## Map Features
+
+### Search Functionality
+
+The map includes a built-in search box for location lookup:
+
+```blade
+<input class="map-selector-search" type="text" placeholder="Search location..." />
+```
+
+### Data Attributes
+
+The map container uses these data attributes for JavaScript initialization:
+
+- `data-map-selector="true"` - Identifies the map container
+- `data-lat` - Initial center latitude
+- `data-lng` - Initial center longitude
+- `data-enable-marker` - Enable coordinate marker
+- `data-disabled` - Disable map interaction
+- `data-enable-radius` - Enable radius circle
+- `data-enable-polygon` - Enable polygon drawing
+
+### CSS Classes
+
+Key CSS classes for styling:
+
+- `.map-selector-map` - Map container element
+- `.map-selector-search` - Search input element
+- `.map-selector-lat` - Latitude input element
+- `.map-selector-lng` - Longitude input element
+- `.map-selector-radius` - Radius input element
+- `.map-selector-polygon` - Polygon input element
+
+## Validation
+
+### Laravel Validation Rules
+
+```php
+public function rules()
+{
+    return [
+        'venue_lat' => ['required', 'numeric', 'min:-90', 'max:90'],
+        'venue_lng' => ['required', 'numeric', 'min:-180', 'max:180'],
+        'delivery_radius' => ['nullable', 'numeric', 'min:0'],
+        'service_boundary' => ['nullable', 'string'],
+    ];
+}
+```
+
+### Display Errors
+
+```blade
+<x-forms::map-input
+    name="location"
+    label="Location"
+    :show-errors="true"
+    required
+/>
+```
+
+## Notes
+
+- Requires a valid Google Maps API key in `MAP_API_KEY` environment variable
+- The component extends the base Input component with `type="map-input"`
+- Automatically extracts coordinates from Point objects when model binding
+- Converts Polygon objects to WKT format for textarea display
+- Falls back to `get_setting('default_lat')` and `get_setting('default_lng')` for map center
+- Radius step is calculated dynamically based on `radiusPrecision`
+- The Google Maps script is loaded once per page using `@pushonce`
+- Supports both visible inputs and hidden inputs mode
+- Compatible with Bootstrap 5 and Material Admin 26 frameworks

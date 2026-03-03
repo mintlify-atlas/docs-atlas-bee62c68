@@ -1,0 +1,404 @@
+---
+title: HandlesBoundValues
+description: Trait for binding models and retrieving bound values in form components
+---
+
+## Overview
+
+The `HandlesBoundValues` trait provides functionality for binding Eloquent models to form components and retrieving values from those models, including support for relationships and date formatting.
+
+**Namespace:** `Javaabu\Forms\Support`
+
+## Trait Definition
+
+```php
+trait HandlesBoundValues
+```
+
+## Properties
+
+<ParamField path="model" type="mixed">
+  The bound target (typically an Eloquent model, array, or object).
+</ParamField>
+
+<ParamField path="relation" type="bool" default="false">
+  Whether to retrieve the default value as a single attribute or as a collection from a relationship.
+</ParamField>
+
+## Methods
+
+### getFormsDataBinder
+
+```php
+protected function getFormsDataBinder(): FormsDataBinder
+```
+
+Returns an instance of the FormsDataBinder from the service container.
+
+**Returns:** `Javaabu\Forms\FormsDataBinder`
+
+### bindModel
+
+```php
+protected function bindModel($model)
+```
+
+<ParamField path="model" type="mixed" required>
+  The model to bind. If null, retrieves the currently bound target from FormsDataBinder.
+</ParamField>
+
+Binds a model to the component. If a model is provided, it's pushed to the FormsDataBinder stack. Otherwise, retrieves the current bound target.
+
+**Returns:** `void`
+
+**Example:**
+```php
+public function __construct(string $name, $bind = null)
+{
+    parent::__construct();
+    $this->name = $name;
+    $this->bindModel($bind);
+}
+```
+
+### getBoundTarget
+
+```php
+protected function getBoundTarget()
+```
+
+Retrieves the latest bound target from the FormsDataBinder stack.
+
+**Returns:** `mixed` - The currently bound model, array, or object
+
+### getBoundValue
+
+```php
+protected function getBoundValue($bind, string $name)
+```
+
+<ParamField path="bind" type="mixed" required>
+  The model/object to retrieve value from. If false, returns null. If null/empty, uses the current bound target.
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  The attribute name in dot notation (e.g., `profile.email`).
+</ParamField>
+
+Retrieves a value from the bound target with special handling for relationships and dates.
+
+**Returns:** `mixed` - The retrieved value
+
+**Special Handling:**
+
+1. **Relationships:** If `$relation` is true, extracts keys from relationships
+2. **DateTime:** If value is a DateTimeInterface on an Eloquent model, formats it appropriately
+3. **Nested Access:** Uses `data_get()` for nested attribute access
+
+**Example:**
+```php
+// Simple attribute
+$email = $this->getBoundValue($user, 'email');
+
+// Nested attribute
+$bio = $this->getBoundValue($user, 'profile.bio');
+
+// Date attribute
+$created = $this->getBoundValue($user, 'created_at');
+// Returns JSON formatted date if use_eloquent_date_casting is enabled
+```
+
+### formatDateTime
+
+```php
+protected function formatDateTime(
+    Model $model, 
+    string $key, 
+    DateTimeInterface $date
+)
+```
+
+<ParamField path="model" type="Illuminate\Database\Eloquent\Model" required>
+  The Eloquent model instance.
+</ParamField>
+
+<ParamField path="key" type="string" required>
+  The attribute key being accessed.
+</ParamField>
+
+<ParamField path="date" type="DateTimeInterface" required>
+  The date value to format.
+</ParamField>
+
+Formats a DateTime value based on the model's cast configuration.
+
+**Returns:** `DateTimeInterface|string` - Formatted date or original date object
+
+**Formatting Logic:**
+
+1. If `config('forms.use_eloquent_date_casting')` is false, returns original date
+2. If cast is 'date' or 'datetime', returns JSON format
+3. If cast is custom format (e.g., `date:Y-m-d`), uses that format
+4. Otherwise returns original date
+
+**Example:**
+```php
+// Model with cast: 'created_at' => 'datetime'
+$date = $this->formatDateTime($user, 'created_at', $user->created_at);
+// Returns: "2024-03-15T10:30:00.000000Z"
+
+// Model with cast: 'date_of_birth' => 'date:Y-m-d'
+$date = $this->formatDateTime($user, 'date_of_birth', $user->date_of_birth);
+// Returns: "1990-05-15"
+```
+
+### isCustomDateTimeCast
+
+```php
+protected function isCustomDateTimeCast($cast)
+```
+
+<ParamField path="cast" type="string" required>
+  The cast type to check.
+</ParamField>
+
+Determines if a cast type is a custom date/time cast with format.
+
+**Returns:** `bool` - True if cast starts with date:, datetime:, immutable_date:, or immutable_datetime:
+
+**Example:**
+```php
+$this->isCustomDateTimeCast('date:Y-m-d'); // true
+$this->isCustomDateTimeCast('datetime:Y-m-d H:i'); // true
+$this->isCustomDateTimeCast('datetime'); // false
+```
+
+### getAttachedKeysFromRelation
+
+```php
+protected function getAttachedKeysFromRelation($bind, string $name)
+```
+
+<ParamField path="bind" type="mixed" required>
+  The model instance.
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  The relationship name.
+</ParamField>
+
+Returns an array of attached keys from a relationship. Supports BelongsTo, BelongsToMany, and MorphMany relationships.
+
+**Returns:** `mixed` - Foreign key value or array of keys
+
+**Relationship Support:**
+
+**BelongsTo:**
+```php
+// User belongsTo Role
+$this->relation = true;
+$roleId = $this->getBoundValue($user, 'role');
+// Returns: $user->role_id (e.g., 5)
+```
+
+**BelongsToMany:**
+```php
+// User belongsToMany Roles
+$this->relation = true;
+$roleIds = $this->getBoundValue($user, 'roles');
+// Returns: [1, 3, 5] (array of role IDs)
+```
+
+**MorphMany:**
+```php
+// Post morphMany Comments
+$this->relation = true;
+$commentIds = $this->getBoundValue($post, 'comments');
+// Returns: [10, 11, 12] (array of comment IDs)
+```
+
+## Usage in Components
+
+### Basic Component with Model Binding
+
+```php
+use Javaabu\Forms\Support\HandlesBoundValues;
+use Javaabu\Forms\Views\Components\Component;
+
+class TextInput extends Component
+{
+    use HandlesBoundValues;
+    
+    public string $name;
+    public $value;
+    
+    public function __construct(string $name, $bind = null, $default = null)
+    {
+        parent::__construct();
+        $this->name = $name;
+        $this->bindModel($bind);
+        
+        // Get value from bound model
+        $inputName = static::convertBracketsToDots($name);
+        $boundValue = $this->getBoundValue($bind, $inputName);
+        $this->value = $boundValue ?? $default;
+    }
+}
+```
+
+### Select Component with Relationship
+
+```php
+use Javaabu\Forms\Support\HandlesBoundValues;
+use Javaabu\Forms\Views\Components\Component;
+
+class Select extends Component
+{
+    use HandlesBoundValues;
+    
+    public string $name;
+    public $value;
+    public array $options;
+    protected bool $relation = false;
+    
+    public function __construct(
+        string $name,
+        array $options = [],
+        bool $relation = false,
+        $bind = null
+    ) {
+        parent::__construct();
+        $this->name = $name;
+        $this->options = $options;
+        $this->relation = $relation;
+        $this->bindModel($bind);
+        
+        $inputName = static::convertBracketsToDots($name);
+        $this->value = $this->getBoundValue($bind, $inputName);
+    }
+}
+```
+
+Usage:
+
+```blade
+@model($user)
+    {{-- Simple select (single value) --}}
+    <x-forms::select 
+        name="role_id"
+        :options="$roles"
+    />
+    
+    {{-- Multi-select with relationship (array of IDs) --}}
+    <x-forms::select 
+        name="roles"
+        :options="$roles"
+        :relation="true"
+        multiple
+    />
+@endmodel
+```
+
+## Date Handling Examples
+
+### Model Setup
+
+```php
+class User extends Model
+{
+    protected $casts = [
+        'created_at' => 'datetime',
+        'date_of_birth' => 'date:Y-m-d',
+        'last_login' => 'datetime:Y-m-d H:i',
+    ];
+}
+```
+
+### Component with Date
+
+```php
+class DateInput extends Component
+{
+    use HandlesBoundValues;
+    
+    public function __construct(string $name, $bind = null)
+    {
+        parent::__construct();
+        $this->bindModel($bind);
+        
+        $value = $this->getBoundValue($bind, $name);
+        // $value is automatically formatted based on cast
+    }
+}
+```
+
+### Usage
+
+```blade
+@model($user)
+    {{-- created_at with 'datetime' cast --}}
+    <x-forms::datetime name="created_at" />
+    {{-- Value: "2024-03-15T10:30:00.000000Z" --}}
+    
+    {{-- date_of_birth with 'date:Y-m-d' cast --}}
+    <x-forms::date name="date_of_birth" />
+    {{-- Value: "1990-05-15" --}}
+@endmodel
+```
+
+## Configuration
+
+The trait respects the `forms.use_eloquent_date_casting` configuration:
+
+```php
+// config/forms.php
+return [
+    'use_eloquent_date_casting' => true, // Enable automatic date formatting
+];
+```
+
+When disabled, date values are returned as-is without formatting.
+
+## Relationship Binding Example
+
+```php
+// Models
+class User extends Model
+{
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
+    
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+}
+
+// Blade view
+@model($user)
+    {{-- BelongsTo: Gets foreign key value --}}
+    <x-forms::select 
+        name="department"
+        :options="$departments"
+        :relation="true"
+    />
+    {{-- Value: $user->department_id (e.g., 3) --}}
+    
+    {{-- BelongsToMany: Gets array of keys --}}
+    <x-forms::select 
+        name="roles"
+        :options="$roles"
+        :relation="true"
+        multiple
+    />
+    {{-- Value: [1, 3, 5] --}}
+@endmodel
+```
+
+## Related
+
+- [FormsDataBinder](/api/forms-data-binder)
+- [HandlesDefaultAndOldValue Trait](/api/traits/handles-default-and-old-value)
+- [Component Base Class](/api/component)

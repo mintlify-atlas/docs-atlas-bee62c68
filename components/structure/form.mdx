@@ -1,0 +1,153 @@
+---
+title: Form
+description: Complete form wrapper with CSRF protection and method spoofing
+---
+
+The `<x-forms::form>` component provides a complete form wrapper that automatically handles CSRF tokens, method spoofing for PUT/PATCH/DELETE requests, and model binding.
+
+## Basic Usage
+
+```blade
+<x-forms::form action="/users" method="POST">
+    <x-forms::text name="name" label="Name" />
+    <x-forms::email name="email" label="Email" />
+    <x-forms::submit>Save</x-forms::submit>
+</x-forms::form>
+```
+
+## Attributes
+
+<ParamField path="method" type="string" default="POST">
+  HTTP method for the form. Supports GET, POST, PUT, PATCH, DELETE. PUT, PATCH, and DELETE methods are automatically spoofed using Laravel's `@method` directive.
+</ParamField>
+
+<ParamField path="action" type="string">
+  The URL to submit the form to.
+</ParamField>
+
+<ParamField path="model" type="object" default="null">
+  Eloquent model instance to bind to the form. When provided, form inputs will automatically populate with the model's attribute values.
+</ParamField>
+
+<ParamField path="files" type="boolean" default="false">
+  Set to `true` to enable file uploads. Automatically adds `enctype="multipart/form-data"` to the form.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the CSS framework for this component. Defaults to the global framework setting.
+</ParamField>
+
+## Method Spoofing
+
+Laravel doesn't support PUT, PATCH, or DELETE methods in HTML forms. The component automatically handles method spoofing for these HTTP verbs:
+
+```blade
+<x-forms::form action="/users/1" method="PUT">
+    <!-- Rendered as POST with @method('PUT') -->
+    <x-forms::text name="name" label="Name" />
+    <x-forms::submit>Update</x-forms::submit>
+</x-forms::form>
+```
+
+This renders as:
+
+```html
+<form method="POST" action="/users/1">
+    @csrf
+    @method('PUT')
+    <!-- form fields -->
+</form>
+```
+
+## Model Binding
+
+Bind an Eloquent model to automatically populate form fields:
+
+```blade
+<x-forms::form action="/users/{{ $user->id }}" method="PUT" :model="$user">
+    <!-- Will automatically show $user->name -->
+    <x-forms::text name="name" label="Name" />
+    
+    <!-- Will automatically show $user->email -->
+    <x-forms::email name="email" label="Email" />
+    
+    <x-forms::submit>Update User</x-forms::submit>
+</x-forms::form>
+```
+
+## File Uploads
+
+Enable file uploads by setting the `files` attribute:
+
+```blade
+<x-forms::form action="/profile" method="POST" files>
+    <x-forms::text name="name" label="Name" />
+    <x-forms::file name="avatar" label="Avatar" />
+    <x-forms::submit>Upload</x-forms::submit>
+</x-forms::form>
+```
+
+This automatically adds `enctype="multipart/form-data"` to the form.
+
+## CSRF Protection
+
+CSRF tokens are automatically included for all non-GET requests:
+
+```blade
+<x-forms::form action="/users" method="POST">
+    <!-- @csrf is automatically added -->
+</x-forms::form>
+```
+
+GET, HEAD, and OPTIONS requests do not include CSRF tokens.
+
+## Form Open/Close
+
+For more control, use `<x-forms::form-open>` and `<x-forms::form-close>` separately:
+
+```blade
+<x-forms::form-open action="/users" method="POST" :model="$user" />
+    
+    <x-forms::text name="name" label="Name" />
+    <x-forms::email name="email" label="Email" />
+    
+    <x-forms::submit>Save</x-forms::submit>
+    
+<x-forms::form-close />
+```
+
+## Complete Example
+
+```blade
+<x-forms::form 
+    action="{{ route('users.update', $user) }}" 
+    method="PUT" 
+    :model="$user"
+    files
+>
+    <x-forms::text 
+        name="name" 
+        label="Full Name" 
+        required 
+    />
+    
+    <x-forms::email 
+        name="email" 
+        label="Email Address" 
+        required 
+    />
+    
+    <x-forms::file 
+        name="avatar" 
+        label="Profile Picture" 
+    />
+    
+    <x-forms::textarea 
+        name="bio" 
+        label="Biography" 
+        rows="4"
+    />
+    
+    <x-forms::submit>Update Profile</x-forms::submit>
+</x-forms::form>
+```

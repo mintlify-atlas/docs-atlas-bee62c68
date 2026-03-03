@@ -1,0 +1,180 @@
+---
+title: Conditional Link
+description: Conditionally wrap content in a link based on permissions
+---
+
+The `conditional-link` component wraps content in a link only when certain conditions are met, such as user permissions. It's particularly useful for displaying content that should only be clickable for authorized users.
+
+## Basic Usage
+
+```blade
+<x-forms::conditional-link url="{{ route('users.show', $user) }}" :show-link="true">
+    {{ $user->name }}
+</x-forms::conditional-link>
+```
+
+## Permission-Based Links
+
+Use the `can` attribute to show links only for authorized users:
+
+```blade
+<x-forms::conditional-link 
+    url="{{ route('posts.edit', $post) }}"
+    can="update"
+    :arg="$post"
+>
+    Edit Post
+</x-forms::conditional-link>
+```
+
+## Model Binding
+
+Automatically display model attribute values:
+
+```blade
+<x-forms::conditional-link 
+    url="{{ route('users.show', $user) }}"
+    name="name"
+    :model="$user"
+    can="view"
+    :arg="$user"
+/>
+```
+
+## Value Formatting
+
+### Status Enums
+
+The component automatically detects status enums and displays them with colors:
+
+```blade
+<x-forms::conditional-link 
+    url="{{ route('orders.show', $order) }}"
+    :value="$order->status"
+>
+</x-forms::conditional-link>
+```
+
+### Multiline Text
+
+Display text with line breaks preserved:
+
+```blade
+<x-forms::conditional-link 
+    url="#"
+    :value="$description"
+    :multiline="true"
+    :show-link="false"
+/>
+```
+
+### Array Values
+
+Arrays are automatically joined with a separator:
+
+```blade
+<x-forms::conditional-link 
+    url="#"
+    :value="['tag1', 'tag2', 'tag3']"
+    :show-link="false"
+/>
+```
+
+## Custom Content
+
+Override default rendering with slot content:
+
+```blade
+<x-forms::conditional-link 
+    url="{{ route('products.show', $product) }}"
+    can="view"
+    :arg="$product"
+>
+    <strong>{{ $product->name }}</strong>
+    <span class="text-muted">{{ $product->sku }}</span>
+</x-forms::conditional-link>
+```
+
+## Attributes
+
+<ParamField path="url" type="string" required>
+  The URL to link to when the link is shown
+</ParamField>
+
+<ParamField path="name" type="string" default="">
+  The model attribute name to display when no value is provided
+</ParamField>
+
+<ParamField path="showLink" type="bool" default="null">
+  Explicitly control whether to show the link. When null, uses the `can` attribute to determine visibility
+</ParamField>
+
+<ParamField path="can" type="string" default="">
+  The permission to check. Link is only shown if the user has this permission
+</ParamField>
+
+<ParamField path="arg" type="mixed" default="[]">
+  Arguments to pass to the permission check (typically the model instance)
+</ParamField>
+
+<ParamField path="guard" type="string" default="null">
+  The authentication guard to use for permission checking
+</ParamField>
+
+<ParamField path="value" type="mixed" default="null">
+  The value to display. If null, uses the bound value from the model
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The model instance to extract values from when using the `name` attribute
+</ParamField>
+
+<ParamField path="multiline" type="bool" default="false">
+  Whether to preserve line breaks in the displayed text
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use for rendering
+</ParamField>
+
+## Display Logic
+
+The component follows this rendering logic:
+
+1. If slot content is provided, it's displayed
+2. If the value is an AdminModel, displays `admin_link_name`
+3. If the value is a status enum, renders as a status badge with color
+4. If `multiline` is true, preserves line breaks
+5. If the value is an array, joins elements with a separator
+6. Otherwise, formats the value using default formatting
+
+## Examples
+
+### Table Column with Conditional Edit Link
+
+```blade
+@foreach($users as $user)
+    <tr>
+        <td>
+            <x-forms::conditional-link 
+                url="{{ route('users.edit', $user) }}"
+                can="update"
+                :arg="$user"
+            >
+                {{ $user->name }}
+            </x-forms::conditional-link>
+        </td>
+    </tr>
+@endforeach
+```
+
+### Status Display with Details Link
+
+```blade
+<x-forms::conditional-link 
+    url="{{ route('orders.show', $order) }}"
+    :value="$order->status"
+    can="view"
+    :arg="$order"
+/>
+```

@@ -1,0 +1,198 @@
+---
+title: WYSIWYG Editor
+description: Rich text editor component with TinyMCE integration
+---
+
+## Overview
+
+The WYSIWYG (What You See Is What You Get) component provides a rich text editor for your forms using TinyMCE integration. It extends the Textarea component with automatic editor initialization.
+
+## Basic Usage
+
+```blade
+<x-forms::wysiwyg
+    name="content"
+    label="Content"
+/>
+```
+
+## Component Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the textarea field
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text for the field
+</ParamField>
+
+<ParamField path="rows" type="int" default="3">
+  Number of visible text rows in the textarea
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The Eloquent model to bind values from
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  Default value if no model value exists
+</ParamField>
+
+<ParamField path="value" type="mixed" default="null">
+  Explicit value to use (overrides model/default)
+</ParamField>
+
+<ParamField path="show-errors" type="bool" default="true">
+  Whether to display validation errors
+</ParamField>
+
+<ParamField path="show-label" type="bool" default="true">
+  Whether to display the label
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Placeholder text for the textarea
+</ParamField>
+
+<ParamField path="show-placeholder" type="bool" default="false">
+  Whether to show placeholder text
+</ParamField>
+
+<ParamField path="required" type="bool" default="false">
+  Whether the field is required
+</ParamField>
+
+<ParamField path="inline" type="bool" default="false">
+  Whether to use inline layout (label and input on same row)
+</ParamField>
+
+<ParamField path="floating" type="bool" default="false">
+  Whether to use floating label style
+</ParamField>
+
+<ParamField path="inline-label-class" type="string" default="">
+  Custom CSS class for inline label column
+</ParamField>
+
+<ParamField path="inline-input-class" type="string" default="">
+  Custom CSS class for inline input column
+</ParamField>
+
+<ParamField path="show-js-errors" type="bool" default="false">
+  Whether to display JavaScript validation errors
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework (bootstrap-5, material-admin-26)
+</ParamField>
+
+## TinyMCE Integration
+
+The WYSIWYG component automatically initializes TinyMCE editor with the following configuration:
+
+### Default Plugins
+
+- `autolink` - Automatically creates links from URLs
+- `link` - Insert/edit links
+- `lists` - Ordered and unordered lists
+- `directionality` - LTR/RTL text direction
+- `code` - View/edit HTML source code
+- `visualchars` - Show invisible characters
+- `quickbars` - Context toolbar
+
+### Default Toolbar
+
+```
+undo redo | styles bold italic | bullist numlist | 
+alignleft aligncenter alignright alignjustify alignnone |
+link unlink | ltr rtl | outdent indent | code
+```
+
+### JavaScript Integration
+
+The component automatically includes TinyMCE scripts by pushing to the configured stack:
+
+```blade
+@pushonce(config('forms.scripts_stack'))
+    @include('forms::partials.wysiwyg-script')
+@endpushonce
+```
+
+## Scripts Stack Configuration
+
+Ensure your layout has the scripts stack defined. The default stack name is configured in `config/forms.php`:
+
+```php
+'scripts_stack' => 'scripts',
+```
+
+In your layout file:
+
+```blade
+@stack('scripts')
+```
+
+## Complete Example
+
+```blade
+<x-forms::form method="POST" action="{{ route('posts.store') }}">
+    <x-forms::wysiwyg
+        name="description"
+        label="Post Description"
+        rows="10"
+        required
+        placeholder="Enter the post description..."
+    />
+
+    <x-forms::button type="submit">
+        Save Post
+    </x-forms::button>
+</x-forms::form>
+```
+
+## Customizing TinyMCE
+
+To customize the TinyMCE configuration, publish the views:
+
+```bash
+php artisan vendor:publish --tag=forms-views
+```
+
+Then modify `resources/views/vendor/forms/partials/wysiwyg-script.blade.php`:
+
+```blade
+<script src="{{ asset('vendors/tinymce/tinymce.min.js') }}" referrerpolicy="origin"></script>
+<script type="text/javascript">
+    tinymce.init({
+        selector: '.wysiwyg',
+        menubar: true,  // Enable menubar
+        height: 500,    // Set custom height
+        plugins: [
+            'autolink',
+            'link',
+            'image',     // Add image plugin
+            'lists',
+            'table',     // Add table plugin
+            'directionality',
+            'code',
+            'visualchars',
+            'quickbars'
+        ],
+        toolbar: [
+            'undo redo | styles bold italic | bullist numlist | ' +
+            'alignleft aligncenter alignright | ' +
+            'link image table | ltr rtl | outdent indent | code '
+        ],
+    });
+</script>
+```
+
+## Requirements
+
+Ensure TinyMCE is installed and accessible:
+
+```
+public/vendors/tinymce/tinymce.min.js
+```
+
+You can include TinyMCE via CDN or install it locally.

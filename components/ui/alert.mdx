@@ -1,0 +1,347 @@
+---
+title: Alert
+description: Display contextual feedback messages with Bootstrap alert styling
+---
+
+The Alert component provides contextual feedback messages using Bootstrap's alert component. It supports different types, icons, dismissible alerts, and custom headings.
+
+## Basic Usage
+
+```blade
+<x-forms::alert type="success">
+    Your changes have been saved successfully!
+</x-forms::alert>
+```
+
+## Alert Component
+
+### Attributes
+
+<ParamField path="type" type="string" default="primary">
+  The Bootstrap alert type. Options:
+  - `primary` - Primary blue (default)
+  - `secondary` - Secondary gray
+  - `success` - Success green
+  - `danger` - Danger red
+  - `warning` - Warning yellow
+  - `info` - Info cyan
+  - `light` - Light gray
+  - `dark` - Dark gray
+</ParamField>
+
+<ParamField path="dismissible" type="bool" default="false">
+  Whether the alert can be dismissed with a close button
+</ParamField>
+
+<ParamField path="icon" type="string" default="">
+  Font Awesome icon class to display (e.g., 'fas fa-check-circle')
+</ParamField>
+
+<ParamField path="heading" type="string" default="">
+  Optional heading text for the alert
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use (e.g., 'bootstrap-5')
+</ParamField>
+
+<ParamField path="class" type="string">
+  Additional CSS classes to apply to the alert
+</ParamField>
+
+## Alert Types
+
+### Primary
+
+```blade
+<x-forms::alert type="primary">
+    This is a primary alert with important information.
+</x-forms::alert>
+```
+
+### Success
+
+```blade
+<x-forms::alert type="success">
+    Your operation completed successfully!
+</x-forms::alert>
+```
+
+### Danger
+
+```blade
+<x-forms::alert type="danger">
+    An error occurred. Please try again.
+</x-forms::alert>
+```
+
+### Warning
+
+```blade
+<x-forms::alert type="warning">
+    Warning: This action cannot be undone.
+</x-forms::alert>
+```
+
+### Info
+
+```blade
+<x-forms::alert type="info">
+    Here's some helpful information for you.
+</x-forms::alert>
+```
+
+### Secondary
+
+```blade
+<x-forms::alert type="secondary">
+    This is a secondary alert message.
+</x-forms::alert>
+```
+
+## Dismissible Alert
+
+Alerts with a close button:
+
+```blade
+<x-forms::alert type="success" :dismissible="true">
+    This alert can be dismissed by clicking the close button.
+</x-forms::alert>
+```
+
+## With Icons
+
+```blade
+<x-forms::alert type="success" icon="fas fa-check-circle">
+    Your profile has been updated successfully!
+</x-forms::alert>
+
+<x-forms::alert type="danger" icon="fas fa-exclamation-triangle">
+    Failed to process your request. Please check your input.
+</x-forms::alert>
+
+<x-forms::alert type="info" icon="fas fa-info-circle">
+    Did you know? You can customize your dashboard layout.
+</x-forms::alert>
+```
+
+## With Heading
+
+```blade
+<x-forms::alert type="warning" heading="Important Notice">
+    Your subscription will expire in 7 days. Please renew to continue using our services.
+</x-forms::alert>
+```
+
+## With Icon and Heading
+
+```blade
+<x-forms::alert 
+    type="danger" 
+    icon="fas fa-exclamation-circle"
+    heading="Error Occurred"
+>
+    <p>Unable to connect to the database. Please check your connection settings.</p>
+    <ul class="mb-0">
+        <li>Verify your database credentials</li>
+        <li>Ensure the database server is running</li>
+        <li>Check your network connection</li>
+    </ul>
+</x-forms::alert>
+```
+
+## Dismissible with Icon
+
+```blade
+<x-forms::alert 
+    type="success" 
+    icon="fas fa-thumbs-up"
+    :dismissible="true"
+>
+    Great job! Your settings have been saved.
+</x-forms::alert>
+```
+
+## With HTML Content
+
+```blade
+<x-forms::alert type="info" heading="New Features Available">
+    <p>We've added some exciting new features:</p>
+    <ul>
+        <li><strong>Dark Mode</strong> - Toggle between light and dark themes</li>
+        <li><strong>Export Data</strong> - Download your data in multiple formats</li>
+        <li><strong>API Access</strong> - Integrate with third-party services</li>
+    </ul>
+    <a href="/features" class="alert-link">Learn more about new features</a>
+</x-forms::alert>
+```
+
+## Complete Examples
+
+### Success Message
+
+```blade
+<x-forms::alert 
+    type="success" 
+    icon="fas fa-check-circle"
+    heading="Payment Successful"
+    :dismissible="true"
+>
+    Your payment of $99.99 has been processed successfully. 
+    A confirmation email has been sent to your registered email address.
+</x-forms::alert>
+```
+
+### Error Message
+
+```blade
+<x-forms::alert 
+    type="danger" 
+    icon="fas fa-times-circle"
+    heading="Validation Failed"
+>
+    <p>Please correct the following errors:</p>
+    <ul class="mb-0">
+        @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</x-forms::alert>
+```
+
+### Information Notice
+
+```blade
+<x-forms::alert 
+    type="info" 
+    icon="fas fa-lightbulb"
+    heading="Pro Tip"
+    class="mb-4"
+>
+    You can press <kbd>Ctrl</kbd> + <kbd>S</kbd> to quickly save your work.
+</x-forms::alert>
+```
+
+### Warning with Action
+
+```blade
+<x-forms::alert 
+    type="warning" 
+    icon="fas fa-exclamation-triangle"
+    heading="Action Required"
+>
+    <p>Your account verification is pending. Please verify your email address to access all features.</p>
+    <hr>
+    <div class="d-flex justify-content-end">
+        <form action="{{ route('verification.resend') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-warning btn-sm">
+                Resend Verification Email
+            </button>
+        </form>
+    </div>
+</x-forms::alert>
+```
+
+## Validation Errors
+
+```blade
+@if($errors->any())
+    <x-forms::alert type="danger" icon="fas fa-exclamation-circle" heading="Validation Errors">
+        <ul class="mb-0">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </x-forms::alert>
+@endif
+```
+
+## Session Flash Messages
+
+```blade
+@if(session('success'))
+    <x-forms::alert type="success" :dismissible="true" icon="fas fa-check">
+        {{ session('success') }}
+    </x-forms::alert>
+@endif
+
+@if(session('error'))
+    <x-forms::alert type="danger" :dismissible="true" icon="fas fa-times">
+        {{ session('error') }}
+    </x-forms::alert>
+@endif
+
+@if(session('info'))
+    <x-forms::alert type="info" :dismissible="true" icon="fas fa-info">
+        {{ session('info') }}
+    </x-forms::alert>
+@endif
+```
+
+## Component Structure
+
+### Without Icon
+
+```html
+<div class="alert alert-{type}" role="alert">
+    <!-- Optional: Heading -->
+    <h4 class="alert-heading">Heading</h4>
+    
+    <!-- Content -->
+    Content goes here
+    
+    <!-- Optional: Close Button (if dismissible) -->
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+```
+
+### With Icon
+
+```html
+<div class="alert alert-{type}" role="alert">
+    <div class="d-flex align-items-baseline">
+        <i class="{icon} fa-lg flex-shrink-0 me-2" aria-hidden="true"></i>
+        <div class="flex-grow-1">
+            <!-- Optional: Heading -->
+            <h4 class="alert-heading">Heading</h4>
+            
+            <!-- Content -->
+            Content goes here
+        </div>
+    </div>
+    
+    <!-- Optional: Close Button (if dismissible) -->
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+```
+
+## Bootstrap Integration
+
+This component uses Bootstrap 5 alert components:
+- `.alert` - Base alert class
+- `.alert-{type}` - Contextual alert types (primary, success, danger, etc.)
+- `.alert-heading` - Alert heading styling (h4)
+- `.alert-dismissible` - Makes alert dismissible
+- `.fade` - Fade transition
+- `.show` - Shows the alert
+- `.btn-close` - Close button
+- `.alert-link` - Styled links within alerts
+
+**Utility Classes Used:**
+- `.d-flex` - Flexbox display
+- `.align-items-baseline` - Align items to baseline
+- `.flex-shrink-0` - Prevent flex shrinking
+- `.flex-grow-1` - Allow flex growing
+- `.me-2` - Margin end (right) spacing
+- `.mb-0` - Remove bottom margin
+
+**Font Awesome Integration:**
+
+The component supports Font Awesome icons. Common icon classes:
+- Success: `fas fa-check-circle`, `fas fa-check`, `fas fa-thumbs-up`
+- Danger: `fas fa-times-circle`, `fas fa-exclamation-circle`, `fas fa-times`
+- Warning: `fas fa-exclamation-triangle`, `fas fa-exclamation`
+- Info: `fas fa-info-circle`, `fas fa-lightbulb`, `fas fa-question-circle`
+
+For more information, see [Bootstrap Alerts Documentation](https://getbootstrap.com/docs/5.0/components/alerts/).

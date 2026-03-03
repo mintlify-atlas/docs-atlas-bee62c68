@@ -1,0 +1,230 @@
+---
+title: Infolist
+description: Card-based container for displaying grouped information
+---
+
+The Infolist component provides a card-based container for displaying grouped read-only information. It's ideal for detail pages, profile views, and any scenario where you need to present structured data in an organized card layout.
+
+## Basic Usage
+
+```blade
+<x-forms::infolist title="User Details" :model="$user">
+    <x-forms::text-entry name="name" label="Full Name" />
+    <x-forms::text-entry name="email" label="Email" />
+    <x-forms::boolean-entry name="is_active" label="Active" />
+</x-forms::infolist>
+```
+
+## Without Title
+
+```blade
+<x-forms::infolist :model="$user">
+    <x-forms::text-entry name="name" label="Name" />
+    <x-forms::text-entry name="email" label="Email" />
+</x-forms::infolist>
+```
+
+## Inline Layout
+
+Combine with inline text entries for a horizontal layout:
+
+```blade
+<x-forms::infolist title="Profile Information" :model="$user">
+    <x-forms::text-entry name="name" label="Full Name" :inline="true" />
+    <x-forms::text-entry name="email" label="Email" :inline="true" />
+    <x-forms::text-entry name="phone" label="Phone" :inline="true" />
+    <x-forms::boolean-entry name="is_verified" label="Verified" :inline="true" />
+</x-forms::infolist>
+```
+
+## Multiple Sections
+
+Organize information into multiple cards:
+
+```blade
+<div class="row">
+    <div class="col-md-6">
+        <x-forms::infolist title="Basic Information" :model="$user">
+            <x-forms::text-entry name="name" label="Name" :inline="true" />
+            <x-forms::text-entry name="email" label="Email" :inline="true" />
+            <x-forms::text-entry name="phone" label="Phone" :inline="true" />
+        </x-forms::infolist>
+    </div>
+    <div class="col-md-6">
+        <x-forms::infolist title="Status" :model="$user">
+            <x-forms::boolean-entry name="is_active" label="Active" :inline="true" />
+            <x-forms::boolean-entry name="is_verified" label="Verified" :inline="true" />
+            <x-forms::text-entry name="created_at" label="Joined" :inline="true" />
+        </x-forms::infolist>
+    </div>
+</div>
+```
+
+## With Card Slots
+
+Utilize card component slots for advanced layouts:
+
+```blade
+<x-forms::infolist title="User Profile" :model="$user">
+    <x-slot name="header">
+        <div class="d-flex justify-content-between align-items-center">
+            <span>Profile Details</span>
+            <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-primary">
+                Edit Profile
+            </a>
+        </div>
+    </x-slot>
+    
+    <x-forms::text-entry name="name" label="Name" :inline="true" />
+    <x-forms::text-entry name="email" label="Email" :inline="true" />
+    
+    <x-slot name="footer">
+        <small class="text-muted">Last updated: {{ $user->updated_at->diffForHumans() }}</small>
+    </x-slot>
+</x-forms::infolist>
+```
+
+## Custom Styling
+
+```blade
+<x-forms::infolist 
+    title="Order Details" 
+    :model="$order"
+    class="shadow-sm border-primary" 
+>
+    <x-forms::text-entry name="reference" label="Reference" :inline="true" />
+    <x-forms::text-entry name="status" label="Status" :inline="true" />
+    <x-forms::text-entry name="total" label="Total" :inline="true" />
+</x-forms::infolist>
+```
+
+## Mixed Content
+
+Combine display components with custom content:
+
+```blade
+<x-forms::infolist title="Post Details" :model="$post">
+    <x-forms::text-entry name="title" label="Title" :inline="true" />
+    <x-forms::text-entry name="author.name" label="Author" :inline="true" />
+    <x-forms::text-entry name="status" label="Status" :inline="true" />
+    
+    <hr>
+    
+    <div class="mb-3">
+        <h6>Content</h6>
+        <x-forms::text-entry name="content" :show-label="false" :wysiwyg="true" />
+    </div>
+    
+    <div>
+        <h6>Tags</h6>
+        <x-forms::text-entry name="tags" :show-label="false" />
+    </div>
+</x-forms::infolist>
+```
+
+## Attributes
+
+<ParamField path="title" type="string" default="">
+  The title displayed at the top of the card
+</ParamField>
+
+<ParamField path="model" type="Model" default="null">
+  The model instance to bind to all child components. Child components will automatically retrieve their values from this model.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework (bootstrap-5, material-admin-26)
+</ParamField>
+
+## Card Slots
+
+The Infolist inherits all card component slots:
+
+<ParamField path="image_top" type="slot">
+  Image displayed at the top of the card
+</ParamField>
+
+<ParamField path="header" type="slot">
+  Custom header content (replaces the default title rendering)
+</ParamField>
+
+<ParamField path="title" type="slot">
+  Custom title content within the card body
+</ParamField>
+
+<ParamField path="subtitle" type="slot">
+  Subtitle content displayed below the title
+</ParamField>
+
+<ParamField path="footer" type="slot">
+  Footer content at the bottom of the card
+</ParamField>
+
+## Model Binding
+
+The Infolist component automatically binds its model to all child display components, eliminating the need to pass the model to each entry:
+
+```blade
+<!-- Without Infolist -->
+<x-forms::text-entry name="name" label="Name" :model="$user" />
+<x-forms::text-entry name="email" label="Email" :model="$user" />
+<x-forms::text-entry name="phone" label="Phone" :model="$user" />
+
+<!-- With Infolist -->
+<x-forms::infolist :model="$user">
+    <x-forms::text-entry name="name" label="Name" />
+    <x-forms::text-entry name="email" label="Email" />
+    <x-forms::text-entry name="phone" label="Phone" />
+</x-forms::infolist>
+```
+
+## Rendering
+
+The component renders as a Bootstrap card with:
+- Optional card header (if header slot is provided)
+- Card body containing:
+  - Title (if provided)
+  - Subtitle (if subtitle slot is provided)
+  - Slot content (your display entries and custom content)
+- Optional footer (if footer slot is provided)
+
+## Use Cases
+
+### Detail Pages
+
+```blade
+<x-forms::infolist title="Customer Information" :model="$customer">
+    <x-forms::text-entry name="full_name" label="Name" :inline="true" />
+    <x-forms::text-entry name="email" label="Email" :inline="true" />
+    <x-forms::text-entry name="phone" label="Phone" :inline="true" />
+    <x-forms::text-entry name="company" label="Company" :inline="true" />
+</x-forms::infolist>
+```
+
+### Profile Views
+
+```blade
+<x-forms::infolist title="Profile" :model="$user">
+    <x-slot name="image_top">
+        <img src="{{ $user->avatar_url }}" class="card-img-top" alt="Avatar">
+    </x-slot>
+    
+    <x-forms::text-entry name="name" label="Name" :inline="true" />
+    <x-forms::text-entry name="email" label="Email" :inline="true" />
+    <x-forms::text-entry name="bio" label="Bio" :multiline="true" />
+</x-forms::infolist>
+```
+
+### Dashboard Widgets
+
+```blade
+<div class="row">
+    <div class="col-lg-4">
+        <x-forms::infolist title="Statistics" :model="$stats">
+            <x-forms::text-entry name="total_orders" label="Orders" :inline="true" />
+            <x-forms::text-entry name="total_revenue" label="Revenue" :inline="true" />
+            <x-forms::text-entry name="total_customers" label="Customers" :inline="true" />
+        </x-forms::infolist>
+    </div>
+</div>
+```

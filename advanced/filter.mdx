@@ -1,0 +1,260 @@
+---
+title: Filter
+description: Card wrapper component for building filter forms
+---
+
+## Overview
+
+The Filter component provides a card-based wrapper for creating filter forms. It automatically includes hidden fields for `orderby` and `order` parameters to preserve sorting state.
+
+## Basic Usage
+
+```blade
+<x-forms::filter>
+    <x-forms::text name="name" label="Name" />
+    <x-forms::select name="status" label="Status" :options="$statuses" />
+</x-forms::filter>
+```
+
+## Component Attributes
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework (bootstrap-5, material-admin-26)
+</ParamField>
+
+## Template Structure
+
+The filter component wraps your filter inputs in a card:
+
+```blade
+<div class="card">
+    <div class="card-body">
+        {{ $slot }}
+
+        <x-forms::hidden name="orderby" />
+        <x-forms::hidden name="order" />
+    </div>
+</div>
+```
+
+## Auto-Included Fields
+
+The component automatically includes two hidden fields:
+
+- `orderby` - Preserves the column being sorted
+- `order` - Preserves the sort direction (asc/desc)
+
+These fields ensure that when users apply filters, their sorting preferences are maintained.
+
+## Usage with Form
+
+The Filter component should be used inside a Form component:
+
+```blade
+<x-forms::form method="GET" action="{{ route('users.index') }}">
+    <x-forms::filter>
+        <x-forms::text 
+            name="search" 
+            label="Search" 
+            placeholder="Search by name or email..."
+        />
+
+        <x-forms::select 
+            name="role" 
+            label="Role" 
+            :options="$roles"
+            allow-clear
+        />
+
+        <x-forms::date 
+            name="created_from" 
+            label="Created From"
+        />
+
+        <x-forms::date 
+            name="created_to" 
+            label="Created To"
+        />
+    </x-forms::filter>
+
+    <x-forms::filter-submit 
+        :cancel-url="route('users.index')"
+        export="xlsx"
+    />
+</x-forms::form>
+```
+
+## Complete Example with Results
+
+```blade
+{{-- Filter Form --}}
+<x-forms::form method="GET" action="{{ route('products.index') }}">
+    <x-forms::filter>
+        <div class="row">
+            <div class="col-md-6">
+                <x-forms::text 
+                    name="name" 
+                    label="Product Name"
+                />
+            </div>
+            <div class="col-md-6">
+                <x-forms::select 
+                    name="category_id" 
+                    label="Category" 
+                    :options="$categories"
+                    allow-clear
+                />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <x-forms::number 
+                    name="price_min" 
+                    label="Min Price"
+                />
+            </div>
+            <div class="col-md-6">
+                <x-forms::number 
+                    name="price_max" 
+                    label="Max Price"
+                />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <x-forms::radio 
+                    name="in_stock" 
+                    label="Availability"
+                    :options="[
+                        '' => 'All',
+                        '1' => 'In Stock',
+                        '0' => 'Out of Stock'
+                    ]"
+                />
+            </div>
+        </div>
+    </x-forms::filter>
+
+    <x-forms::filter-submit 
+        :cancel-url="route('products.index')"
+        :export="[
+            'xlsx' => 'Export to Excel',
+            'csv' => 'Export to CSV',
+            'pdf' => 'Export to PDF'
+        ]"
+    />
+</x-forms::form>
+
+{{-- Results Table --}}
+<div class="card mt-4">
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        <a href="{{ route('products.index', array_merge(request()->all(), [
+                            'orderby' => 'name',
+                            'order' => request('orderby') == 'name' && request('order') == 'asc' ? 'desc' : 'asc'
+                        ])) }}">
+                            Name
+                        </a>
+                    </th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($products as $product)
+                    <tr>
+                        <td>{{ $product->name }}</td>
+                        <td>{{ $product->category->name }}</td>
+                        <td>{{ $product->price }}</td>
+                        <td>{{ $product->stock }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        {{ $products->appends(request()->all())->links('forms::bootstrap-5.pagination') }}
+    </div>
+</div>
+```
+
+## Controller Example
+
+```php
+public function index(Request $request)
+{
+    $query = Product::query();
+
+    // Apply filters
+    if ($name = $request->input('name')) {
+        $query->where('name', 'like', "%{$name}%");
+    }
+
+    if ($categoryId = $request->input('category_id')) {
+        $query->where('category_id', $categoryId);
+    }
+
+    if ($request->has('price_min')) {
+        $query->where('price', '>=', $request->input('price_min'));
+    }
+
+    if ($request->has('price_max')) {
+        $query->where('price', '<=', $request->input('price_max'));
+    }
+
+    if ($request->has('in_stock')) {
+        $inStock = (bool) $request->input('in_stock');
+        $query->where('stock', $inStock ? '>' : '=', 0);
+    }
+
+    // Apply sorting
+    if ($orderby = $request->input('orderby')) {
+        $order = $request->input('order', 'asc');
+        $query->orderBy($orderby, $order);
+    }
+
+    // Handle export
+    if ($request->has('download')) {
+        $format = $request->input('download');
+        return $this->export($query, $format);
+    }
+
+    $products = $query->paginate($request->input('per_page', 20));
+    $categories = Category::pluck('name', 'id');
+
+    return view('products.index', compact('products', 'categories'));
+}
+```
+
+## Styling
+
+The filter component uses Bootstrap card styling:
+
+```css
+.card {
+    margin-bottom: 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+```
+
+You can add custom classes:
+
+```blade
+<x-forms::filter class="shadow-sm">
+    <!-- Filter inputs -->
+</x-forms::filter>
+```
+
+## Related Components
+
+- [Per Page](/advanced/per-page) - Items per page selector
+- [Pagination](/advanced/pagination) - Pagination links
+- [Search Form](/advanced/search-form) - Quick search component

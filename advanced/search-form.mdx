@@ -1,0 +1,236 @@
+---
+title: Search Form
+description: Quick search form component for filtering data
+---
+
+## Overview
+
+The Search Form component provides a simple, ready-to-use search form with a text input field. It extends the Form component and automatically uses GET method with query parameters.
+
+## Basic Usage
+
+```blade
+<x-forms::search-form
+    route="users.index"
+/>
+```
+
+## Component Attributes
+
+<ParamField path="name" type="string" default="search">
+  The name attribute for the search input field
+</ParamField>
+
+<ParamField path="action" type="string" default="">
+  The form action URL (overrides route)
+</ParamField>
+
+<ParamField path="route" type="string" default="" required>
+  The route name to submit the form to
+</ParamField>
+
+<ParamField path="params" type="array" default="[]">
+  Additional route parameters
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Placeholder text for the search input (defaults to translation)
+</ParamField>
+
+<ParamField path="icon" type="string" default="">
+  Icon to display (uses framework default search icon if not specified)
+</ParamField>
+
+<ParamField path="method" type="string" default="GET">
+  HTTP method for the form
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The model to bind values from (defaults to request query parameters)
+</ParamField>
+
+<ParamField path="files" type="bool" default="false">
+  Whether the form will upload files
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework
+</ParamField>
+
+## Template Structure
+
+The search form component renders a simple form with a text input:
+
+```blade
+<x-forms::form :action="$action ?: route($route, $params)" 
+               class="search" 
+               :method="$method" 
+               :framework="$framework" 
+               :files="$files">
+    <x-forms::text
+        :name="$name"
+        :placeholder="$placeholder ?: trans('forms::strings.search_form_placeholder')"
+        :show-label="false"
+        :framework="$framework"
+    />
+</x-forms::form>
+```
+
+## Default Behavior
+
+### Auto Model Binding
+
+If no model is provided, the search form automatically binds to the request query parameters:
+
+```php
+if (! $model) {
+    $model = request()->query();
+}
+```
+
+This means the search input will automatically retain its value after form submission.
+
+### Framework Icons
+
+The component uses framework-specific search icons:
+
+**Bootstrap 5:**
+```php
+'search-icon' => 'fa-search'  // Font Awesome
+```
+
+**Material Admin 26:**
+```php
+'search-icon' => 'zmdi-search'  // Material Design Icons
+```
+
+## Usage Examples
+
+### Basic Search
+
+```blade
+<x-forms::search-form
+    route="products.index"
+/>
+```
+
+### Custom Placeholder
+
+```blade
+<x-forms::search-form
+    route="users.index"
+    placeholder="Search users by name or email..."
+/>
+```
+
+### Search with Route Parameters
+
+```blade
+<x-forms::search-form
+    route="category.products"
+    :params="['category' => $category->id]"
+/>
+```
+
+### Custom Field Name
+
+```blade
+<x-forms::search-form
+    route="orders.index"
+    name="query"
+    placeholder="Search orders..."
+/>
+```
+
+### Using Action URL Instead of Route
+
+```blade
+<x-forms::search-form
+    action="/admin/search"
+    name="q"
+/>
+```
+
+## Controller Integration
+
+Handle the search in your controller:
+
+```php
+public function index(Request $request)
+{
+    $query = User::query();
+
+    if ($search = $request->input('search')) {
+        $query->where(function($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%");
+        });
+    }
+
+    $users = $query->paginate(20);
+
+    return view('users.index', compact('users'));
+}
+```
+
+## Complete Example with Filters
+
+```blade
+<div class="mb-4">
+    <x-forms::search-form
+        route="products.index"
+        placeholder="Search products..."
+    />
+</div>
+
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($products as $product)
+                <tr>
+                    <td>{{ $product->name }}</td>
+                    <td>{{ $product->price }}</td>
+                    <td>{{ $product->stock }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="3">No products found</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+{{ $products->links('forms::bootstrap-5.pagination') }}
+```
+
+## Styling
+
+The search form has a `search` CSS class that you can target:
+
+```css
+form.search {
+    max-width: 500px;
+}
+
+form.search input {
+    border-radius: 20px;
+}
+```
+
+## Translation
+
+The default placeholder uses the translation key:
+
+```
+forms::strings.search_form_placeholder
+```
+
+You can customize this in your language files or pass a custom placeholder.

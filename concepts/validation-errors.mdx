@@ -1,0 +1,332 @@
+---
+title: Validation Errors
+description: Automatic validation error display with the HandlesValidationErrors trait
+---
+
+## Overview
+
+Javaabu Forms automatically displays validation errors from Laravel's validation system. All input components use the `HandlesValidationErrors` trait to integrate seamlessly with Laravel's error bags.
+
+## The HandlesValidationErrors Trait
+
+The `HandlesValidationErrors` trait (`src/Support/HandlesValidationErrors.php:10`) provides error handling functionality:
+
+```php
+trait HandlesValidationErrors
+{
+    public bool $showErrors = true;
+
+    public function hasErrorAndShow(string $name, string $bag = 'default'): bool
+    {
+        return $this->showErrors
+            ? $this->hasError($name, $bag)
+            : false;
+    }
+
+    protected function getErrorBag(string $bag = 'default'): MessageBag
+    {
+        $bags = View::shared('errors', fn () => request()->session()->get('errors', new ViewErrorBag()));
+
+        return $bags->getBag($bag);
+    }
+
+    public function hasError(string $name, string $bag = 'default'): bool
+    {
+        $name = str_replace(['[', ']'], ['.', ''], Str::before($name, '[]'));
+
+        $errorBag = $this->getErrorBag($bag);
+
+        return $errorBag->has($name) || $errorBag->has($name . '.*');
+    }
+}
+```
+
+## Component Integration
+
+Input components include the trait (`src/Views/Components/Input.php:10`):
+
+```php
+class Input extends Component
+{
+    use HandlesValidationErrors;
+    use HandlesDefaultAndOldValue;
+
+    public function __construct(
+        string $name,
+        string $label = '',
+        string $type = 'text',
+        $model = null,
+        $default = null,
+        bool   $showErrors = true, // Default is true
+        // ...
+    ) {
+        $this->showErrors = $showErrors;
+        // ...
+    }
+}
+```
+
+## Automatic Error Display
+
+Components automatically render errors when validation fails (`resources/views/bootstrap-5/input.blade.php:60`):
+
+```blade
+@if($hasErrorAndShow($name))
+    <x-forms::errors :framework="$framework" :name="$name"/>
+@endif
+```
+
+The errors component renders the validation message (`resources/views/bootstrap-5/errors.blade.php:1`):
+
+```blade
+@error($name, $bag)
+<div {!! $attributes->merge(['class' => 'invalid-feedback']) !!}>
+    {{ $message }}
+</div>
+@enderror
+```
+
+## Error Styling
+
+Inputs automatically receive error styling when validation fails (`resources/views/bootstrap-5/input.blade.php:22`):
+
+```blade
+<input
+    {!! $attributes->merge([
+        'class' => 'form-control' . ($hasError($name) ? ' is-invalid' : '')
+    ]) !!}
+    type="{{ $type }}"
+    value="{{ $value }}"
+    name="{{ $name }}"
+/>
+```
+
+In Bootstrap 5, the `is-invalid` class adds red borders and displays the error message.
+
+## Usage Examples
+
+### Basic Validation
+
+```php
+// Controller
+public function store(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required|min:8',
+    ]);
+    
+    // ...
+}
+```
+
+```blade
+<!-- View -->
+<x-forms::form method="POST" action="/register">
+    <x-forms::input name="email" label="Email" type="email" />
+    <x-forms::input name="password" label="Password" type="password" />
+    <x-forms::submit>Register</x-forms::submit>
+</x-forms::form>
+```
+
+When validation fails, the form automatically displays error messages below each invalid field.
+
+### Array Input Validation
+
+The trait handles array input names correctly (`src/Support/HandlesValidationErrors.php:51`):
+
+```php
+// Controller
+$request->validate([
+    'tags' => 'required|array',
+    'tags.*' => 'string|max:50',
+    'users.*.name' => 'required|string',
+]);
+```
+
+```blade
+<!-- View -->
+<x-forms::select name="tags[]" label="Tags" :options="$tags" multiple />
+```
+
+The trait converts bracket notation `tags[]` to dot notation `tags` and checks for both `tags` and `tags.*` errors.
+
+## The showErrors Parameter
+
+All input components accept a `showErrors` parameter to control error display:
+
+### Hiding Errors
+
+```blade
+<x-forms::input 
+    name="email" 
+    label="Email" 
+    :show-errors="false" 
+/>
+```
+
+Use this when:
+- You want to display errors in a custom location
+- You're implementing custom error handling
+- The field is for internal use only
+
+### Conditional Error Display
+
+```blade
+<x-forms::input 
+    name="email" 
+    label="Email" 
+    :show-errors="$displayErrors" 
+/>
+```
+
+## Named Error Bags
+
+Laravel supports multiple error bags for complex forms. The trait supports this via the `$bag` parameter (`src/Support/HandlesValidationErrors.php:35`):
+
+```php
+// Controller
+return redirect()
+    ->back()
+    ->withErrors($validator, 'login');
+```
+
+```blade
+<!-- View -->
+<x-forms::input name="email" label="Email" bag="login" />
+```
+
+## JavaScript Validation Errors
+
+For client-side validation, use the `showJsErrors` parameter:
+
+```blade
+<x-forms::input 
+    name="email" 
+    label="Email" 
+    :show-js-errors="true" 
+/>
+```
+
+This renders an additional error container (`resources/views/bootstrap-5/input.blade.php:64`):
+
+```blade
+@if($showJsErrors)
+    <x-forms::js-errors :framework="$framework" :name="$name" />
+@endif
+```
+
+Use this with JavaScript validation libraries to display client-side validation errors in a consistent format.
+
+## All Components with Error Support
+
+The following components use `HandlesValidationErrors` and support the `showErrors` parameter:
+
+<Steps>
+  <Step title="Text Inputs">
+    `<x-forms::input>`, `<x-forms::text>`, `<x-forms::email>`, `<x-forms::url>`, `<x-forms::tel>`, `<x-forms::password>`
+  </Step>
+  <Step title="Numeric Inputs">
+    `<x-forms::number>`, `<x-forms::latitude>`, `<x-forms::longitude>`
+  </Step>
+  <Step title="Date/Time Inputs">
+    `<x-forms::date>`, `<x-forms::datetime>`, `<x-forms::time>`
+  </Step>
+  <Step title="Selection Inputs">
+    `<x-forms::select>`, `<x-forms::select2>`, `<x-forms::radio>`, `<x-forms::checkbox>`
+  </Step>
+  <Step title="File Inputs">
+    `<x-forms::file>`, `<x-forms::file-upload>`, `<x-forms::image>`, `<x-forms::image-upload>`
+  </Step>
+  <Step title="Text Areas">
+    `<x-forms::textarea>`, `<x-forms::wysiwyg>`
+  </Step>
+  <Step title="Special Inputs">
+    `<x-forms::map-input>`, `<x-forms::hidden>`
+  </Step>
+</Steps>
+
+## Custom Error Messages
+
+The trait retrieves error messages from Laravel's validation system. Customize them in your controller:
+
+```php
+$request->validate([
+    'email' => 'required|email',
+], [
+    'email.required' => 'We need your email address.',
+    'email.email' => 'Please provide a valid email address.',
+]);
+```
+
+Or use language files (`resources/lang/en/validation.php`):
+
+```php
+return [
+    'custom' => [
+        'email' => [
+            'required' => 'We need your email address.',
+            'email' => 'Please provide a valid email address.',
+        ],
+    ],
+];
+```
+
+## Framework-Specific Error Styling
+
+### Bootstrap 5
+
+Errors use the `invalid-feedback` class:
+
+```blade
+<div class="invalid-feedback">
+    {{ $message }}
+</div>
+```
+
+The input receives the `is-invalid` class:
+
+```blade
+<input class="form-control is-invalid" />
+```
+
+### Material Admin 26
+
+The Material Admin 26 framework uses similar patterns with its own styling classes.
+
+## Error Display Flow
+
+<Steps>
+  <Step title="Form Submission">
+    User submits form with invalid data
+  </Step>
+  <Step title="Validation Fails">
+    Laravel validator identifies errors and redirects back
+  </Step>
+  <Step title="Errors in Session">
+    Laravel stores errors in the session's error bag
+  </Step>
+  <Step title="Component Checks Errors">
+    Component calls `hasErrorAndShow($name)` during rendering
+  </Step>
+  <Step title="Retrieve Error Bag">
+    Trait retrieves the error bag from the view's shared data
+  </Step>
+  <Step title="Check for Field Errors">
+    Trait checks if the field name has errors (including wildcard)
+  </Step>
+  <Step title="Render Error Message">
+    If errors exist and `showErrors` is true, render the error component
+  </Step>
+  <Step title="Apply Error Styling">
+    Input receives error CSS classes (e.g., `is-invalid`)
+  </Step>
+</Steps>
+
+<Note>
+  The trait automatically handles array input notation, converting `field[0]` to `field.0` when checking for errors.
+</Note>
+
+<Warning>
+  When using custom error bags, make sure to pass the `bag` parameter to all relevant components. Otherwise, they will only check the default error bag.
+</Warning>

@@ -1,0 +1,247 @@
+---
+title: Input Help
+description: Display help text and instructions below form inputs
+---
+
+The `<x-forms::input-help>` component displays help text, instructions, or hints below form inputs using Bootstrap's `form-text` styling.
+
+## Basic Usage
+
+```blade
+<x-forms::text name="email" label="Email" />
+<x-forms::input-help>
+    We'll never share your email with anyone else.
+</x-forms::input-help>
+```
+
+## Attributes
+
+<ParamField path="framework" type="string" default="">
+  Override the CSS framework for this component. Defaults to the global framework setting.
+</ParamField>
+
+The component accepts any additional HTML attributes which will be merged with the default classes.
+
+## How It Works
+
+The component renders a `div` with the `form-text` class:
+
+```blade
+<x-forms::input-help>
+    Your password must be 8-20 characters long.
+</x-forms::input-help>
+```
+
+Renders as:
+
+```html
+<div class="form-text">
+    Your password must be 8-20 characters long.
+</div>
+```
+
+## With Form Inputs
+
+Display help text below any form input:
+
+```blade
+<div class="mb-3">
+    <label for="username" class="form-label">Username</label>
+    <input type="text" id="username" name="username" class="form-control" />
+    <x-forms::input-help>
+        Username must be 3-20 characters and contain only letters, numbers, and underscores.
+    </x-forms::input-help>
+</div>
+```
+
+## Multiple Lines
+
+Help text can span multiple lines or paragraphs:
+
+```blade
+<x-forms::password name="password" label="Password" />
+<x-forms::input-help>
+    <strong>Password requirements:</strong>
+    <ul class="mb-0">
+        <li>At least 8 characters long</li>
+        <li>Contains at least one uppercase letter</li>
+        <li>Contains at least one number</li>
+        <li>Contains at least one special character</li>
+    </ul>
+</x-forms::input-help>
+```
+
+## With Icons
+
+Include icons for visual emphasis:
+
+```blade
+<x-forms::text name="api_key" label="API Key" />
+<x-forms::input-help>
+    <i class="fa fa-info-circle"></i>
+    You can generate a new API key from your account settings.
+</x-forms::input-help>
+```
+
+## Custom Styling
+
+Add custom classes or attributes:
+
+```blade
+<x-forms::input-help class="text-muted fst-italic">
+    This field is optional but recommended.
+</x-forms::input-help>
+```
+
+## With Links
+
+Include links to documentation or help pages:
+
+```blade
+<x-forms::text name="webhook_url" label="Webhook URL" />
+<x-forms::input-help>
+    Learn more about webhooks in our 
+    <a href="/docs/webhooks" target="_blank">documentation</a>.
+</x-forms::input-help>
+```
+
+## Form Components Integration
+
+Many form components accept a `help` attribute that automatically renders help text:
+
+```blade
+<x-forms::text 
+    name="email" 
+    label="Email" 
+    help="We'll never share your email with anyone else."
+/>
+```
+
+This is equivalent to:
+
+```blade
+<x-forms::text name="email" label="Email" />
+<x-forms::input-help>
+    We'll never share your email with anyone else.
+</x-forms::input-help>
+```
+
+## With Validation Errors
+
+Help text appears alongside validation errors:
+
+```blade
+<div class="mb-3">
+    <label for="email" class="form-label">Email</label>
+    <input 
+        type="email" 
+        name="email" 
+        id="email"
+        class="form-control @error('email') is-invalid @enderror"
+        value="{{ old('email') }}"
+    />
+    <x-forms::input-help>
+        Enter a valid email address.
+    </x-forms::input-help>
+    <x-forms::errors name="email" />
+</div>
+```
+
+## Accessibility
+
+For better accessibility, link help text to inputs using `aria-describedby`:
+
+```blade
+<label for="password" class="form-label">Password</label>
+<input 
+    type="password" 
+    id="password" 
+    name="password" 
+    class="form-control"
+    aria-describedby="passwordHelp"
+/>
+<x-forms::input-help id="passwordHelp">
+    Your password must be 8-20 characters long.
+</x-forms::input-help>
+```
+
+## Conditional Help Text
+
+Show help text conditionally:
+
+```blade
+@if($showAdvancedOptions)
+    <x-forms::input-help>
+        Advanced: This setting affects all child records.
+    </x-forms::input-help>
+@endif
+```
+
+## Styling
+
+The component uses Bootstrap's `.form-text` class which provides:
+
+```css
+.form-text {
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+    color: #6c757d;
+}
+```
+
+## Complete Example
+
+```blade
+<x-forms::form action="/profile" method="POST">
+    <!-- Email with help text -->
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-control"
+            aria-describedby="emailHelp"
+        />
+        <x-forms::input-help id="emailHelp">
+            We'll never share your email with anyone else.
+        </x-forms::input-help>
+    </div>
+    
+    <!-- Password with detailed help -->
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="form-control"
+            aria-describedby="passwordHelp"
+        />
+        <x-forms::input-help id="passwordHelp">
+            <strong>Password must:</strong>
+            <ul class="mb-0 mt-1">
+                <li>Be at least 8 characters long</li>
+                <li>Contain uppercase and lowercase letters</li>
+                <li>Include at least one number</li>
+            </ul>
+        </x-forms::input-help>
+    </div>
+    
+    <!-- Bio with character count hint -->
+    <div class="mb-3">
+        <label for="bio" class="form-label">Bio</label>
+        <textarea 
+            id="bio" 
+            name="bio" 
+            class="form-control" 
+            rows="4"
+        ></textarea>
+        <x-forms::input-help>
+            Maximum 500 characters. Tell us about yourself.
+        </x-forms::input-help>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Save Profile</button>
+</x-forms::form>
+```

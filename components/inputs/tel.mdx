@@ -1,0 +1,303 @@
+---
+title: Telephone Input
+description: A telephone input component for capturing phone numbers
+---
+
+The Tel component renders a telephone input field with HTML5 tel type, Bootstrap styling, and validation error handling.
+
+## Basic Usage
+
+```blade
+<x-forms::tel name="phone" label="Phone Number" />
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The input name attribute. Used for form submission and error handling.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text displayed for the input. If empty, a label will be auto-generated from the name.
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The model instance to bind to. The component will automatically fetch the value from the model using the name attribute.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  The default value if no model value or old input exists.
+</ParamField>
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Whether to display validation errors below the input.
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Whether to display the label. Set to `false` to hide the label.
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark the input as required. Adds HTML5 required attribute and displays a required indicator on the label.
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Display the label and input inline (horizontal layout).
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Enable Bootstrap floating label style.
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="">
+  Additional CSS classes for the inline label wrapper.
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="">
+  Additional CSS classes for the inline input wrapper.
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript-based error display for client-side validation.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Specify a custom framework theme. Defaults to the configured framework.
+</ParamField>
+
+## Examples
+
+### Basic Telephone Input
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    label="Phone Number" 
+/>
+```
+
+### Required Field
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    label="Phone Number"
+    :required="true"
+/>
+```
+
+### With Model Binding
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    label="Contact Number"
+    :model="$user"
+/>
+```
+
+### With Default Value
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    label="Phone Number"
+    default="+1234567890"
+/>
+```
+
+### With Pattern Validation
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    label="Phone Number"
+    pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+    placeholder="123-456-7890"
+/>
+```
+
+### Floating Label
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    label="Phone Number"
+    :floating="true"
+/>
+```
+
+### Inline Layout
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    label="Phone"
+    :inline="true"
+    inline-label-class="col-md-3"
+    inline-input-class="col-md-9"
+/>
+```
+
+### Without Label
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    :show-label="false"
+    placeholder="Phone number"
+/>
+```
+
+### International Format
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    label="Phone Number"
+    placeholder="+1 (555) 000-0000"
+    autocomplete="tel"
+/>
+```
+
+### With Input Mask
+
+```blade
+<x-forms::tel 
+    name="phone" 
+    label="Phone Number"
+    placeholder="(___) ___-____"
+    data-mask="(000) 000-0000"
+/>
+```
+
+### Multiple Phone Types
+
+```blade
+<x-forms::tel 
+    name="mobile" 
+    label="Mobile Number"
+    :required="true"
+    autocomplete="tel-national"
+/>
+
+<x-forms::tel 
+    name="home_phone" 
+    label="Home Phone"
+    autocomplete="tel-national"
+/>
+
+<x-forms::tel 
+    name="work_phone" 
+    label="Work Phone"
+    autocomplete="tel-national"
+/>
+```
+
+### With Help Text
+
+```blade
+<x-forms::tel name="phone" label="Phone Number">
+    <x-slot:help>
+        Enter your phone number including country code (e.g., +1 234 567 8900).
+    </x-slot:help>
+</x-forms::tel>
+```
+
+### Contact Form
+
+```blade
+<x-forms::form-open route="contact.store">
+    <x-forms::text 
+        name="name" 
+        label="Full Name"
+        :required="true"
+    />
+    
+    <x-forms::email 
+        name="email" 
+        label="Email Address"
+        :required="true"
+    />
+    
+    <x-forms::tel 
+        name="phone" 
+        label="Phone Number"
+        :required="true"
+        placeholder="+1 (555) 000-0000"
+    />
+    
+    <x-forms::textarea 
+        name="message" 
+        label="Message"
+        :required="true"
+        :rows="5"
+    />
+    
+    <x-forms::submit>Send Message</x-forms::submit>
+</x-forms::form-open>
+```
+
+## Value Resolution
+
+The component resolves the input value in the following order:
+
+1. Old input (from validation errors)
+2. Model value (if model is provided)
+3. Default value (if specified)
+4. Empty string
+
+## HTML5 Tel Input
+
+The tel input type provides:
+- Optimized keyboard on mobile devices (numeric keypad with phone-specific keys)
+- Better semantic meaning for screen readers
+- Autocomplete support for phone numbers
+- No built-in validation (unlike email or url types)
+
+### Pattern Validation
+
+Use the `pattern` attribute for client-side validation:
+
+```blade
+{{-- US phone format --}}
+<x-forms::tel 
+    name="phone" 
+    label="Phone"
+    pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+/>
+
+{{-- International format --}}
+<x-forms::tel 
+    name="phone" 
+    label="Phone"
+    pattern="\+?[0-9\s\-\(\)]+"
+/>
+```
+
+## Autocomplete Values
+
+Use appropriate autocomplete values for better UX:
+- `tel` - General phone number
+- `tel-national` - National phone number
+- `tel-country-code` - Country code
+- `tel-area-code` - Area code
+- `tel-local` - Local phone number
+
+## Validation Error Display
+
+When validation fails, the input automatically:
+- Adds the `is-invalid` Bootstrap class
+- Displays error messages below the input (if `showErrors` is `true`)
+- Preserves user input through Laravel's old input
+
+## Implementation Details
+
+The Tel component:
+- Extends the base Input component with type set to `tel`
+- Does not include `placeholder` and `showPlaceholder` parameters (use standard attributes instead)
+- Supports all standard HTML input attributes via attribute merging
+- Integrates with Laravel's validation error bag
+- Works seamlessly with Laravel's old input helper
+
+**Source**: `/src/Views/Components/Tel.php:12`

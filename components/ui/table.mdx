@@ -1,0 +1,459 @@
+---
+title: Table
+description: Create responsive data tables with rows, cells, and headings
+---
+
+The Table component provides a comprehensive data table with support for sorting, bulk actions, pagination, and responsive design using Bootstrap styling.
+
+## Basic Usage
+
+```blade
+<x-forms::table striped>
+    <x-slot:headers>
+        <x-forms::table.heading label="Name" sortable="name" />
+        <x-forms::table.heading label="Email" sortable="email" />
+        <x-forms::table.heading label="Status" />
+    </x-slot:headers>
+    
+    <x-slot:rows>
+        @foreach($users as $user)
+            <x-forms::table.row :model="$user">
+                <x-forms::table.cell name="name" :model="$user" />
+                <x-forms::table.cell name="email" :model="$user" />
+                <x-forms::table.cell>
+                    <span class="badge bg-success">Active</span>
+                </x-forms::table.cell>
+            </x-forms::table.row>
+        @endforeach
+    </x-slot:rows>
+</x-forms::table>
+```
+
+## Table Component
+
+### Attributes
+
+<ParamField path="striped" type="bool" default="false">
+  Apply striped row styling
+</ParamField>
+
+<ParamField path="noBulk" type="bool" default="false">
+  Disable bulk action form wrapper
+</ParamField>
+
+<ParamField path="model" type="string" default="">
+  The model name for checkbox grouping and select-all functionality
+</ParamField>
+
+<ParamField path="tableClass" type="string" default="">
+  Additional CSS classes to apply to the table element
+</ParamField>
+
+<ParamField path="filterId" type="string" default="null">
+  The ID of the filter form for sortable integration
+</ParamField>
+
+<ParamField path="noPagination" type="bool" default="false">
+  Hide pagination slot
+</ParamField>
+
+<ParamField path="noCheckbox" type="bool" default="false">
+  Hide checkboxes in table rows
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use (e.g., 'bootstrap-5')
+</ParamField>
+
+<ParamField path="class" type="string">
+  Additional CSS classes to apply to the table-responsive wrapper
+</ParamField>
+
+### Slots
+
+<ParamField path="bulkForm" type="slot">
+  Bulk action form controls (displayed when noBulk is false)
+</ParamField>
+
+<ParamField path="beforeTable" type="slot">
+  Content before the table
+</ParamField>
+
+<ParamField path="beforeHeaders" type="slot">
+  Content before the header row (inside thead)
+</ParamField>
+
+<ParamField path="headers" type="slot">
+  Table heading cells
+</ParamField>
+
+<ParamField path="afterHeaders" type="slot">
+  Content after the header row (inside thead)
+</ParamField>
+
+<ParamField path="tbodyOpen" type="slot">
+  Custom tbody opening tag (overrides default)
+</ParamField>
+
+<ParamField path="rows" type="slot">
+  Table body rows
+</ParamField>
+
+<ParamField path="pagination" type="slot">
+  Pagination controls (displayed when noPagination is false)
+</ParamField>
+
+## Nested Components
+
+### Table Row
+
+Represents a single table row with optional checkbox.
+
+**Component:** `x-forms::table.row`
+
+**Attributes:**
+
+<ParamField path="name" type="string" default="">
+  The name for the checkbox input (auto-generated from model if not provided)
+</ParamField>
+
+<ParamField path="rowId" type="string" default="">
+  Custom ID for the row element (auto-generated if not provided)
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The Eloquent model instance for this row
+</ParamField>
+
+<ParamField path="modelId" type="string" default="">
+  The model ID value for the checkbox (auto-generated from model if not provided)
+</ParamField>
+
+<ParamField path="noCheckbox" type="bool" default="false">
+  Hide the checkbox for this row
+</ParamField>
+
+<ParamField path="disableCheckbox" type="bool" default="false">
+  Disable the checkbox for this row
+</ParamField>
+
+### Table Cell
+
+Represents a single table cell with automatic value formatting.
+
+**Component:** `x-forms::table.cell`
+
+**Attributes:**
+
+<ParamField path="name" type="string" default="">
+  The model attribute name to display
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label to display in responsive mode (data-col attribute)
+</ParamField>
+
+<ParamField path="showLabel" type="bool" default="true">
+  Whether to show the label in responsive mode
+</ParamField>
+
+<ParamField path="value" type="mixed" default="null">
+  The value to display (auto-retrieved from model if not provided)
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The Eloquent model to retrieve the value from
+</ParamField>
+
+<ParamField path="multiline" type="bool" default="false">
+  Convert newlines to `<br>` tags for multiline display
+</ParamField>
+
+**Special Features:**
+- Automatically formats values from model attributes
+- Supports AdminModel with `admin_link` rendering
+- Supports Status enums with color badges
+- Handles arrays with separator
+- Displays translated blank value if empty
+
+### Table Heading
+
+Represents a table header cell with optional sorting.
+
+**Component:** `x-forms::table.heading`
+
+**Attributes:**
+
+<ParamField path="label" type="string" default="">
+  The heading label text
+</ParamField>
+
+<ParamField path="colspan" type="int" default="1">
+  The number of columns to span
+</ParamField>
+
+<ParamField path="sortable" type="string" default="">
+  The field name for sorting (enables sorting if provided)
+</ParamField>
+
+<ParamField path="name" type="string" default="">
+  The field name (used as sortable value if sortable is not provided)
+</ParamField>
+
+**Sorting Classes:**
+- `sorting` - Default sortable column
+- `sorting_asc` - Currently sorted ascending
+- `sorting_desc` - Currently sorted descending
+
+## With Bulk Actions
+
+```blade
+<x-forms::table model="users" striped>
+    <x-slot:bulkForm>
+        <select name="action" class="form-select d-inline-block w-auto">
+            <option value="">Bulk Actions</option>
+            <option value="delete">Delete</option>
+            <option value="activate">Activate</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Apply</button>
+    </x-slot:bulkForm>
+    
+    <x-slot:headers>
+        <x-forms::table.heading label="Name" sortable="name" />
+        <x-forms::table.heading label="Actions" />
+    </x-slot:headers>
+    
+    <x-slot:rows>
+        @foreach($users as $user)
+            <x-forms::table.row :model="$user" name="users">
+                <x-forms::table.cell name="name" :model="$user" />
+                <x-forms::table.cell>
+                    <a href="#" class="btn btn-sm btn-primary">Edit</a>
+                </x-forms::table.cell>
+            </x-forms::table.row>
+        @endforeach
+    </x-slot:rows>
+    
+    <x-slot:pagination>
+        {{ $users->links() }}
+    </x-slot:pagination>
+</x-forms::table>
+```
+
+## Sortable Columns
+
+```blade
+<x-forms::table filter-id="userFilter">
+    <x-slot:headers>
+        <x-forms::table.heading 
+            label="Full Name" 
+            sortable="name" 
+        />
+        <x-forms::table.heading 
+            label="Email Address" 
+            sortable="email"
+        />
+        <x-forms::table.heading 
+            label="Registered" 
+            sortable="created_at"
+        />
+    </x-slot:headers>
+    
+    <x-slot:rows>
+        <!-- rows -->
+    </x-slot:rows>
+</x-forms::table>
+```
+
+The heading will automatically show sorting indicators based on URL parameters:
+- `?orderby=name&order=asc` - Shows ascending arrow on Name column
+- `?orderby=name&order=desc` - Shows descending arrow on Name column
+
+## Without Checkboxes
+
+```blade
+<x-forms::table no-checkbox>
+    <x-slot:headers>
+        <x-forms::table.heading label="Product" />
+        <x-forms::table.heading label="Price" />
+    </x-slot:headers>
+    
+    <x-slot:rows>
+        <x-forms::table.row no-checkbox>
+            <x-forms::table.cell>Product A</x-forms::table.cell>
+            <x-forms::table.cell>$99.99</x-forms::table.cell>
+        </x-forms::table.row>
+    </x-slot:rows>
+</x-forms::table>
+```
+
+## With Custom Row IDs
+
+```blade
+<x-forms::table>
+    <x-slot:headers>
+        <x-forms::table.heading label="Item" />
+    </x-slot:headers>
+    
+    <x-slot:rows>
+        <x-forms::table.row 
+            row-id="custom-row-1"
+            name="items"
+            model-id="123"
+        >
+            <x-forms::table.cell>Item content</x-forms::table.cell>
+        </x-forms::table.row>
+    </x-slot:rows>
+</x-forms::table>
+```
+
+## Multiline Cell Content
+
+```blade
+<x-forms::table.cell name="description" :model="$product" :multiline="true" />
+```
+
+## Complete Example
+
+```blade
+<x-forms::table 
+    model="products" 
+    striped 
+    table-class="table-hover"
+    filter-id="productFilter"
+>
+    <x-slot:bulkForm>
+        <div class="d-flex gap-2">
+            <select name="bulk_action" class="form-select w-auto">
+                <option value="">Select Action</option>
+                <option value="delete">Delete Selected</option>
+                <option value="export">Export Selected</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Apply</button>
+        </div>
+    </x-slot:bulkForm>
+    
+    <x-slot:headers>
+        <x-forms::table.heading label="ID" sortable="id" />
+        <x-forms::table.heading label="Name" sortable="name" />
+        <x-forms::table.heading label="Category" sortable="category" />
+        <x-forms::table.heading label="Price" sortable="price" />
+        <x-forms::table.heading label="Stock" sortable="stock" />
+        <x-forms::table.heading label="Status" />
+        <x-forms::table.heading label="Actions" colspan="2" />
+    </x-slot:headers>
+    
+    <x-slot:rows>
+        @forelse($products as $product)
+            <x-forms::table.row 
+                :model="$product" 
+                name="products"
+                :disable-checkbox="$product->deleted_at !== null"
+            >
+                <x-forms::table.cell name="id" :model="$product" />
+                <x-forms::table.cell name="name" :model="$product" />
+                <x-forms::table.cell name="category.name" :model="$product" />
+                <x-forms::table.cell 
+                    :value="'$' . number_format($product->price, 2)" 
+                />
+                <x-forms::table.cell name="stock" :model="$product" />
+                <x-forms::table.cell>
+                    @if($product->status)
+                        <x-forms::status color="success" label="Active" />
+                    @else
+                        <x-forms::status color="danger" label="Inactive" />
+                    @endif
+                </x-forms::table.cell>
+                <x-forms::table.cell>
+                    <a href="{{ route('products.edit', $product) }}" class="btn btn-sm btn-primary">
+                        Edit
+                    </a>
+                </x-forms::table.cell>
+                <x-forms::table.cell>
+                    <form action="{{ route('products.destroy', $product) }}" method="POST" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </x-forms::table.cell>
+            </x-forms::table.row>
+        @empty
+            <x-forms::table.empty-row colspan="8">
+                No products found.
+            </x-forms::table.empty-row>
+        @endforelse
+    </x-slot:rows>
+    
+    <x-slot:pagination>
+        {{ $products->links() }}
+    </x-slot:pagination>
+</x-forms::table>
+```
+
+## Component Structure
+
+```html
+<div class="table-responsive">
+    <!-- Optional: Bulk Form -->
+    <form action="...">
+        <div class="p-4">Bulk actions form</div>
+    
+        <!-- Select All (Mobile) -->
+        <div class="p-4 hidden-lg-up bg-light">
+            <input type="checkbox" data-all="model" /> Select All
+        </div>
+        
+        <table class="table table-striped">
+            <thead class="thead-default">
+                <tr>
+                    <!-- Checkbox Column -->
+                    <th class="td-checkbox">
+                        <input type="checkbox" data-all="model" />
+                    </th>
+                    
+                    <!-- Heading Columns -->
+                    <th>Column 1</th>
+                    <th class="sorting">Column 2</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                <tr id="row-1">
+                    <td>
+                        <input type="checkbox" name="model[]" value="1" />
+                    </td>
+                    <td data-col="Column 1">Value 1</td>
+                    <td data-col="Column 2">Value 2</td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
+
+<!-- Pagination -->
+<div>...</div>
+```
+
+## Bootstrap Integration
+
+This component uses Bootstrap 5 table components:
+- `.table-responsive` - Responsive wrapper
+- `.table` - Base table class
+- `.table-striped` - Striped rows
+- `.table-hover` - Hover effect
+- `.thead-default` - Table header styling
+- `.form-check` - Checkbox styling
+- `.form-check-input` - Checkbox input
+- `.form-check-label` - Checkbox label
+
+**Custom Classes:**
+- `.td-checkbox` - Checkbox column styling
+- `.sorting` - Sortable column
+- `.sorting_asc` - Ascending sorted column
+- `.sorting_desc` - Descending sorted column
+
+**Responsive Features:**
+- `.hidden-lg-up` - Hide on large screens and up
+- `data-col` attribute - Shows column label in responsive mode
+
+For more information, see [Bootstrap Tables Documentation](https://getbootstrap.com/docs/5.0/content/tables/).

@@ -1,0 +1,263 @@
+---
+title: Component
+description: Base component class for all Javaabu Forms components
+---
+
+## Overview
+
+The `Component` class is the abstract base class for all Javaabu Forms components. It extends Laravel's `Illuminate\View\Component` and provides core functionality for framework configuration, ID generation, label generation, and view rendering.
+
+**Namespace:** `Javaabu\Forms\Views\Components`
+
+**Extends:** `Illuminate\View\Component`
+
+## Class Definition
+
+```php
+abstract class Component extends BaseComponent
+```
+
+## Properties
+
+### Protected Properties
+
+<ParamField path="id" type="string">
+  ID for this component. Automatically generated if not set.
+</ParamField>
+
+<ParamField path="view" type="string">
+  The view to be used for rendering this component.
+</ParamField>
+
+### Public Properties
+
+<ParamField path="framework" type="string">
+  Framework used for this component (e.g., 'bootstrap5', 'tailwind').
+</ParamField>
+
+## Constructor
+
+```php
+public function __construct(string $framework = '')
+```
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use. If not provided, defaults to the value from `config('forms.framework')`.
+</ParamField>
+
+Creates a new component instance and sets the framework property.
+
+## Methods
+
+### getFrameworkIcon
+
+```php
+public function getFrameworkIcon(string $icon): string
+```
+
+<ParamField path="icon" type="string" required>
+  The icon name/class to prefix.
+</ParamField>
+
+Returns a framework-specific icon string by prepending the configured icon prefix.
+
+**Returns:** `string` - The complete icon class string
+
+**Example:**
+```php
+$component->getFrameworkIcon('check');
+// Returns: "fas fa-check" (if using FontAwesome)
+```
+
+### frameworkConfig
+
+```php
+public function frameworkConfig(string $config, $default = null)
+```
+
+<ParamField path="config" type="string" required>
+  The configuration key to retrieve.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  Default value if configuration is not found.
+</ParamField>
+
+Retrieves a framework-specific configuration value.
+
+**Returns:** `mixed` - The configuration value or default
+
+**Example:**
+```php
+$component->frameworkConfig('icon-prefix');
+// Returns: "fas fa" (for FontAwesome)
+```
+
+### getView
+
+```php
+public function getView(): string
+```
+
+Returns the view path template with framework placeholder.
+
+**Returns:** `string` - View path like `forms::{framework}.input`
+
+### render
+
+```php
+public function render()
+```
+
+Renders the component by replacing the framework placeholder in the view path.
+
+**Returns:** `string` - The complete view path
+
+### id
+
+```php
+public function id(): string
+```
+
+Generates and returns a unique ID for this component. The ID is generated once and cached.
+
+**Returns:** `string` - The component ID
+
+**Generation Logic:**
+- If the component has a `name` property, generates ID from the name
+- Otherwise, generates a random 4-character string
+
+**Example:**
+```php
+// For input with name="user[email]"
+$component->id(); // Returns: "user-email"
+```
+
+### generateIdByName
+
+```php
+protected function generateIdByName(): string
+```
+
+Generates an ID from the component's `name` attribute by converting brackets to dashes.
+
+**Returns:** `string` - The generated ID
+
+**Example:**
+```php
+// For name="settings[notifications][]"
+$this->generateIdByName(); // Returns: "settings-notifications"
+```
+
+### stringToId
+
+```php
+public function stringToId($text): string
+```
+
+<ParamField path="text" type="string" required>
+  The text to convert to an ID.
+</ParamField>
+
+Converts a string to a valid HTML ID by replacing brackets with dashes.
+
+**Returns:** `string` - The converted ID
+
+### label
+
+```php
+public function label(): string
+```
+
+Generates and returns a human-readable label for this component. The label is generated once and cached.
+
+**Returns:** `string` - The component label
+
+**Example:**
+```php
+// For input with name="user_email"
+$component->label(); // Returns: "User Email"
+```
+
+### generateLabelByName
+
+```php
+protected function generateLabelByName(): string
+```
+
+Generates a human-readable label from the component's `name` attribute.
+
+**Returns:** `string` - The generated label
+
+**Processing Steps:**
+1. Removes brackets from name
+2. Converts to camelCase
+3. Converts to snake_case
+4. Replaces underscores with spaces
+5. Converts to Title Case
+6. Translates the result
+
+**Example:**
+```php
+// For name="user_email"
+$this->generateLabelByName(); // Returns: "User Email"
+```
+
+### convertBracketsToDots
+
+```php
+protected static function convertBracketsToDots(string $name): string
+```
+
+<ParamField path="name" type="string" required>
+  The name with bracket notation.
+</ParamField>
+
+Converts bracket notation to dot notation for array access.
+
+**Returns:** `string` - The converted name
+
+**Example:**
+```php
+Component::convertBracketsToDots('user[profile][email]');
+// Returns: "user.profile.email"
+```
+
+## Usage Example
+
+```php
+use Javaabu\Forms\Views\Components\Component;
+
+class CustomInput extends Component
+{
+    protected string $view = 'custom-input';
+    
+    public string $name;
+    public string $label;
+    
+    public function __construct(
+        string $name,
+        string $label = '',
+        string $framework = ''
+    ) {
+        parent::__construct($framework);
+        
+        $this->name = $name;
+        $this->label = $label;
+    }
+    
+    public function render()
+    {
+        $id = $this->id();
+        $label = $this->label();
+        
+        return parent::render();
+    }
+}
+```
+
+## Related
+
+- [FormsServiceProvider](/api/forms-service-provider)
+- [HandlesValidationErrors](/api/traits/handles-validation-errors)
+- [HandlesBoundValues](/api/traits/handles-bound-values)

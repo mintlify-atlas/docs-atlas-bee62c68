@@ -1,0 +1,409 @@
+---
+title: Image
+description: Image input component with preview and aspect ratio controls
+---
+
+The Image component extends the File component to provide a specialized image upload interface with preview, aspect ratio controls, and responsive sizing.
+
+## Basic Usage
+
+```blade
+<x-forms::image 
+    name="featured_image" 
+    width="500" 
+    height="500" 
+/>
+```
+
+## With Model Binding
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::image 
+        name="featured_image" 
+        width="800" 
+        height="600" 
+    />
+</x-forms::form>
+```
+
+When bound to a model that implements Spatie's `HasMedia` interface, the component automatically retrieves and displays the image from the media library.
+
+## Image Preview Styles
+
+```blade
+{{-- Default preview --}}
+<x-forms::image 
+    name="avatar" 
+    width="400" 
+    height="400" 
+/>
+
+{{-- Cover preview (fills container) --}}
+<x-forms::image 
+    name="banner" 
+    width="1200" 
+    height="400" 
+    :cover="true" 
+/>
+
+{{-- Circular avatar --}}
+<x-forms::image 
+    name="avatar" 
+    width="200" 
+    height="200" 
+    :circle="true" 
+/>
+
+{{-- Full width preview --}}
+<x-forms::image 
+    name="banner" 
+    width="1920" 
+    height="400" 
+    :fullwidth="true" 
+/>
+```
+
+## Aspect Ratio
+
+```blade
+{{-- Maintain aspect ratio (default) --}}
+<x-forms::image 
+    name="photo" 
+    width="800" 
+    height="600" 
+    :maintain-aspect-ratio="true" 
+/>
+
+{{-- Fixed aspect ratio --}}
+<x-forms::image 
+    name="thumbnail" 
+    width="400" 
+    height="400" 
+    :aspect-ratio="1.5" 
+/>
+
+{{-- Allow any aspect ratio --}}
+<x-forms::image 
+    name="photo" 
+    width="800" 
+    height="600" 
+    :maintain-aspect-ratio="false" 
+/>
+```
+
+## Spatie Media Library Integration
+
+```blade
+{{-- Custom collection --}}
+<x-forms::image 
+    name="avatar" 
+    collection="profile_photos" 
+    width="200" 
+    height="200" 
+/>
+
+{{-- Display specific conversion --}}
+<x-forms::image 
+    name="thumbnail" 
+    collection="featured_image" 
+    conversion="thumb" 
+    width="150" 
+    height="150" 
+/>
+```
+
+### Model Setup
+
+Your model should implement the `HasMedia` interface:
+
+```php
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
+class Article extends Model implements HasMedia
+{
+    use InteractsWithMedia;
+    
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('featured_image')
+            ->singleFile()
+            ->registerMediaConversions(function (Media $media) {
+                $this->addMediaConversion('thumb')
+                    ->width(150)
+                    ->height(150);
+            });
+    }
+}
+```
+
+## Custom Icons
+
+```blade
+{{-- Custom image placeholder icon --}}
+<x-forms::image 
+    name="photo" 
+    width="400" 
+    height="400" 
+    icon="fa-camera" 
+/>
+
+{{-- Custom upload icon --}}
+<x-forms::image 
+    name="photo" 
+    width="400" 
+    height="400" 
+    upload-icon="fa-cloud-upload" 
+/>
+```
+
+## Image Hints
+
+The component automatically generates hints based on image dimensions:
+
+```blade
+<x-forms::image 
+    name="banner" 
+    width="1920" 
+    height="400" 
+    :show-hint="true" 
+/>
+{{-- Displays: "Recommended 1920px x 400px. Only .jpeg, .png, .gif and .svg files of max 5MB allowed." --}}
+```
+
+## File Type Control
+
+```blade
+{{-- All image types (default) --}}
+<x-forms::image 
+    name="photo" 
+    width="400" 
+    height="400" 
+/>
+
+{{-- Only specific formats --}}
+<x-forms::image 
+    name="photo" 
+    width="400" 
+    height="400" 
+    :mimetypes="['image/jpeg', 'image/png']" 
+/>
+
+{{-- Custom extensions --}}
+<x-forms::image 
+    name="photo" 
+    width="400" 
+    height="400" 
+    :extensions="['jpg', 'png']" 
+/>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the image input
+</ParamField>
+
+<ParamField path="label" type="string">
+  Label text for the image input. Auto-generated from name if not provided
+</ParamField>
+
+<ParamField path="width" type="int" default="400">
+  Recommended image width in pixels. Used for display hints
+</ParamField>
+
+<ParamField path="height" type="int" default="400">
+  Recommended image height in pixels. Used for display hints
+</ParamField>
+
+<ParamField path="cover" type="bool" default="false">
+  Use cover mode for preview (fills container, may crop image)
+</ParamField>
+
+<ParamField path="fullwidth" type="bool" default="false">
+  Make preview take full width of container
+</ParamField>
+
+<ParamField path="maintain-aspect-ratio" type="bool" default="true">
+  Maintain the aspect ratio defined by width/height
+</ParamField>
+
+<ParamField path="circle" type="bool" default="false">
+  Display preview as a circle. Automatically sets aspect ratio to 1:1
+</ParamField>
+
+<ParamField path="aspect-ratio" type="float">
+  Custom aspect ratio (height/width). Overrides width/height ratio
+</ParamField>
+
+<ParamField path="icon" type="string">
+  Icon class for empty image placeholder. Framework default: `fa-image` (Bootstrap 5) or `zmdi-image` (Material Admin)
+</ParamField>
+
+<ParamField path="upload-icon" type="string">
+  Icon class for the upload button. Framework default: `fa-arrow-to-top` (Bootstrap 5) or `zmdi-upload` (Material Admin)
+</ParamField>
+
+<ParamField path="type" type="string|array" default="image">
+  File type category. Defaults to `image` for all image formats
+</ParamField>
+
+<ParamField path="mimetypes" type="string|array">
+  Allowed image mime types. Default: `image/jpeg`, `image/png`, `image/gif`, `image/tiff`, `image/svg+xml`, etc.
+</ParamField>
+
+<ParamField path="extensions" type="string|array">
+  Allowed file extensions. Automatically determined from mime types if not specified
+</ParamField>
+
+<ParamField path="max-size" type="int">
+  Maximum file size in kilobytes. Uses system default for images if not specified
+</ParamField>
+
+<ParamField path="collection" type="string">
+  Spatie Media Library collection name. Defaults to the input name
+</ParamField>
+
+<ParamField path="conversion" type="string">
+  Spatie Media Library conversion name to display. Example: `thumb`
+</ParamField>
+
+<ParamField path="file-input-class" type="string">
+  Additional CSS classes for the file input wrapper
+</ParamField>
+
+<ParamField path="model" type="object">
+  Model instance to bind to. Automatically retrieves image from media library if model implements `HasMedia`
+</ParamField>
+
+<ParamField path="default" type="string">
+  Default image URL if no value is bound
+</ParamField>
+
+<ParamField path="show-hint" type="bool" default="true">
+  Show automatic hint with recommended dimensions and file requirements
+</ParamField>
+
+<ParamField path="show-errors" type="bool" default="true">
+  Show validation errors
+</ParamField>
+
+<ParamField path="show-label" type="bool" default="true">
+  Show the label
+</ParamField>
+
+<ParamField path="required" type="bool" default="false">
+  Mark the field as required
+</ParamField>
+
+<ParamField path="disabled" type="bool" default="false">
+  Disable the image input
+</ParamField>
+
+<ParamField path="ignore-accessor" type="bool" default="false">
+  Ignore model accessors when retrieving value. Only retrieve from media library
+</ParamField>
+
+<ParamField path="inline" type="bool" default="false">
+  Display label and input inline (horizontal layout)
+</ParamField>
+
+<ParamField path="help" type="string">
+  Custom help text. Overrides automatic hints
+</ParamField>
+
+## Examples
+
+### Avatar Upload (Circular)
+
+```blade
+<x-forms::image 
+    name="avatar" 
+    label="Profile Photo"
+    width="200" 
+    height="200" 
+    :circle="true"
+    collection="avatars"
+    required
+/>
+```
+
+### Banner Image (Cover Mode)
+
+```blade
+<x-forms::image 
+    name="banner" 
+    label="Page Banner"
+    width="1920" 
+    height="400" 
+    :cover="true" 
+    :fullwidth="true"
+    help="Upload a high-resolution banner image."
+/>
+```
+
+### Thumbnail with Conversion
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::image 
+        name="thumbnail" 
+        label="Article Thumbnail"
+        width="300" 
+        height="200" 
+        collection="featured_image" 
+        conversion="thumb"
+    />
+</x-forms::form>
+```
+
+### Square Product Image
+
+```blade
+<x-forms::image 
+    name="product_image" 
+    label="Product Photo"
+    width="600" 
+    height="600" 
+    :aspect-ratio="1"
+    :max-size="2048"
+    :extensions="['jpg', 'png']"
+/>
+```
+
+### Social Media Image
+
+```blade
+<x-forms::image 
+    name="og_image" 
+    label="Social Media Image"
+    width="1200" 
+    height="630" 
+    help="Recommended size for Facebook and Twitter sharing."
+/>
+```
+
+## Aspect Ratio Calculation
+
+The component automatically calculates aspect ratio from width and height:
+
+```php
+// For width=800, height=600
+aspectRatio = 600 / 800 = 0.75 (or 75%)
+
+// For circle mode
+aspectRatio = 1 (forced to 1:1)
+
+// Custom aspect ratio overrides width/height
+aspect-ratio="1.5" // Results in 150% aspect ratio
+```
+
+## Preview Behavior
+
+- **New Image**: Shows placeholder icon with "Click to select an image" text
+- **Existing Image**: Displays the image preview with "Change" button
+- **After Selection**: Shows selected image preview with "Remove" button
+- **Cover Mode**: Image fills container maintaining aspect ratio (may crop)
+- **Circle Mode**: Displays as circular preview (perfect for avatars)

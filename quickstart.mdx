@@ -1,80 +1,263 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Create your first form with Javaabu Forms in under 5 minutes
 ---
 
-## Get started in three steps
+Get up and running with Javaabu Forms by creating a complete user profile form with validation and model binding.
 
-Get your documentation site running locally and make your first customization.
+## Prerequisites
 
-### Step 1: Set up your local environment
+Before you begin, ensure you have:
+- Completed the [Installation](/installation) steps
+- A working Laravel application
+- Basic knowledge of Laravel Blade templates
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+## Create Your First Form
+
+Let's build a user profile form that demonstrates the key features of Javaabu Forms.
+
+<Steps>
+  <Step title="Create the Controller">
+    Create a controller to handle the form:
+
+    ```bash
+    php artisan make:controller ProfileController
+    ```
+
+    Add the following methods to `app/Http/Controllers/ProfileController.php`:
+
+    ```php
+    <?php
+
+    namespace App\Http\Controllers;
+
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Auth;
+
+    class ProfileController extends Controller
+    {
+        public function edit()
+        {
+            $user = Auth::user();
+            return view('profile.edit', compact('user'));
+        }
+
+        public function update(Request $request)
+        {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'bio' => 'nullable|string|max:1000',
+                'country' => 'required|string',
+            ]);
+
+            Auth::user()->update($validated);
+
+            return redirect()->route('profile.edit')
+                ->with('success', 'Profile updated successfully!');
+        }
+    }
+    ```
+  </Step>
+
+  <Step title="Create the Blade View">
+    Create a view file at `resources/views/profile/edit.blade.php`:
+
+    ```blade
+    <x-forms::form method="PUT" action="{{ route('profile.update') }}">
+        <h2>Edit Profile</h2>
+
+        @if (session('success'))
+            <x-forms::alert type="success">
+                {{ session('success') }}
+            </x-forms::alert>
+        @endif
+
+        {{-- Model binding automatically fills form values from $user --}}
+        @model($user)
+
+        <x-forms::text
+            name="name"
+            label="Full Name"
+            required
+            placeholder="Enter your full name"
+        />
+
+        <x-forms::email
+            name="email"
+            label="Email Address"
+            required
+            help="We'll never share your email with anyone else."
+        />
+
+        <x-forms::textarea
+            name="bio"
+            label="Biography"
+            rows="4"
+            placeholder="Tell us about yourself..."
+        />
+
+        <x-forms::select
+            name="country"
+            label="Country"
+            required
+            :options="[
+                'us' => 'United States',
+                'uk' => 'United Kingdom',
+                'ca' => 'Canada',
+                'au' => 'Australia',
+                'mv' => 'Maldives',
+            ]"
+            placeholder="Select your country"
+        />
+
+        @endmodel
+
+        <x-forms::submit>
+            Save Changes
+        </x-forms::submit>
+    </x-forms::form>
+    ```
+  </Step>
+
+  <Step title="Add Routes">
+    Add the routes to `routes/web.php`:
+
+    ```php
+    use App\Http\Controllers\ProfileController;
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'edit'])
+            ->name('profile.edit');
+        Route::put('/profile', [ProfileController::class, 'update'])
+            ->name('profile.update');
+    });
+    ```
+  </Step>
+
+  <Step title="Test Your Form">
+    Visit `/profile` in your browser to see the form in action. The form will:
+    - Automatically display existing user data (model binding)
+    - Show validation errors inline when submission fails
+    - Preserve user input after validation errors
+    - Update the user profile on successful submission
+  </Step>
+</Steps>
+
+## What Just Happened?
+
+Let's break down the key features you just used:
+
+### Model Binding
+
+The `@model($user)` directive automatically binds the user model to the form. All form components within this block will retrieve their values from the model:
+
+```blade
+@model($user)
+    <x-forms::text name="name" />  {{-- Automatically fills with $user->name --}}
+@endmodel
+```
+
+### Automatic Validation Errors
+
+When validation fails, errors are automatically displayed below each field. No need to manually check for errors:
+
+```blade
+<x-forms::text name="email" />
+{{-- If validation fails, error appears here automatically --}}
+```
+
+### Method Spoofing
+
+The form component handles HTTP method spoofing for PUT/PATCH/DELETE requests:
+
+```blade
+<x-forms::form method="PUT" action="{{ route('profile.update') }}">
+    {{-- Generates hidden _method field automatically --}}
+</x-forms::form>
+```
+
+### CSRF Protection
+
+CSRF tokens are included automatically:
+
+```blade
+<x-forms::form action="{{ route('profile.update') }}">
+    {{-- @csrf directive added automatically --}}
+</x-forms::form>
+```
+
+## Common Patterns
+
+### Creating vs Editing Forms
+
+Use the same form for both create and edit actions by conditionally binding the model:
+
+```blade
+<x-forms::form method="{{ $user->exists ? 'PUT' : 'POST' }}" 
+               action="{{ $user->exists ? route('users.update', $user) : route('users.store') }}">
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    @if($user->exists)
+        @model($user)
+    @endif
 
-### Step 2: Deploy your changes
+    <x-forms::text name="name" label="Name" />
+    <x-forms::email name="email" label="Email" />
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    @if($user->exists)
+        @endmodel
+    @endif
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    <x-forms::submit>
+        {{ $user->exists ? 'Update' : 'Create' }} User
+    </x-forms::submit>
+</x-forms::form>
+```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+### Inline Forms
 
-### Step 3: Go live
+Create horizontal forms with labels beside inputs:
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+```blade
+<x-forms::text
+    name="name"
+    label="Name"
+    inline
+/>
+```
 
-## Next steps
+### Floating Labels
 
-Now that you have your docs running, explore these key features:
+Use Bootstrap 5's floating labels:
+
+```blade
+<x-forms::text
+    name="name"
+    label="Name"
+    floating
+    show-placeholder
+/>
+```
+
+## Next Steps
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Core Concepts" icon="book" href="/concepts/model-binding">
+    Learn about model binding, validation errors, and Blade directives
+  </Card>
+  <Card title="Form Inputs" icon="input-text" href="/components/inputs/text">
+    Explore all available input components
+  </Card>
+  <Card title="Advanced Features" icon="wand-magic-sparkles" href="/advanced/wysiwyg">
+    Discover Select2, WYSIWYG editors, file uploads, and more
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/framework-settings">
+    Customize framework settings, icons, and component defaults
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Need Help?
+
+- Check the [Requirements](/requirements) if you encounter issues
+- Browse the component documentation for detailed usage
+- Visit the [GitHub repository](https://github.com/javaabu/forms) to report issues

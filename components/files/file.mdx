@@ -1,0 +1,297 @@
+---
+title: File
+description: File input component for uploading files with validation
+---
+
+The File component provides a styled file input for uploading documents and other files with automatic validation and mime type handling.
+
+## Basic Usage
+
+```blade
+<x-forms::file name="document" />
+```
+
+## With Model Binding
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::file name="featured_image" />
+</x-forms::form>
+```
+
+When bound to a model that implements Spatie's `HasMedia` interface, the component automatically retrieves and displays the file from the media library.
+
+## File Types
+
+```blade
+{{-- Document files (default) --}}
+<x-forms::file 
+    name="document" 
+    type="document" 
+/>
+
+{{-- Multiple file types --}}
+<x-forms::file 
+    name="attachment" 
+    :type="['document', 'image']" 
+/>
+
+{{-- PDF only --}}
+<x-forms::file 
+    name="pdf_file" 
+    mimetypes="application/pdf" 
+/>
+```
+
+## Custom Validation
+
+```blade
+{{-- Custom mime types --}}
+<x-forms::file 
+    name="custom_file" 
+    :mimetypes="['application/pdf', 'text/plain']" 
+/>
+
+{{-- Custom extensions --}}
+<x-forms::file 
+    name="custom_file" 
+    :extensions="['pdf', 'txt', 'doc']" 
+/>
+
+{{-- Custom max size (in kilobytes) --}}
+<x-forms::file 
+    name="large_file" 
+    :max-size="10240" 
+/>
+```
+
+## Spatie Media Library Integration
+
+The File component integrates seamlessly with Spatie Media Library:
+
+```blade
+{{-- Custom collection name --}}
+<x-forms::file 
+    name="attachment" 
+    collection="documents" 
+/>
+
+{{-- Display specific conversion --}}
+<x-forms::file 
+    name="thumbnail" 
+    conversion="thumb" 
+/>
+```
+
+### Model Setup
+
+Your model should implement the `HasMedia` interface:
+
+```php
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class Article extends Model implements HasMedia
+{
+    use InteractsWithMedia;
+    
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('featured_image')
+            ->singleFile();
+    }
+}
+```
+
+## File Display
+
+```blade
+{{-- Show file download link --}}
+<x-forms::file 
+    name="document" 
+    download-icon="fa-download" 
+/>
+
+{{-- Custom clear icon --}}
+<x-forms::file 
+    name="document" 
+    clear-icon="fa-times" 
+/>
+```
+
+## Hints and Help Text
+
+```blade
+{{-- Show automatic hint --}}
+<x-forms::file 
+    name="document" 
+    :show-hint="true" 
+/>
+{{-- Displays: "Only .pdf, .jpeg and .png files of max 2MB allowed." --}}
+
+{{-- Custom help text --}}
+<x-forms::file 
+    name="document" 
+    help="Please upload your signed contract." 
+/>
+
+{{-- Hide hint --}}
+<x-forms::file 
+    name="document" 
+    :show-hint="false" 
+/>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the file input
+</ParamField>
+
+<ParamField path="label" type="string">
+  Label text for the file input. Auto-generated from name if not provided
+</ParamField>
+
+<ParamField path="type" type="string|array" default="document">
+  File type category. Accepts: `document`, `image`, or array of types. Automatically determines allowed mime types
+</ParamField>
+
+<ParamField path="mimetypes" type="string|array">
+  Allowed mime types. Overrides automatic detection from `type`. Examples: `application/pdf`, `image/jpeg`
+</ParamField>
+
+<ParamField path="extensions" type="string|array">
+  Allowed file extensions. Overrides automatic detection from mime types. Example: `['pdf', 'doc', 'docx']`
+</ParamField>
+
+<ParamField path="max-size" type="int">
+  Maximum file size in kilobytes. Defaults to system default for the file type
+</ParamField>
+
+<ParamField path="collection" type="string">
+  Spatie Media Library collection name. Defaults to the input name
+</ParamField>
+
+<ParamField path="conversion" type="string">
+  Spatie Media Library conversion name to display. Example: `thumb`
+</ParamField>
+
+<ParamField path="file-input-class" type="string">
+  Additional CSS classes for the file input wrapper
+</ParamField>
+
+<ParamField path="clear-icon" type="string">
+  Icon class for the clear/remove button. Uses framework default if not specified
+</ParamField>
+
+<ParamField path="download-icon" type="string">
+  Icon class for the download link. Framework default: `fa-arrow-to-bottom` (Bootstrap 5) or `zmdi-open-in-new` (Material Admin)
+</ParamField>
+
+<ParamField path="upload-icon" type="string">
+  Icon class for the upload button. Framework default: `fa-arrow-to-top` (Bootstrap 5) or `zmdi-upload` (Material Admin)
+</ParamField>
+
+<ParamField path="model" type="object">
+  Model instance to bind to. Automatically retrieves file from media library if model implements `HasMedia`
+</ParamField>
+
+<ParamField path="default" type="string">
+  Default file URL if no value is bound
+</ParamField>
+
+<ParamField path="show-hint" type="bool" default="true">
+  Show automatic hint with allowed file types and max size
+</ParamField>
+
+<ParamField path="show-errors" type="bool" default="true">
+  Show validation errors
+</ParamField>
+
+<ParamField path="show-label" type="bool" default="true">
+  Show the label
+</ParamField>
+
+<ParamField path="required" type="bool" default="false">
+  Mark the field as required
+</ParamField>
+
+<ParamField path="disabled" type="bool" default="false">
+  Disable the file input
+</ParamField>
+
+<ParamField path="ignore-accessor" type="bool" default="false">
+  Ignore model accessors when retrieving value. Only retrieve from media library
+</ParamField>
+
+<ParamField path="inline" type="bool" default="false">
+  Display label and input inline (horizontal layout)
+</ParamField>
+
+<ParamField path="help" type="string">
+  Custom help text. Overrides automatic hint
+</ParamField>
+
+## Default File Types
+
+The component automatically detects mime types based on the `type` attribute:
+
+- **document**: PDF, JPEG, PNG files (default)
+- **image**: JPEG, PNG, GIF, TIFF, SVG files
+
+Mime types and extensions are automatically resolved using the `AllowedMimeTypes` helper from the `javaabu/helpers` package.
+
+## File Validation
+
+The component renders the `accept` attribute with allowed mime types:
+
+```html
+<input type="file" accept="application/pdf,image/jpeg,image/png" />
+```
+
+For server-side validation, use Laravel's file validation rules:
+
+```php
+$request->validate([
+    'document' => 'required|file|mimes:pdf,jpeg,png|max:2048',
+]);
+```
+
+## Examples
+
+### Document Upload with Custom Size
+
+```blade
+<x-forms::file 
+    name="contract" 
+    label="Contract Document"
+    type="document"
+    :max-size="5120"
+    required
+/>
+```
+
+### PDF Only Upload
+
+```blade
+<x-forms::file 
+    name="invoice" 
+    label="Invoice PDF"
+    mimetypes="application/pdf"
+    extensions="pdf"
+    help="Please upload your invoice in PDF format."
+/>
+```
+
+### Media Library with Conversion
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::file 
+        name="thumbnail" 
+        collection="featured_image"
+        conversion="thumb"
+        label="Thumbnail"
+    />
+</x-forms::form>
+```

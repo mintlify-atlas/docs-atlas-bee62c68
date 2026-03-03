@@ -1,0 +1,194 @@
+---
+title: FormsDataBinder
+description: Manages data binding for form components
+---
+
+## Overview
+
+The `FormsDataBinder` class manages a tree of bound targets (typically models) that form components can access to retrieve default values. It maintains a stack of bindings that components can push to and pop from.
+
+**Namespace:** `Javaabu\Forms`
+
+## Class Definition
+
+```php
+class FormsDataBinder
+```
+
+## Properties
+
+### Private Properties
+
+<ParamField path="bindings" type="array" default="[]">
+  Tree of bound targets maintained as a stack.
+</ParamField>
+
+## Methods
+
+### bind
+
+```php
+public function bind($target): void
+```
+
+<ParamField path="target" type="mixed" required>
+  The target to bind (typically an Eloquent model, array, or object).
+</ParamField>
+
+Binds a target to the current instance by pushing it onto the bindings stack.
+
+**Returns:** `void`
+
+**Example:**
+```php
+$binder = app(FormsDataBinder::class);
+$binder->bind($user);
+```
+
+### get
+
+```php
+public function get()
+```
+
+Retrieves the latest (most recently) bound target from the stack.
+
+**Returns:** `mixed` - The last bound target, or `null` if stack is empty
+
+**Example:**
+```php
+$binder = app(FormsDataBinder::class);
+$currentModel = $binder->get();
+```
+
+### pop
+
+```php
+public function pop(): void
+```
+
+Removes the last binding from the stack.
+
+**Returns:** `void`
+
+**Example:**
+```php
+$binder = app(FormsDataBinder::class);
+$binder->pop();
+```
+
+## Usage with Blade Directives
+
+The `FormsDataBinder` is typically used through Blade directives rather than directly:
+
+### @model Directive
+
+Binds a model to the form:
+
+```blade
+@model($user)
+    <x-forms::text name="first_name" />
+    <x-forms::text name="last_name" />
+    <x-forms::email name="email" />
+@endmodel
+```
+
+The `@model` directive compiles to:
+```php
+<?php app(\Javaabu\Forms\FormsDataBinder::class)->bind($user); ?>
+```
+
+### @endmodel Directive
+
+Removes the bound model:
+
+```blade
+@endmodel
+```
+
+The `@endmodel` directive compiles to:
+```php
+<?php app(\Javaabu\Forms\FormsDataBinder::class)->pop(); ?>
+```
+
+## Usage Example
+
+### Basic Form Binding
+
+```blade
+@model($user)
+    <x-forms::form method="PUT" :action="route('users.update', $user)">
+        <x-forms::text name="name" />
+        <x-forms::email name="email" />
+        <x-forms::submit>Update User</x-forms::submit>
+    </x-forms::form>
+@endmodel
+```
+
+### Nested Model Binding
+
+```blade
+@model($user)
+    <x-forms::text name="name" />
+    
+    @model($user->profile)
+        <x-forms::text name="bio" />
+        <x-forms::text name="website" />
+    @endmodel
+    
+    <x-forms::submit>Save</x-forms::submit>
+@endmodel
+```
+
+### Programmatic Usage
+
+```php
+use Javaabu\Forms\FormsDataBinder;
+
+$binder = app(FormsDataBinder::class);
+
+// Bind a model
+$binder->bind($user);
+
+// Get the current bound model
+$model = $binder->get();
+
+// Bind nested model
+$binder->bind($user->profile);
+
+// Get nested model
+$profile = $binder->get(); // Returns $user->profile
+
+// Pop nested model
+$binder->pop();
+
+// Get returns parent model again
+$model = $binder->get(); // Returns $user
+
+// Pop parent model
+$binder->pop();
+```
+
+## How It Works
+
+The `FormsDataBinder` maintains a stack-based system:
+
+1. **Binding:** When you use `@model($user)`, the user model is pushed onto the stack
+2. **Accessing:** Form components call `get()` to retrieve the current model
+3. **Unbinding:** When you use `@endmodel`, the model is popped from the stack
+
+This allows for nested model binding where inner components access the most recently bound model.
+
+## Service Registration
+
+The `FormsDataBinder` is registered as a singleton in the service container by the `FormsServiceProvider`:
+
+```php
+$this->app->singleton(FormsDataBinder::class, fn () => new FormsDataBinder());
+```
+
+## Related
+
+- [FormsServiceProvider](/api/forms-service-provider)
+- [HandlesBoundValues Trait](/api/traits/handles-bound-values)
+- [Component Base Class](/api/component)

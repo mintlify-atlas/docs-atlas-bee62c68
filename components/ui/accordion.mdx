@@ -1,0 +1,242 @@
+---
+title: Accordion
+description: Create collapsible accordion components with Bootstrap styling
+---
+
+The Accordion component creates a collapsible accordion interface using Bootstrap's accordion component. It supports multiple items with custom headers and content.
+
+## Basic Usage
+
+```blade
+<x-forms::accordion id="myAccordion" :items="[
+    ['title' => 'Section 1', 'content' => 'Content for section 1'],
+    ['title' => 'Section 2', 'content' => 'Content for section 2'],
+    ['title' => 'Section 3', 'content' => 'Content for section 3', 'show' => true]
+]" />
+```
+
+## Accordion Component
+
+### Attributes
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the accordion container. Used to link headers with collapse sections.
+</ParamField>
+
+<ParamField path="items" type="array|Collection" default="[]">
+  Array or Collection of accordion items. Each item should be an associative array with:
+  - `title` (string): The header text
+  - `content` (string): The content text (optional if using slots)
+  - `show` (bool): Whether the item should be expanded by default
+  - `id` (string): Custom ID for the accordion item
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use (e.g., 'bootstrap-5')
+</ParamField>
+
+<ParamField path="class" type="string">
+  Additional CSS classes to apply to the accordion container
+</ParamField>
+
+## Nested Components
+
+### Accordion Item
+
+Individual accordion item with header and collapsible content.
+
+**Component:** `x-forms::accordion.item`
+
+**Attributes:**
+
+<ParamField path="name" type="string" required>
+  Unique name/ID for the accordion item collapse section
+</ParamField>
+
+<ParamField path="parent" type="string" required>
+  ID of the parent accordion container
+</ParamField>
+
+<ParamField path="title" type="string" default="">
+  The title text for the header
+</ParamField>
+
+<ParamField path="content" type="string" default="">
+  The content text (displayed if no slot content provided)
+</ParamField>
+
+<ParamField path="show" type="bool" default="false">
+  Whether the item should be expanded by default
+</ParamField>
+
+**Slots:**
+- `header` - Custom header content
+- Default slot - Custom body content
+
+### Accordion Header
+
+The clickable header button that toggles the collapse.
+
+**Component:** `x-forms::accordion.header`
+
+**Attributes:**
+
+<ParamField path="target" type="string" required>
+  ID of the collapse element to toggle
+</ParamField>
+
+<ParamField path="title" type="string" default="">
+  The title text to display
+</ParamField>
+
+<ParamField path="show" type="bool" default="false">
+  Whether the collapse is shown by default
+</ParamField>
+
+**Bootstrap Class:** `accordion-header` with nested `accordion-button`
+
+### Accordion Collapse
+
+The collapsible content section.
+
+**Component:** `x-forms::accordion.collapse`
+
+**Attributes:**
+
+<ParamField path="parent" type="string" required>
+  ID of the parent accordion container
+</ParamField>
+
+<ParamField path="content" type="string" default="">
+  Text content to display (if no slot content provided)
+</ParamField>
+
+<ParamField path="show" type="bool" default="false">
+  Whether the collapse is shown by default
+</ParamField>
+
+**Bootstrap Classes:** `accordion-collapse`, `collapse`, `show` (when expanded)
+
+## Using Named Slots
+
+You can use named slots for custom content:
+
+```blade
+<x-forms::accordion id="customAccordion" :items="[
+    ['title' => 'Item 1'],
+    ['title' => 'Item 2'],
+]">
+    <x-slot:item0>
+        <p>Custom HTML content for first item</p>
+        <ul>
+            <li>Point 1</li>
+            <li>Point 2</li>
+        </ul>
+    </x-slot:item0>
+    
+    <x-slot:item1>
+        <p>Custom content for second item</p>
+    </x-slot:item1>
+</x-forms::accordion>
+```
+
+Slot names are generated from item keys:
+- Numeric keys: `item0`, `item1`, etc.
+- String keys: converted to camelCase (e.g., 'my_section' becomes 'mySection')
+
+You can also customize headers using `{slotName}Header` slots.
+
+## Manual Item Definition
+
+```blade
+<x-forms::accordion id="manualAccordion">
+    <x-forms::accordion.item
+        name="item-1-collapse"
+        parent="manualAccordion"
+        title="First Item"
+        :show="true"
+    >
+        Content for the first item
+    </x-forms::accordion.item>
+    
+    <x-forms::accordion.item
+        name="item-2-collapse"
+        parent="manualAccordion"
+        title="Second Item"
+    >
+        <x-slot:header>
+            <strong>Custom Header</strong> with HTML
+        </x-slot:header>
+        
+        Content for the second item
+    </x-forms::accordion.item>
+</x-forms::accordion>
+```
+
+## Complete Example
+
+```blade
+<x-forms::accordion id="faqAccordion" class="mb-4" :items="[
+    [
+        'title' => 'What is your return policy?',
+        'content' => 'We offer a 30-day money-back guarantee on all products.',
+        'show' => true
+    ],
+    [
+        'title' => 'How long does shipping take?',
+        'content' => 'Standard shipping takes 5-7 business days.'
+    ],
+    [
+        'title' => 'Do you ship internationally?',
+        'content' => 'Yes, we ship to most countries worldwide.'
+    ]
+]">
+    <x-slot:item3>
+        <x-slot:header>
+            <i class="fas fa-question-circle"></i> Custom Question
+        </x-slot:header>
+        
+        <p>Custom answer with <strong>HTML formatting</strong>.</p>
+        <a href="#">Learn more</a>
+    </x-slot:item3>
+</x-forms::accordion>
+```
+
+## Component Structure
+
+```html
+<div class="accordion" id="accordionId">
+    <!-- Item 1 -->
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                Title 1
+            </button>
+        </h2>
+        <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#accordionId">
+            <div class="accordion-body">
+                Content 1
+            </div>
+        </div>
+    </div>
+    
+    <!-- Item 2 -->
+    <div class="accordion-item">
+        ...
+    </div>
+</div>
+```
+
+## Bootstrap Integration
+
+This component uses Bootstrap 5 accordion components:
+- `.accordion` - Main container
+- `.accordion-item` - Individual accordion item
+- `.accordion-header` - Header wrapper
+- `.accordion-button` - Clickable button
+- `.accordion-collapse` - Collapsible wrapper
+- `.accordion-body` - Content area
+- `.collapse` - Bootstrap collapse utility
+- `.show` - Class to show the collapse
+
+For more information, see [Bootstrap Accordion Documentation](https://getbootstrap.com/docs/5.0/components/accordion/).

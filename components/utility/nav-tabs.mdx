@@ -1,0 +1,267 @@
+---
+title: Nav Tabs
+description: Render Bootstrap navigation tabs from an array
+---
+
+The `nav-tabs` component renders Bootstrap-styled navigation tabs from an array or collection, with support for active states, icons, badges, and disabled states.
+
+## Basic Usage
+
+```blade
+<x-forms::nav-tabs :tabs="[
+    ['title' => 'Profile', 'url' => route('profile'), 'active' => true],
+    ['title' => 'Settings', 'url' => route('settings')],
+    ['title' => 'Billing', 'url' => route('billing')],
+]" />
+```
+
+## Tab Structure
+
+Each tab is an array with the following properties:
+
+```php
+[
+    'title' => 'Tab Title',      // Required: The tab label
+    'url' => '/path',            // Optional: The URL to link to (defaults to '#')
+    'active' => true,            // Optional: Whether this tab is active
+    'disabled' => false,         // Optional: Whether this tab is disabled
+    'icon' => 'fas fa-user',     // Optional: Icon class to display
+    'count' => 5,                // Optional: Badge count to display
+]
+```
+
+## Active Tab
+
+Mark the current tab as active:
+
+```blade
+<x-forms::nav-tabs :tabs="[
+    ['title' => 'Overview', 'url' => route('dashboard.overview'), 'active' => request()->routeIs('dashboard.overview')],
+    ['title' => 'Analytics', 'url' => route('dashboard.analytics'), 'active' => request()->routeIs('dashboard.analytics')],
+    ['title' => 'Reports', 'url' => route('dashboard.reports'), 'active' => request()->routeIs('dashboard.reports')],
+]" />
+```
+
+## Icons
+
+Add icons to tabs:
+
+```blade
+<x-forms::nav-tabs :tabs="[
+    ['title' => 'Profile', 'url' => route('profile'), 'icon' => 'fas fa-user'],
+    ['title' => 'Settings', 'url' => route('settings'), 'icon' => 'fas fa-cog'],
+    ['title' => 'Security', 'url' => route('security'), 'icon' => 'fas fa-shield-alt'],
+]" />
+```
+
+## Badge Counts
+
+Display counts with badges:
+
+```blade
+<x-forms::nav-tabs :tabs="[
+    ['title' => 'All', 'url' => route('tasks.index'), 'count' => 24],
+    ['title' => 'Pending', 'url' => route('tasks.pending'), 'count' => 8, 'active' => true],
+    ['title' => 'Completed', 'url' => route('tasks.completed'), 'count' => 16],
+]" />
+```
+
+## Disabled Tabs
+
+Disable tabs that shouldn't be clickable:
+
+```blade
+<x-forms::nav-tabs :tabs="[
+    ['title' => 'Step 1', 'url' => route('wizard.step1'), 'active' => true],
+    ['title' => 'Step 2', 'url' => route('wizard.step2'), 'disabled' => true],
+    ['title' => 'Step 3', 'url' => route('wizard.step3'), 'disabled' => true],
+]" />
+```
+
+## Using Collections
+
+Build tabs from a collection:
+
+```blade
+@php
+$tabs = collect([
+    ['title' => 'All Posts', 'url' => route('posts.index')],
+    ['title' => 'Published', 'url' => route('posts.published')],
+    ['title' => 'Drafts', 'url' => route('posts.drafts')],
+]);
+@endphp
+
+<x-forms::nav-tabs :tabs="$tabs" />
+```
+
+## Dynamic Tabs from Models
+
+```blade
+@php
+$tabs = $categories->map(fn($category) => [
+    'title' => $category->name,
+    'url' => route('posts.category', $category),
+    'active' => request()->route('category')?->id === $category->id,
+    'count' => $category->posts_count,
+]);
+@endphp
+
+<x-forms::nav-tabs :tabs="$tabs" />
+```
+
+## Attributes
+
+<ParamField path="tabs" type="array|Collection" default="[]">
+  An array or collection of tab definitions. Each tab should be an array with `title`, `url`, `active`, `disabled`, `icon`, and/or `count` keys
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use for rendering
+</ParamField>
+
+## Tab Array Keys
+
+<ParamField path="title" type="string" required>
+  The text label for the tab
+</ParamField>
+
+<ParamField path="url" type="string" default="#">
+  The URL the tab links to
+</ParamField>
+
+<ParamField path="active" type="bool" default="false">
+  Whether this tab is the active/current tab
+</ParamField>
+
+<ParamField path="disabled" type="bool" default="false">
+  Whether this tab is disabled
+</ParamField>
+
+<ParamField path="icon" type="string" default="null">
+  The CSS class for an icon to display before the title
+</ParamField>
+
+<ParamField path="count" type="int" default="null">
+  A numeric count to display in a badge after the title
+</ParamField>
+
+## Styling
+
+The component uses Bootstrap 5 nav-tabs classes:
+
+- `nav nav-tabs`: Container list
+- `nav-item`: Each tab item
+- `nav-link`: Tab link
+- `nav-link active`: Active tab
+- `nav-link disabled`: Disabled tab
+- `badge bg-primary rounded-pill`: Count badge
+
+## Examples
+
+### User Dashboard Tabs
+
+```blade
+<x-forms::nav-tabs :tabs="[
+    [
+        'title' => 'Overview',
+        'url' => route('user.overview'),
+        'icon' => 'fas fa-home',
+        'active' => request()->routeIs('user.overview'),
+    ],
+    [
+        'title' => 'Messages',
+        'url' => route('user.messages'),
+        'icon' => 'fas fa-envelope',
+        'count' => auth()->user()->unread_messages_count,
+    ],
+    [
+        'title' => 'Notifications',
+        'url' => route('user.notifications'),
+        'icon' => 'fas fa-bell',
+        'count' => auth()->user()->unread_notifications_count,
+    ],
+    [
+        'title' => 'Settings',
+        'url' => route('user.settings'),
+        'icon' => 'fas fa-cog',
+    ],
+]" />
+```
+
+### Order Status Tabs
+
+```blade
+@php
+$statusCounts = [
+    'all' => $orders->count(),
+    'pending' => $orders->where('status', 'pending')->count(),
+    'processing' => $orders->where('status', 'processing')->count(),
+    'completed' => $orders->where('status', 'completed')->count(),
+];
+@endphp
+
+<x-forms::nav-tabs :tabs="[
+    [
+        'title' => 'All Orders',
+        'url' => route('orders.index'),
+        'active' => !request('status'),
+        'count' => $statusCounts['all'],
+    ],
+    [
+        'title' => 'Pending',
+        'url' => route('orders.index', ['status' => 'pending']),
+        'active' => request('status') === 'pending',
+        'count' => $statusCounts['pending'],
+    ],
+    [
+        'title' => 'Processing',
+        'url' => route('orders.index', ['status' => 'processing']),
+        'active' => request('status') === 'processing',
+        'count' => $statusCounts['processing'],
+    ],
+    [
+        'title' => 'Completed',
+        'url' => route('orders.index', ['status' => 'completed']),
+        'active' => request('status') === 'completed',
+        'count' => $statusCounts['completed'],
+    ],
+]" />
+```
+
+### Multi-Step Form
+
+```blade
+@php
+$currentStep = session('wizard_step', 1);
+@endphp
+
+<x-forms::nav-tabs :tabs="[
+    [
+        'title' => 'Personal Info',
+        'url' => route('wizard.step', 1),
+        'active' => $currentStep === 1,
+        'icon' => 'fas fa-user',
+    ],
+    [
+        'title' => 'Address',
+        'url' => route('wizard.step', 2),
+        'active' => $currentStep === 2,
+        'disabled' => $currentStep < 2,
+        'icon' => 'fas fa-map-marker-alt',
+    ],
+    [
+        'title' => 'Payment',
+        'url' => route('wizard.step', 3),
+        'active' => $currentStep === 3,
+        'disabled' => $currentStep < 3,
+        'icon' => 'fas fa-credit-card',
+    ],
+    [
+        'title' => 'Review',
+        'url' => route('wizard.step', 4),
+        'active' => $currentStep === 4,
+        'disabled' => $currentStep < 4,
+        'icon' => 'fas fa-check',
+    ],
+]" />
+```

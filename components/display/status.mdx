@@ -1,0 +1,184 @@
+---
+title: Status
+description: Display status badges with customizable colors
+---
+
+The Status component displays colored badge elements for status indicators. It's commonly used to show record states, approval statuses, or any categorical information.
+
+## Basic Usage
+
+```blade
+<x-forms::status label="Active" color="success" />
+```
+
+## Status Colors
+
+Use Bootstrap color variants:
+
+```blade
+<x-forms::status label="Published" color="success" />
+<x-forms::status label="Draft" color="secondary" />
+<x-forms::status label="Pending" color="warning" />
+<x-forms::status label="Rejected" color="danger" />
+<x-forms::status label="In Review" color="info" />
+<x-forms::status label="Featured" color="primary" />
+```
+
+## With Enum Values
+
+Status badges work seamlessly with enums that have a `getColor()` method:
+
+```php
+enum OrderStatus: string
+{
+    case PENDING = 'pending';
+    case CONFIRMED = 'confirmed';
+    case SHIPPED = 'shipped';
+    case DELIVERED = 'delivered';
+    case CANCELLED = 'cancelled';
+    
+    public function getLabel(): string
+    {
+        return match($this) {
+            self::PENDING => 'Pending',
+            self::CONFIRMED => 'Confirmed',
+            self::SHIPPED => 'Shipped',
+            self::DELIVERED => 'Delivered',
+            self::CANCELLED => 'Cancelled',
+        };
+    }
+    
+    public function getColor(): string
+    {
+        return match($this) {
+            self::PENDING => 'warning',
+            self::CONFIRMED => 'info',
+            self::SHIPPED => 'primary',
+            self::DELIVERED => 'success',
+            self::CANCELLED => 'danger',
+        };
+    }
+}
+```
+
+```blade
+<x-forms::status 
+    :label="$order->status->getLabel()" 
+    :color="$order->status->getColor()" 
+/>
+```
+
+<Note>
+The Text Entry component automatically renders status badges for enum values with `getColor()` methods, so you typically don't need to use the Status component directly with enums.
+</Note>
+
+## Custom Content
+
+Use the slot for custom badge content:
+
+```blade
+<x-forms::status color="success">
+    <i class="fa fa-check"></i> Verified
+</x-forms::status>
+```
+
+## Custom Classes
+
+Add custom CSS classes:
+
+```blade
+<x-forms::status 
+    label="Premium" 
+    color="primary" 
+    class="text-uppercase fw-bold" 
+/>
+```
+
+## Multiple Statuses
+
+Display multiple related statuses:
+
+```blade
+<div class="d-flex gap-2">
+    <x-forms::status label="Verified" color="success" />
+    <x-forms::status label="Premium" color="primary" />
+    <x-forms::status label="Featured" color="warning" />
+</div>
+```
+
+## In Tables
+
+Commonly used in table columns:
+
+```blade
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($orders as $order)
+            <tr>
+                <td>{{ $order->reference }}</td>
+                <td>
+                    <x-forms::status 
+                        :label="$order->status->getLabel()" 
+                        :color="$order->status->getColor()" 
+                    />
+                </td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+```
+
+## Attributes
+
+<ParamField path="label" type="string" default="">
+  The text to display in the badge. Can be overridden by slot content.
+</ParamField>
+
+<ParamField path="color" type="string" default="primary">
+  The Bootstrap color variant for the badge. Available values: `primary`, `secondary`, `success`, `danger`, `warning`, `info`, `light`, `dark`
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework (bootstrap-5, material-admin-26)
+</ParamField>
+
+## Available Colors
+
+| Color | Usage |
+|-------|-------|
+| `primary` | Default/Featured items |
+| `secondary` | Neutral states |
+| `success` | Approved/Active/Completed |
+| `danger` | Rejected/Error/Cancelled |
+| `warning` | Pending/Attention needed |
+| `info` | In Progress/Processing |
+| `light` | Disabled/Inactive |
+| `dark` | Special emphasis |
+
+## Rendering
+
+The component renders as a `<span>` element with:
+- `status` CSS class
+- `badge` CSS class
+- `text-bg-{color}` CSS class (Bootstrap 5 badge styling)
+- Any additional custom classes from attributes
+
+## Integration with Text Entry
+
+When using Text Entry with enum values that have a `getColor()` method, the Status component is automatically used internally:
+
+```blade
+<x-forms::text-entry 
+    name="status" 
+    label="Order Status"
+    :model="$order" 
+/>
+```
+
+This will automatically render a status badge if `$order->status` is an enum with a `getColor()` method.

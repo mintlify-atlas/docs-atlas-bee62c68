@@ -1,0 +1,318 @@
+---
+title: URL Input
+description: A URL input component with HTML5 URL validation
+---
+
+The URL component renders a URL input field with HTML5 URL validation, Bootstrap styling, and validation error handling.
+
+## Basic Usage
+
+```blade
+<x-forms::url name="website" label="Website URL" />
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The input name attribute. Used for form submission and error handling.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text displayed for the input. If empty, a label will be auto-generated from the name.
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The model instance to bind to. The component will automatically fetch the value from the model using the name attribute.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  The default value if no model value or old input exists.
+</ParamField>
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Whether to display validation errors below the input.
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Whether to display the label. Set to `false` to hide the label.
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Custom placeholder text for the input.
+</ParamField>
+
+<ParamField path="showPlaceholder" type="boolean" default="false">
+  Automatically use the label as placeholder text when `true`.
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark the input as required. Adds HTML5 required attribute and displays a required indicator on the label.
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Display the label and input inline (horizontal layout).
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Enable Bootstrap floating label style.
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="">
+  Additional CSS classes for the inline label wrapper.
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="">
+  Additional CSS classes for the inline input wrapper.
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript-based error display for client-side validation.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Specify a custom framework theme. Defaults to the configured framework.
+</ParamField>
+
+## Examples
+
+### Basic URL Input
+
+```blade
+<x-forms::url 
+    name="website" 
+    label="Website URL" 
+/>
+```
+
+### Required URL Field
+
+```blade
+<x-forms::url 
+    name="website" 
+    label="Website URL"
+    :required="true"
+/>
+```
+
+### With Model Binding
+
+```blade
+<x-forms::url 
+    name="website" 
+    label="Company Website"
+    :model="$company"
+/>
+```
+
+### With Default Value
+
+```blade
+<x-forms::url 
+    name="website" 
+    label="Website"
+    default="https://example.com"
+/>
+```
+
+### With Placeholder
+
+```blade
+<x-forms::url 
+    name="website" 
+    label="Website"
+    placeholder="https://www.example.com"
+/>
+
+{{-- Or use label as placeholder --}}
+<x-forms::url 
+    name="website" 
+    label="Website URL"
+    :show-placeholder="true"
+/>
+```
+
+### Floating Label
+
+```blade
+<x-forms::url 
+    name="website" 
+    label="Website URL"
+    :floating="true"
+/>
+```
+
+### Inline Layout
+
+```blade
+<x-forms::url 
+    name="website" 
+    label="Website"
+    :inline="true"
+    inline-label-class="col-md-3"
+    inline-input-class="col-md-9"
+/>
+```
+
+### Without Label
+
+```blade
+<x-forms::url 
+    name="website" 
+    :show-label="false"
+    placeholder="https://example.com"
+/>
+```
+
+### Multiple URL Fields
+
+```blade
+<x-forms::url 
+    name="website" 
+    label="Website"
+    placeholder="https://www.example.com"
+/>
+
+<x-forms::url 
+    name="github_url" 
+    label="GitHub Profile"
+    placeholder="https://github.com/username"
+/>
+
+<x-forms::url 
+    name="linkedin_url" 
+    label="LinkedIn Profile"
+    placeholder="https://linkedin.com/in/username"
+/>
+```
+
+### With Pattern Validation
+
+```blade
+{{-- Require https protocol --}}
+<x-forms::url 
+    name="website" 
+    label="Website (HTTPS only)"
+    pattern="https://.*"
+    placeholder="https://example.com"
+/>
+```
+
+### With Help Text
+
+```blade
+<x-forms::url name="website" label="Website URL">
+    <x-slot:help>
+        Enter the full URL including https:// (e.g., https://www.example.com)
+    </x-slot:help>
+</x-forms::url>
+```
+
+### Social Media Links Form
+
+```blade
+<x-forms::form-open route="profile.social.update">
+    <x-forms::url 
+        name="website" 
+        label="Personal Website"
+        placeholder="https://www.yoursite.com"
+    />
+    
+    <x-forms::url 
+        name="twitter_url" 
+        label="Twitter"
+        placeholder="https://twitter.com/username"
+    />
+    
+    <x-forms::url 
+        name="facebook_url" 
+        label="Facebook"
+        placeholder="https://facebook.com/username"
+    />
+    
+    <x-forms::url 
+        name="instagram_url" 
+        label="Instagram"
+        placeholder="https://instagram.com/username"
+    />
+    
+    <x-forms::submit>Save Links</x-forms::submit>
+</x-forms::form-open>
+```
+
+### Company Profile Form
+
+```blade
+<x-forms::form-open>
+    <x-forms::text 
+        name="company_name" 
+        label="Company Name"
+        :required="true"
+    />
+    
+    <x-forms::url 
+        name="website" 
+        label="Website"
+        :required="true"
+        placeholder="https://www.company.com"
+    />
+    
+    <x-forms::email 
+        name="contact_email" 
+        label="Contact Email"
+        :required="true"
+    />
+    
+    <x-forms::tel 
+        name="phone" 
+        label="Phone Number"
+    />
+    
+    <x-forms::submit>Save Profile</x-forms::submit>
+</x-forms::form-open>
+```
+
+## Value Resolution
+
+The component resolves the input value in the following order:
+
+1. Old input (from validation errors)
+2. Model value (if model is provided)
+3. Default value (if specified)
+4. Empty string
+
+## HTML5 URL Validation
+
+The URL input type provides built-in browser validation:
+- Validates URL format automatically
+- Requires a valid protocol (http://, https://, etc.)
+- Shows browser-specific validation messages
+- Works with HTML5 form validation API
+- Can be combined with server-side Laravel validation
+
+### Common Validation Rules
+
+Combine with Laravel validation for robust URL validation:
+
+```php
+'website' => ['required', 'url'],
+'website' => ['required', 'url', 'active_url'], // Checks DNS
+'website' => ['required', 'url', 'starts_with:https://'], // Require HTTPS
+```
+
+## Validation Error Display
+
+When validation fails, the input automatically:
+- Adds the `is-invalid` Bootstrap class
+- Displays error messages below the input (if `showErrors` is `true`)
+- Preserves user input through Laravel's old input
+
+## Implementation Details
+
+The URL component:
+- Extends the base Input component with type set to `url`
+- Supports all standard HTML input attributes via attribute merging
+- Leverages browser's native URL validation
+- Integrates with Laravel's validation error bag
+- Works seamlessly with Laravel's old input helper
+
+**Source**: `/src/Views/Components/Url.php:12`

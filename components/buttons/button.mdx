@@ -1,0 +1,133 @@
+---
+title: Button
+description: A versatile button component for user actions
+---
+
+The Button component renders a styled `<button>` element with Bootstrap styling and optional animation effects.
+
+## Basic Usage
+
+```blade
+<x-forms::button>
+    Click Me
+</x-forms::button>
+```
+
+## Attributes
+
+<ParamField path="type" type="string" default="">
+  The button type attribute. Common values:
+  - `button` - Standard button
+  - `submit` - Form submission
+  - `reset` - Form reset
+  
+  Leave empty to omit the type attribute.
+</ParamField>
+
+<ParamField path="color" type="string" default="primary">
+  The Bootstrap button color variant. Available options:
+  - `primary` - Primary brand color
+  - `secondary` - Secondary color
+  - `success` - Success state (green)
+  - `danger` - Danger/delete actions (red)
+  - `warning` - Warning state (yellow)
+  - `info` - Informational (blue)
+  - `light` - Light background
+  - `dark` - Dark background
+  - `link` - Link-styled button
+  
+  Renders as `btn-{color}` class.
+</ParamField>
+
+<ParamField path="animate" type="boolean" default="false">
+  Enable animation effect on button click. When `true`, applies the `animate-submit` class.
+</ParamField>
+
+## Examples
+
+### Button Types
+
+```blade
+{{-- Standard button --}}
+<x-forms::button type="button">
+    Click Me
+</x-forms::button>
+
+{{-- Submit button --}}
+<x-forms::button type="submit">
+    Save Changes
+</x-forms::button>
+
+{{-- Reset button --}}
+<x-forms::button type="reset" color="secondary">
+    Reset Form
+</x-forms::button>
+```
+
+### Color Variants
+
+```blade
+<x-forms::button color="primary">Primary</x-forms::button>
+<x-forms::button color="secondary">Secondary</x-forms::button>
+<x-forms::button color="success">Success</x-forms::button>
+<x-forms::button color="danger">Danger</x-forms::button>
+<x-forms::button color="warning">Warning</x-forms::button>
+<x-forms::button color="info">Info</x-forms::button>
+<x-forms::button color="light">Light</x-forms::button>
+<x-forms::button color="dark">Dark</x-forms::button>
+```
+
+### With Animation
+
+```blade
+<x-forms::button type="submit" :animate="true">
+    Submit with Animation
+</x-forms::button>
+```
+
+### Additional HTML Attributes
+
+You can pass any standard HTML attributes:
+
+```blade
+<x-forms::button 
+    type="button"
+    color="primary"
+    class="custom-class"
+    id="my-button"
+    disabled
+    onclick="handleClick()"
+>
+    Custom Button
+</x-forms::button>
+```
+
+### Disabled Button
+
+```blade
+<x-forms::button disabled>
+    Disabled Button
+</x-forms::button>
+```
+
+### With Icons
+
+```blade
+<x-forms::button color="success">
+    <i class="fas fa-save"></i> Save
+</x-forms::button>
+
+<x-forms::button color="danger">
+    <i class="fas fa-trash"></i> Delete
+</x-forms::button>
+```
+
+## Implementation Details
+
+The Button component:
+- Renders a `<button>` element with Bootstrap's `btn` and `btn-{color}` classes
+- Supports the `animate-submit` class for click animations when `animate` is true
+- Allows all standard HTML button attributes via attribute merging
+- Type attribute is only rendered when explicitly provided
+
+**Source**: `/src/Views/Components/Button.php:17`

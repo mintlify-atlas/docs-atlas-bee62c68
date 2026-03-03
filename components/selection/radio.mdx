@@ -1,0 +1,351 @@
+---
+title: Radio
+description: Radio button input component with automatic checked state handling and model binding support
+---
+
+The Radio component renders a radio button input with automatic state management, ideal for mutually exclusive options.
+
+## Basic Usage
+
+```blade
+<x-forms::radio 
+    name="status" 
+    label="Active" 
+    value="active" 
+/>
+
+<x-forms::radio 
+    name="status" 
+    label="Inactive" 
+    value="inactive" 
+/>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the radio input. Should be the same for all options in a group
+</ParamField>
+
+<ParamField path="label" type="string">
+  Label text for the radio button. Auto-generated from name if not provided
+</ParamField>
+
+<ParamField path="value" type="mixed" default="1">
+  The value submitted when this radio button is selected
+</ParamField>
+
+<ParamField path="model" type="mixed">
+  Model instance for checked state binding. Can be Eloquent model, array, or object
+</ParamField>
+
+<ParamField path="default" type="bool|mixed" default="false">
+  Default checked state when no model is bound and no old input exists
+</ParamField>
+
+<ParamField path="required" type="bool" default="false">
+  Mark radio button as required
+</ParamField>
+
+<ParamField path="show-label" type="bool" default="true">
+  Show/hide the label element
+</ParamField>
+
+<ParamField path="show-errors" type="bool" default="true">
+  Display validation errors
+</ParamField>
+
+<ParamField path="show-js-errors" type="bool" default="false">
+  Display JavaScript validation errors
+</ParamField>
+
+<ParamField path="inline" type="bool" default="false">
+  Render in inline layout. When true, label shows as space only
+</ParamField>
+
+<ParamField path="floating" type="bool" default="false">
+  Use floating label style
+</ParamField>
+
+<ParamField path="inline-label-class" type="string">
+  CSS classes for inline label
+</ParamField>
+
+<ParamField path="inline-input-class" type="string">
+  CSS classes for inline input wrapper
+</ParamField>
+
+## Examples
+
+### Basic Radio Group
+
+```blade
+<fieldset>
+    <legend>Account Status</legend>
+    
+    <x-forms::radio 
+        name="status" 
+        label="Active" 
+        value="active" 
+    />
+    
+    <x-forms::radio 
+        name="status" 
+        label="Inactive" 
+        value="inactive" 
+    />
+    
+    <x-forms::radio 
+        name="status" 
+        label="Pending" 
+        value="pending" 
+    />
+</fieldset>
+```
+
+### Required Radio Group
+
+```blade
+<fieldset>
+    <legend>Select Payment Method</legend>
+    
+    <x-forms::radio 
+        name="payment_method" 
+        label="Credit Card" 
+        value="card" 
+        required 
+    />
+    
+    <x-forms::radio 
+        name="payment_method" 
+        label="PayPal" 
+        value="paypal" 
+        required 
+    />
+</fieldset>
+```
+
+Each radio button in the group should have the `required` attribute for proper validation.
+
+### With Default Selection
+
+```blade
+<x-forms::radio 
+    name="newsletter" 
+    label="Yes" 
+    value="yes" 
+    :default="true" 
+/>
+
+<x-forms::radio 
+    name="newsletter" 
+    label="No" 
+    value="no" 
+/>
+```
+
+### Model Binding
+
+```blade
+<x-forms::form :model="$user">
+    <fieldset>
+        <legend>Role</legend>
+        
+        <x-forms::radio 
+            name="role" 
+            label="Admin" 
+            value="admin" 
+        />
+        
+        <x-forms::radio 
+            name="role" 
+            label="Editor" 
+            value="editor" 
+        />
+        
+        <x-forms::radio 
+            name="role" 
+            label="Viewer" 
+            value="viewer" 
+        />
+    </fieldset>
+</x-forms::form>
+```
+
+The radio button is checked if its `value` matches `$user->role`.
+
+### Numeric Values
+
+```blade
+<fieldset>
+    <legend>Rating</legend>
+    
+    <x-forms::radio name="rating" label="1 Star" :value="1" />
+    <x-forms::radio name="rating" label="2 Stars" :value="2" />
+    <x-forms::radio name="rating" label="3 Stars" :value="3" />
+    <x-forms::radio name="rating" label="4 Stars" :value="4" />
+    <x-forms::radio name="rating" label="5 Stars" :value="5" />
+</fieldset>
+```
+
+### Inline Radio Buttons
+
+```blade
+<div class="d-flex gap-3">
+    <x-forms::radio 
+        name="gender" 
+        label="Male" 
+        value="male" 
+        inline 
+    />
+    
+    <x-forms::radio 
+        name="gender" 
+        label="Female" 
+        value="female" 
+        inline 
+    />
+    
+    <x-forms::radio 
+        name="gender" 
+        label="Other" 
+        value="other" 
+        inline 
+    />
+</div>
+```
+
+### With Custom IDs
+
+```blade
+<x-forms::radio 
+    name="subscription" 
+    label="Monthly" 
+    value="monthly" 
+    id="sub_monthly" 
+/>
+
+<x-forms::radio 
+    name="subscription" 
+    label="Yearly" 
+    value="yearly" 
+    id="sub_yearly" 
+/>
+```
+
+## Checked State Logic
+
+The component determines the checked state in this order:
+
+1. **Old Input** (highest priority)
+   - If `old($name)` exists, checks if `$value` matches the old input value or is in the array
+   
+2. **Model Binding**
+   - For arrays: Checks if `$value` exists in the model's array
+   - For single values: Checks if `$value` matches the model value
+   
+3. **Default Value** (lowest priority)
+   - Uses the `default` attribute
+
+### Example Checked State Scenarios
+
+```blade
+{{-- Checked if old('status') equals 'active' --}}
+<x-forms::radio name="status" value="active" />
+
+{{-- Checked if $article->status equals 'published' --}}
+<x-forms::form :model="$article">
+    <x-forms::radio name="status" value="published" />
+</x-forms::form>
+
+{{-- Checked by default (no old input or model) --}}
+<x-forms::radio name="theme" value="dark" :default="true" />
+
+{{-- Checked if $user->preferences array contains 'notifications' --}}
+<x-forms::form :model="$user">
+    <x-forms::radio name="preferences[]" value="notifications" />
+</x-forms::form>
+```
+
+## HTML Structure
+
+The component renders with Bootstrap 5 structure:
+
+```html
+<div class="form-group">
+    <div class="form-check">
+        <input 
+            type="radio" 
+            class="form-check-input" 
+            id="status" 
+            name="status" 
+            value="active"
+        >
+        <label class="form-check-label" for="status">
+            Active
+            <span class="required">*</span> {{-- if required --}}
+        </label>
+    </div>
+    <small class="form-text">Help text here</small> {{-- if help slot provided --}}
+    <div class="invalid-feedback">Error message</div> {{-- if validation error --}}
+</div>
+```
+
+## CSS Classes
+
+The radio input includes:
+- `form-check-input` - Bootstrap 5 radio class
+- `is-invalid` - Added when validation errors exist
+
+## Validation
+
+Radio buttons support standard Laravel validation:
+
+```php
+// Controller
+$request->validate([
+    'status' => 'required|in:active,inactive,pending',
+    'payment_method' => 'required|string',
+]);
+```
+
+Validation errors automatically display when `show-errors` is true.
+
+<Note>
+For radio groups, validation errors typically display once per group. Consider showing the error message on the first radio button or in a separate location.
+</Note>
+
+## Radio vs Select
+
+Use radio buttons when:
+- You have 2-5 options
+- All options should be visible
+- Users need to compare options easily
+
+Use a select dropdown when:
+- You have many options (6+)
+- Space is limited
+- Options don't need simultaneous visibility
+
+## Arrayable Values
+
+The component handles `Arrayable` instances (Collections, etc.):
+
+```blade
+{{-- $user->settings is a Collection --}}
+<x-forms::form :model="$user">
+    <x-forms::radio 
+        name="settings[]" 
+        value="email_notifications" 
+    />
+</x-forms::form>
+```
+
+The Collection is automatically converted to array for value checking.
+
+## Accessibility
+
+- Always use a `<fieldset>` and `<legend>` to group related radio buttons
+- Each radio has a properly associated label via the `for` attribute
+- The `required` attribute is added to the input when specified
+- Validation errors are associated with the input for screen readers

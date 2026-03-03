@@ -1,0 +1,189 @@
+---
+title: Link Button
+description: A link styled as a button for navigation actions
+---
+
+The LinkButton component renders an anchor (`<a>`) element styled as a Bootstrap button, perfect for navigation actions that should look like buttons.
+
+## Basic Usage
+
+```blade
+<x-forms::link-button url="/dashboard">
+    Go to Dashboard
+</x-forms::link-button>
+```
+
+## Attributes
+
+<ParamField path="url" type="string" default="">
+  The URL for the link's `href` attribute. Can be a relative or absolute URL.
+  
+  Leave empty to create a button-styled link without a destination (useful when setting `href` dynamically).
+</ParamField>
+
+<ParamField path="color" type="string" default="primary">
+  The Bootstrap button color variant. Available options:
+  - `primary` - Primary brand color
+  - `secondary` - Secondary color
+  - `success` - Success state (green)
+  - `danger` - Danger/delete actions (red)
+  - `warning` - Warning state (yellow)
+  - `info` - Informational (blue)
+  - `light` - Light background
+  - `dark` - Dark background
+  - `link` - Link-styled appearance
+  
+  Renders as `btn-{color}` class.
+</ParamField>
+
+## Examples
+
+### Basic Navigation
+
+```blade
+<x-forms::link-button url="/users">
+    View Users
+</x-forms::link-button>
+
+<x-forms::link-button url="/users/create" color="success">
+    Create New User
+</x-forms::link-button>
+```
+
+### Color Variants
+
+```blade
+<x-forms::link-button url="/" color="primary">
+    Home
+</x-forms::link-button>
+
+<x-forms::link-button url="/back" color="secondary">
+    Go Back
+</x-forms::link-button>
+
+<x-forms::link-button url="/delete" color="danger">
+    Delete
+</x-forms::link-button>
+
+<x-forms::link-button url="/info" color="info">
+    Learn More
+</x-forms::link-button>
+```
+
+### With Icons
+
+```blade
+<x-forms::link-button url="/settings" color="primary">
+    <i class="fas fa-cog"></i> Settings
+</x-forms::link-button>
+
+<x-forms::link-button url="/profile" color="secondary">
+    <i class="fas fa-user"></i> Profile
+</x-forms::link-button>
+
+<x-forms::link-button url="/logout" color="danger">
+    <i class="fas fa-sign-out-alt"></i> Logout
+</x-forms::link-button>
+```
+
+### External Links
+
+```blade
+<x-forms::link-button 
+    url="https://github.com/Javaabu/forms"
+    target="_blank"
+    rel="noopener noreferrer"
+>
+    View on GitHub <i class="fas fa-external-link-alt"></i>
+</x-forms::link-button>
+```
+
+### Dynamic URLs
+
+```blade
+<x-forms::link-button :url="route('users.show', $user)">
+    View User
+</x-forms::link-button>
+
+<x-forms::link-button :url="route('users.edit', $user)" color="warning">
+    Edit User
+</x-forms::link-button>
+```
+
+### With Additional Attributes
+
+```blade
+<x-forms::link-button 
+    url="/download"
+    color="success"
+    class="custom-class"
+    download
+    title="Download file"
+>
+    <i class="fas fa-download"></i> Download
+</x-forms::link-button>
+```
+
+### Action Buttons Group
+
+```blade
+<div class="btn-group" role="group">
+    <x-forms::link-button :url="route('posts.show', $post)" color="info">
+        View
+    </x-forms::link-button>
+    
+    <x-forms::link-button :url="route('posts.edit', $post)" color="warning">
+        Edit
+    </x-forms::link-button>
+    
+    <x-forms::button 
+        type="button"
+        color="danger"
+        onclick="confirmDelete()"
+    >
+        Delete
+    </x-forms::button>
+</div>
+```
+
+### Cancel Button in Forms
+
+```blade
+<form method="POST" action="/users">
+    @csrf
+    
+    <x-forms::input name="name" label="Name" />
+    
+    <div class="mt-3">
+        <x-forms::link-button url="/users" color="secondary">
+            Cancel
+        </x-forms::link-button>
+        
+        <x-forms::submit>
+            Save
+        </x-forms::submit>
+    </div>
+</form>
+```
+
+## Implementation Details
+
+The LinkButton component:
+- Renders an `<a>` element with Bootstrap's `btn` and `btn-{color}` classes
+- Supports all standard anchor attributes (target, rel, download, etc.)
+- URL is rendered as the `href` attribute when provided
+- Allows attribute merging for custom classes and other HTML attributes
+- Provides the visual appearance of a button with link functionality
+
+**When to Use**:
+- Navigation actions that should look like buttons
+- Cancel buttons in forms (to navigate away)
+- Primary call-to-action links
+- Action links in button groups
+
+**When to Use Button Instead**:
+- Form submissions (use `<x-forms::submit>`)
+- JavaScript-triggered actions without navigation
+- Actual form control buttons (reset, etc.)
+
+**Source**: `/src/Views/Components/LinkButton.php:17`

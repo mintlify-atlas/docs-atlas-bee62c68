@@ -1,0 +1,333 @@
+---
+title: Select2
+description: Enhanced select component with Select2 integration for searchable dropdowns, AJAX loading, and cascading selects
+---
+
+The Select2 component extends the Select component with [Select2](https://select2.org/) integration, providing enhanced features like search, AJAX loading, tagging, and cascading selects.
+
+<Note>
+This component requires the Select2 JavaScript library. Make sure to include the Select2 assets in your application.
+</Note>
+
+## Basic Usage
+
+```blade
+<x-forms::select2 
+    name="author" 
+    label="Author" 
+    :options="['1' => 'John Doe', '2' => 'Jane Smith']" 
+/>
+```
+
+## Attributes
+
+Inherits all attributes from the [Select component](/components/selection/select), plus:
+
+<ParamField path="allow-clear" type="bool" default="true">
+  Show clear button to deselect value. Auto-generates placeholder if empty
+</ParamField>
+
+<ParamField path="hide-search" type="bool" default="false">
+  Hide the search box. Sets `data-minimum-results-for-search="Infinity"`
+</ParamField>
+
+<ParamField path="tags" type="bool" default="false">
+  Enable tag/token creation. Allows user-entered values
+</ParamField>
+
+<ParamField path="is-ajax" type="bool" default="false">
+  Enable AJAX mode for lazy loading options
+</ParamField>
+
+<ParamField path="ajax-url" type="string">
+  URL endpoint for AJAX requests. Required when `is-ajax` is true
+</ParamField>
+
+<ParamField path="selected-url" type="string">
+  URL to fetch initially selected items in AJAX mode
+</ParamField>
+
+<ParamField path="is-first" type="bool" default="false">
+  Mark as first select in a cascade chain. Adds `data-first="true"`
+</ParamField>
+
+<ParamField path="child" type="string">
+  CSS selector for child select in cascade. Example: `#state`
+</ParamField>
+
+<ParamField path="ajax-child" type="string">
+  CSS selector for AJAX child select in cascade
+</ParamField>
+
+<ParamField path="filter-field" type="string">
+  Field name to use as filter parameter in AJAX requests for cascading selects
+</ParamField>
+
+<ParamField path="is-icon-select" type="bool" default="false">
+  Enable icon display in options. Adds `select2-b-icon` class
+</ParamField>
+
+<ParamField path="icon-prefix" type="string">
+  Prefix for icon class names. Stored in `data-icon-prefix` attribute
+</ParamField>
+
+<ParamField path="parent-modal" type="string">
+  CSS selector for parent modal element. Ensures dropdown renders within modal
+</ParamField>
+
+<ParamField path="fallback" type="string">
+  Fallback value or behavior
+</ParamField>
+
+## Examples
+
+### Basic Select2
+
+```blade
+<x-forms::form :model="$post">
+    <x-forms::select2 
+        name="author" 
+        :options="$authors" 
+    />
+</x-forms::form>
+```
+
+Renders with:
+- `data-allow-clear="true"`
+- `data-placeholder="Nothing Selected"`
+- CSS class: `select2-basic`
+
+### AJAX Select
+
+```blade
+<x-forms::select2 
+    name="author" 
+    label="Author" 
+    :options="$selectedAuthors" 
+    ajax-url="/api/authors" 
+    name-field="full_name" 
+    is-ajax 
+/>
+```
+
+For AJAX mode:
+- Only initially selected options are loaded
+- Additional options load via AJAX as user searches
+- The `options` should contain only selected values
+- Uses `name-field` for the text field and `id-field` for the value field
+
+### Cascading Selects
+
+```blade
+<x-forms::form :model="$address">
+    {{-- Parent select --}}
+    <x-forms::select2 
+        name="country" 
+        label="Country"
+        :options="Country::query()" 
+        child="#state" 
+        is-first 
+    />
+
+    {{-- Child select with AJAX --}}
+    <x-forms::select2 
+        name="state" 
+        label="State"
+        :options="State::whereCountryId($address->country?->id ?? null)" 
+        ajax-url="/api/states" 
+        child="#city" 
+        filter-field="country" 
+    />
+
+    {{-- Grandchild select --}}
+    <x-forms::select2 
+        name="city" 
+        label="City"
+        :options="City::whereStateId($address->state?->id ?? null)" 
+        ajax-url="/api/cities" 
+        filter-field="state" 
+        relation 
+    />
+</x-forms::form>
+```
+
+Cascading behavior:
+- First select triggers changes in child
+- Child selects are cleared when parent changes
+- `filter-field` is sent as parameter in AJAX requests
+- Use `is-first` on the topmost select
+
+### With Tags
+
+```blade
+<x-forms::select2 
+    name="skills" 
+    label="Skills" 
+    :options="['php' => 'PHP', 'laravel' => 'Laravel']" 
+    tags 
+    multiple 
+/>
+```
+
+Enables user to create new tags that aren't in the options list.
+
+### Hide Search
+
+```blade
+<x-forms::select2 
+    name="status" 
+    label="Status" 
+    :options="['active' => 'Active', 'inactive' => 'Inactive']" 
+    hide-search 
+/>
+```
+
+Useful for short option lists where search isn't needed.
+
+### Disable Clear Button
+
+```blade
+<x-forms::select2 
+    name="required_field" 
+    label="Required Field" 
+    :options="$options" 
+    :allow-clear="false" 
+    required 
+/>
+```
+
+### Icon Select
+
+```blade
+<x-forms::select2 
+    name="icon" 
+    label="Choose Icon" 
+    :options="['home' => 'Home', 'user' => 'User']" 
+    is-icon-select 
+    icon-prefix="fa fa-" 
+/>
+```
+
+Renders with `select2-b-icon` class for icon-enabled Select2 templates.
+
+### In Modal
+
+```blade
+<x-forms::select2 
+    name="category" 
+    :options="$categories" 
+    parent-modal="#myModal" 
+/>
+```
+
+Ensures the Select2 dropdown renders correctly within a modal by setting the dropdown parent.
+
+### Multiple Selection
+
+```blade
+<x-forms::select2 
+    name="tags[]" 
+    label="Tags" 
+    :options="Tag::query()" 
+    multiple 
+/>
+```
+
+<Note>
+When `multiple` and `allow-clear` are both true, no placeholder option is rendered in the HTML. Select2 handles the placeholder via JavaScript.
+</Note>
+
+### With Eloquent Query
+
+```blade
+<x-forms::select2 
+    name="category_id" 
+    label="Category" 
+    :options="App\Models\Category::query()" 
+    name-field="title" 
+    id-field="id" 
+/>
+```
+
+### Enum Support
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::select2 
+        name="status" 
+        label="Status"
+        :options="[
+            'draft' => 'Draft',
+            'published' => 'Published',
+        ]" 
+    />
+</x-forms::form>
+```
+
+Automatically handles backed enum values from model binding.
+
+## Data Attributes
+
+The component sets various data attributes for Select2 initialization:
+
+- `data-allow-clear` - Enable clear button
+- `data-placeholder` - Placeholder text
+- `data-minimum-results-for-search` - Controls search visibility
+- `data-tags` - Enable tag creation
+- `data-select-ajax-url` - AJAX endpoint URL
+- `data-selected-url` - URL for fetching selected items
+- `data-name-field` - Field for option text
+- `data-id-field` - Field for option value
+- `data-filter-field` - Filter parameter for cascading
+- `data-select-child` - Child select selector
+- `data-ajax-child` - AJAX child selector
+- `data-first` - First in cascade chain
+- `data-dropdown-parent-elem` - Parent modal selector
+- `data-icon-prefix` - Icon class prefix
+- `data-fallback` - Fallback value
+
+## CSS Classes
+
+The select element includes:
+- `form-select` - Bootstrap 5 base class
+- `select2-basic` - Basic Select2 mode
+- `select2-ajax` - AJAX mode
+- `select2-b-icon` - Icon mode
+- `is-invalid` - When validation errors exist
+
+## AJAX Response Format
+
+Your AJAX endpoint should return JSON in Select2 format:
+
+```json
+{
+  "results": [
+    {"id": 1, "text": "Option 1"},
+    {"id": 2, "text": "Option 2"}
+  ],
+  "pagination": {
+    "more": false
+  }
+}
+```
+
+Or use custom field names with `name-field` and `id-field`:
+
+```json
+{
+  "results": [
+    {"user_id": 1, "full_name": "John Doe"},
+    {"user_id": 2, "full_name": "Jane Smith"}
+  ]
+}
+```
+
+## Default Placeholder
+
+When `allow-clear` is true and no `placeholder` is provided, the component uses:
+
+```php
+trans('forms::strings.nothing_selected')
+```
+
+You can customize this translation key in your language files.

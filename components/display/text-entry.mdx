@@ -1,0 +1,199 @@
+---
+title: Text Entry
+description: Display text values with flexible formatting options
+---
+
+The Text Entry component displays read-only text values with support for various formatting options including multiline text, WYSIWYG content, arrays, enums, and model links.
+
+## Basic Usage
+
+```blade
+<x-forms::text-entry name="name" label="Full Name" />
+```
+
+## Binding to Models
+
+```blade
+<x-forms::text-entry 
+    name="description" 
+    label="Description" 
+    :model="$user" 
+/>
+```
+
+## Inline Layout
+
+Display entries in a horizontal layout with configurable column classes:
+
+```blade
+<x-forms::text-entry 
+    name="email" 
+    label="Email Address" 
+    :model="$user"
+    :inline="true" 
+/>
+```
+
+The inline layout uses Bootstrap grid classes configured in `config/forms.php`:
+- `inline-entry-label-class`: Default `col-sm-6 col-md-4`
+- `inline-entry-class`: Default `col-sm-6 col-md-8`
+
+### Custom Inline Classes
+
+```blade
+<x-forms::text-entry 
+    name="bio" 
+    label="Biography"
+    :inline="true"
+    inline-entry-label-class="col-md-3"
+    inline-entry-class="col-md-9" 
+/>
+```
+
+## Multiline Text
+
+Display text with line breaks preserved:
+
+```blade
+<x-forms::text-entry 
+    name="description" 
+    label="Description"
+    :model="$post"
+    :multiline="true" 
+/>
+```
+
+## WYSIWYG Content
+
+Render HTML content without escaping:
+
+```blade
+<x-forms::text-entry 
+    name="content" 
+    label="Content"
+    :model="$post"
+    :wysiwyg="true" 
+/>
+```
+
+## Array Values
+
+Arrays are automatically displayed as unordered lists:
+
+```blade
+<x-forms::text-entry 
+    name="tags" 
+    label="Tags"
+    :value="['Laravel', 'PHP', 'Blade']" 
+/>
+```
+
+## Enum Values
+
+Enums with `getColor()` methods are automatically rendered as status badges:
+
+```blade
+<x-forms::text-entry 
+    name="status" 
+    label="Status"
+    :value="$order->status" 
+/>
+```
+
+## Model Links
+
+Models with `admin_link` attributes are automatically linked:
+
+```blade
+<x-forms::text-entry 
+    name="author" 
+    label="Author"
+    :value="$post->author" 
+/>
+```
+
+For collections of models:
+
+```blade
+<x-forms::text-entry 
+    name="categories" 
+    label="Categories"
+    :value="$post->categories" 
+/>
+```
+
+## Custom Content
+
+Override the default value rendering with slot content:
+
+```blade
+<x-forms::text-entry name="custom" label="Custom Display">
+    <strong>Custom formatted content</strong>
+</x-forms::text-entry>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" default="">
+  The field name used to retrieve the value from the bound model
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text to display
+</ParamField>
+
+<ParamField path="value" type="mixed" default="null">
+  The value to display. If not provided, the value is retrieved from the model using the name attribute
+</ParamField>
+
+<ParamField path="model" type="Model" default="null">
+  The model instance to retrieve the value from
+</ParamField>
+
+<ParamField path="show-label" type="boolean" default="true">
+  Whether to display the label
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Display the entry in horizontal layout with label and value side-by-side
+</ParamField>
+
+<ParamField path="multiline" type="boolean" default="false">
+  Preserve line breaks in the displayed value (converts newlines to `<br>` tags)
+</ParamField>
+
+<ParamField path="wysiwyg" type="boolean" default="false">
+  Render the value as raw HTML without escaping (use with trusted content only)
+</ParamField>
+
+<ParamField path="inline-entry-label-class" type="string" default="col-sm-6 col-md-4">
+  Custom CSS classes for the label column when using inline layout
+</ParamField>
+
+<ParamField path="inline-entry-class" type="string" default="col-sm-6 col-md-8">
+  Custom CSS classes for the value column when using inline layout
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework (bootstrap-5, material-admin-26)
+</ParamField>
+
+## Display Logic
+
+The component automatically handles different value types:
+
+1. **Slot content**: If provided, displays the slot content
+2. **Admin models**: Models with `admin_link` attribute display as clickable links
+3. **Admin model collections**: Collections of admin models display as comma-separated links
+4. **Status enums**: Enums with `getColor()` method display as status badges
+5. **Multiline text**: Text with `multiline="true"` preserves line breaks
+6. **Arrays**: Display as unordered lists
+7. **WYSIWYG content**: HTML content with `wysiwyg="true"` is rendered unescaped
+8. **Empty values**: Display the translated "blank" string for empty values (except numeric zero)
+
+## Rendering
+
+The component renders as a definition list (`<dl>`) with:
+- `<dt>` tag for the label (if `show-label` is true)
+- `<dd>` tag for the value
+- Bootstrap grid classes applied when `inline="true"`

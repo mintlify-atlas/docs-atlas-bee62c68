@@ -1,0 +1,279 @@
+---
+title: HandlesValidationErrors
+description: Trait for handling validation errors in form components
+---
+
+## Overview
+
+The `HandlesValidationErrors` trait provides methods for checking and handling validation errors in form components. It integrates with Laravel's validation system and error bags.
+
+**Namespace:** `Javaabu\Forms\Support`
+
+## Trait Definition
+
+```php
+trait HandlesValidationErrors
+```
+
+## Properties
+
+<ParamField path="showErrors" type="bool" default="true">
+  Whether to display validation errors for this component.
+</ParamField>
+
+## Methods
+
+### hasErrorAndShow
+
+```php
+public function hasErrorAndShow(string $name, string $bag = 'default'): bool
+```
+
+<ParamField path="name" type="string" required>
+  The field name to check for errors.
+</ParamField>
+
+<ParamField path="bag" type="string" default="default">
+  The error bag name to check.
+</ParamField>
+
+Returns whether the given attribute has an error AND errors should be shown.
+
+**Returns:** `bool` - True if field has error and `showErrors` is true
+
+**Example:**
+```php
+if ($this->hasErrorAndShow('email')) {
+    // Display error styling
+}
+```
+
+### hasError
+
+```php
+public function hasError(string $name, string $bag = 'default'): bool
+```
+
+<ParamField path="name" type="string" required>
+  The field name to check for errors.
+</ParamField>
+
+<ParamField path="bag" type="string" default="default">
+  The error bag name to check.
+</ParamField>
+
+Returns whether the given attribute has a validation error.
+
+**Returns:** `bool` - True if field has error in the specified bag
+
+**Name Processing:**
+- Converts bracket notation to dot notation: `user[email]` → `user.email`
+- Removes array indicators: `items[]` → `items`
+- Checks both exact match and wildcard: `items` and `items.*`
+
+**Example:**
+```php
+// Check simple field
+$this->hasError('email'); // Checks 'email'
+
+// Check nested field
+$this->hasError('user[profile][email]'); // Checks 'user.profile.email'
+
+// Check array field
+$this->hasError('items[]'); // Checks 'items' and 'items.*'
+```
+
+### getErrorBag
+
+```php
+protected function getErrorBag(string $bag = 'default'): MessageBag
+```
+
+<ParamField path="bag" type="string" default="default">
+  The error bag name to retrieve.
+</ParamField>
+
+Returns the error bag for validation errors.
+
+**Returns:** `Illuminate\Contracts\Support\MessageBag` - The error bag
+
+**Example:**
+```php
+$errorBag = $this->getErrorBag();
+$errors = $errorBag->get('email');
+```
+
+## Usage in Components
+
+### Basic Usage
+
+```php
+use Javaabu\Forms\Support\HandlesValidationErrors;
+use Javaabu\Forms\Views\Components\Component;
+
+class CustomInput extends Component
+{
+    use HandlesValidationErrors;
+    
+    public string $name;
+    
+    public function __construct(string $name, bool $showErrors = true)
+    {
+        parent::__construct();
+        $this->name = $name;
+        $this->showErrors = $showErrors;
+    }
+    
+    public function inputClass(): string
+    {
+        return $this->hasErrorAndShow($this->name)
+            ? 'input input-error'
+            : 'input';
+    }
+}
+```
+
+### In Blade Views
+
+```blade
+<input 
+    type="text"
+    name="{{ $name }}"
+    @class([
+        'form-control',
+        'is-invalid' => $hasErrorAndShow($name)
+    ])
+/>
+
+@if($hasErrorAndShow($name))
+    @foreach($getErrorBag()->get($name) as $error)
+        <div class="invalid-feedback">{{ $error }}</div>
+    @endforeach
+@endif
+```
+
+## Error Bag Support
+
+The trait supports multiple error bags for complex forms:
+
+```php
+// Check default error bag
+$this->hasError('email');
+
+// Check named error bag
+$this->hasError('email', 'profile');
+
+// Use in validation
+return redirect()->back()
+    ->withErrors($validator, 'profile');
+```
+
+## Array Field Support
+
+The trait intelligently handles array fields:
+
+```php
+// For name="items[0][title]"
+$this->hasError('items[0][title]');
+// Checks: 'items.0.title' and 'items.0.title.*'
+
+// For name="tags[]"
+$this->hasError('tags[]');
+// Checks: 'tags' and 'tags.*'
+```
+
+This allows validation errors on any array item to be detected:
+
+```php
+// Validator rules
+'items.*.title' => 'required'
+
+// Will be detected by
+$this->hasError('items[]');
+```
+
+## Disabling Error Display
+
+You can disable error display for specific components:
+
+```blade
+<x-forms::text name="email" :showErrors="false" />
+```
+
+Or programmatically:
+
+```php
+$this->showErrors = false;
+```
+
+## Complete Example
+
+```php
+use Javaabu\Forms\Support\HandlesValidationErrors;
+use Javaabu\Forms\Views\Components\Component;
+
+class TextInput extends Component
+{
+    use HandlesValidationErrors;
+    
+    public string $name;
+    public string $label;
+    protected string $view = 'text-input';
+    
+    public function __construct(
+        string $name,
+        string $label = '',
+        bool $showErrors = true
+    ) {
+        parent::__construct();
+        $this->name = $name;
+        $this->label = $label;
+        $this->showErrors = $showErrors;
+    }
+    
+    public function getInputClasses(): string
+    {
+        $classes = ['form-control'];
+        
+        if ($this->hasErrorAndShow($this->name)) {
+            $classes[] = 'is-invalid';
+        }
+        
+        return implode(' ', $classes);
+    }
+    
+    public function getErrors(): array
+    {
+        if (!$this->hasErrorAndShow($this->name)) {
+            return [];
+        }
+        
+        return $this->getErrorBag()->get($this->name);
+    }
+}
+```
+
+Corresponding Blade view:
+
+```blade
+<div class="form-group">
+    <label for="{{ $id() }}">{{ $label() }}</label>
+    
+    <input
+        type="text"
+        id="{{ $id() }}"
+        name="{{ $name }}"
+        class="{{ $getInputClasses() }}"
+    />
+    
+    @foreach($getErrors() as $error)
+        <div class="invalid-feedback d-block">{{ $error }}</div>
+    @endforeach
+</div>
+```
+
+## Related
+
+- [Component Base Class](/api/component)
+- [HandlesDefaultAndOldValue Trait](/api/traits/handles-default-and-old-value)
+- [HandlesBoundValues Trait](/api/traits/handles-bound-values)

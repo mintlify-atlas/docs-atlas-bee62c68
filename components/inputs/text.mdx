@@ -1,0 +1,231 @@
+---
+title: Text Input
+description: A text input component for capturing user text input
+---
+
+The Text component renders a standard text input field with Bootstrap styling, validation error handling, and support for floating labels.
+
+## Basic Usage
+
+```blade
+<x-forms::text name="username" label="Username" />
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The input name attribute. Used for form submission and error handling.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text displayed for the input. If empty, a label will be auto-generated from the name.
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The model instance to bind to. The component will automatically fetch the value from the model using the name attribute.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  The default value if no model value or old input exists.
+</ParamField>
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Whether to display validation errors below the input.
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Whether to display the label. Set to `false` to hide the label.
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Custom placeholder text for the input.
+</ParamField>
+
+<ParamField path="showPlaceholder" type="boolean" default="false">
+  Automatically use the label as placeholder text when `true`.
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark the input as required. Adds HTML5 required attribute and displays a required indicator on the label.
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Display the label and input inline (horizontal layout).
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Enable Bootstrap floating label style.
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="">
+  Additional CSS classes for the inline label wrapper.
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="">
+  Additional CSS classes for the inline input wrapper.
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript-based error display for client-side validation.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Specify a custom framework theme. Defaults to the configured framework.
+</ParamField>
+
+## Examples
+
+### Basic Text Input
+
+```blade
+<x-forms::text 
+    name="first_name" 
+    label="First Name" 
+/>
+```
+
+### With Default Value
+
+```blade
+<x-forms::text 
+    name="username" 
+    label="Username"
+    default="john_doe"
+/>
+```
+
+### With Model Binding
+
+```blade
+<x-forms::text 
+    name="email" 
+    label="Email Address"
+    :model="$user"
+/>
+```
+
+### Required Field
+
+```blade
+<x-forms::text 
+    name="company_name" 
+    label="Company Name"
+    :required="true"
+/>
+```
+
+### With Placeholder
+
+```blade
+<x-forms::text 
+    name="search" 
+    label="Search"
+    placeholder="Enter search terms..."
+/>
+
+{{-- Or use label as placeholder --}}
+<x-forms::text 
+    name="search" 
+    label="Search"
+    :show-placeholder="true"
+/>
+```
+
+### Floating Label
+
+```blade
+<x-forms::text 
+    name="full_name" 
+    label="Full Name"
+    :floating="true"
+/>
+```
+
+### Inline Layout
+
+```blade
+<x-forms::text 
+    name="city" 
+    label="City"
+    :inline="true"
+    inline-label-class="col-md-3"
+    inline-input-class="col-md-9"
+/>
+```
+
+### Without Label
+
+```blade
+<x-forms::text 
+    name="search" 
+    :show-label="false"
+    placeholder="Search..."
+/>
+```
+
+### With Validation Errors
+
+```blade
+{{-- Errors are automatically displayed when validation fails --}}
+<x-forms::text 
+    name="email" 
+    label="Email Address"
+/>
+
+{{-- Disable error display --}}
+<x-forms::text 
+    name="email" 
+    label="Email Address"
+    :show-errors="false"
+/>
+```
+
+### With Additional Attributes
+
+```blade
+<x-forms::text 
+    name="username" 
+    label="Username"
+    class="custom-input"
+    id="user-input"
+    maxlength="50"
+    autocomplete="username"
+/>
+```
+
+### With Help Text
+
+```blade
+<x-forms::text name="api_key" label="API Key">
+    <x-slot:help>
+        You can find your API key in your account settings.
+    </x-slot:help>
+</x-forms::text>
+```
+
+## Value Resolution
+
+The component resolves the input value in the following order:
+
+1. Old input (from validation errors)
+2. Model value (if model is provided)
+3. Default value (if specified)
+4. Empty string
+
+## Validation Error Display
+
+When validation fails, the input automatically:
+- Adds the `is-invalid` Bootstrap class
+- Displays error messages below the input (if `showErrors` is `true`)
+- Preserves user input through Laravel's old input
+
+## Implementation Details
+
+The Text component:
+- Extends the base Input component with type set to `text`
+- Supports all standard HTML input attributes via attribute merging
+- Integrates with Laravel's validation error bag
+- Works seamlessly with Laravel's old input helper
+- Automatically generates labels from field names when not provided
+
+**Source**: `/src/Views/Components/Text.php:12`

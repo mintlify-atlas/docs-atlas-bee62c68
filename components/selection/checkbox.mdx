@@ -1,0 +1,295 @@
+---
+title: Checkbox
+description: Checkbox input component with automatic checked state handling and model binding support
+---
+
+The Checkbox component renders a checkbox input with automatic state management, supporting both single checkboxes and checkbox arrays.
+
+## Basic Usage
+
+```blade
+<x-forms::checkbox 
+    name="check_me" 
+    label="Check Me" 
+/>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the checkbox input
+</ParamField>
+
+<ParamField path="label" type="string">
+  Label text for the checkbox. Auto-generated from name if not provided
+</ParamField>
+
+<ParamField path="value" type="mixed" default="1">
+  The value submitted when checkbox is checked
+</ParamField>
+
+<ParamField path="model" type="mixed">
+  Model instance for checked state binding. Can be Eloquent model, array, or object
+</ParamField>
+
+<ParamField path="default" type="bool|mixed" default="false">
+  Default checked state when no model is bound and no old input exists
+</ParamField>
+
+<ParamField path="required" type="bool" default="false">
+  Mark checkbox as required
+</ParamField>
+
+<ParamField path="show-label" type="bool" default="true">
+  Show/hide the label element
+</ParamField>
+
+<ParamField path="show-errors" type="bool" default="true">
+  Display validation errors
+</ParamField>
+
+<ParamField path="show-js-errors" type="bool" default="false">
+  Display JavaScript validation errors
+</ParamField>
+
+<ParamField path="inline" type="bool" default="false">
+  Render in inline layout. When true, label shows as space only
+</ParamField>
+
+<ParamField path="floating" type="bool" default="false">
+  Use floating label style
+</ParamField>
+
+<ParamField path="inline-label-class" type="string">
+  CSS classes for inline label
+</ParamField>
+
+<ParamField path="inline-input-class" type="string">
+  CSS classes for inline input wrapper
+</ParamField>
+
+## Examples
+
+### Basic Checkbox
+
+```blade
+<x-forms::checkbox 
+    name="agree" 
+    label="I agree to the terms" 
+/>
+```
+
+### Required Checkbox
+
+```blade
+<x-forms::checkbox 
+    name="terms" 
+    label="Accept Terms & Conditions" 
+    required 
+/>
+```
+
+Renders with:
+- `required` attribute on input
+- Required asterisk (*) in label
+
+### With Custom Value
+
+```blade
+<x-forms::checkbox 
+    name="newsletter" 
+    label="Subscribe to newsletter" 
+    value="yes" 
+/>
+```
+
+### Checked by Default
+
+```blade
+<x-forms::checkbox 
+    name="notifications" 
+    label="Enable notifications" 
+    :default="true" 
+/>
+```
+
+### Model Binding (Single Value)
+
+```blade
+<x-forms::form :model="$user">
+    <x-forms::checkbox 
+        name="is_active" 
+        label="Active" 
+    />
+</x-forms::form>
+```
+
+The checkbox is checked if `$user->is_active` is truthy.
+
+### Model Binding (Array Value)
+
+```blade
+<x-forms::form :model="$user">
+    <x-forms::checkbox 
+        name="permissions[]" 
+        label="Can Edit" 
+        value="edit" 
+    />
+    <x-forms::checkbox 
+        name="permissions[]" 
+        label="Can Delete" 
+        value="delete" 
+    />
+</x-forms::form>
+```
+
+Each checkbox is checked if its value exists in `$user->permissions` array.
+
+### Inline Checkbox
+
+```blade
+<x-forms::checkbox 
+    name="remember_me" 
+    label="Remember me" 
+    inline 
+/>
+```
+
+When `inline` is true:
+- `show-label` is automatically set to true
+- Label text renders as space only inside the checkbox label
+- Required indicator is hidden
+
+### With Help Text
+
+```blade
+<x-forms::checkbox 
+    name="opt_in" 
+    label="Marketing Emails" 
+>
+    <x-slot name="help">
+        Receive promotional emails and special offers
+    </x-slot>
+</x-forms::checkbox>
+```
+
+### Checkbox Group
+
+```blade
+<fieldset>
+    <legend>Select your interests</legend>
+    
+    <x-forms::checkbox 
+        name="interests[]" 
+        label="Technology" 
+        value="tech" 
+    />
+    
+    <x-forms::checkbox 
+        name="interests[]" 
+        label="Sports" 
+        value="sports" 
+    />
+    
+    <x-forms::checkbox 
+        name="interests[]" 
+        label="Music" 
+        value="music" 
+    />
+</fieldset>
+```
+
+## Checked State Logic
+
+The component determines the checked state in this order:
+
+1. **Old Input** (highest priority)
+   - If `old($name)` exists, checks if `$value` is in the old input array/value
+   
+2. **Model Binding**
+   - For arrays: Checks if `$value` exists in the model's array
+   - For single values: Uses the truthy value from model
+   
+3. **Default Value** (lowest priority)
+   - Uses the `default` attribute
+
+### Example Checked State Scenarios
+
+```blade
+{{-- Checked if old('permissions') contains 'admin' --}}
+<x-forms::checkbox name="permissions[]" value="admin" />
+
+{{-- Checked if $user->is_active is truthy --}}
+<x-forms::form :model="$user">
+    <x-forms::checkbox name="is_active" />
+</x-forms::form>
+
+{{-- Checked if $user->roles array contains 'editor' --}}
+<x-forms::form :model="$user">
+    <x-forms::checkbox name="roles[]" value="editor" />
+</x-forms::form>
+
+{{-- Checked by default (no old input or model) --}}
+<x-forms::checkbox name="subscribe" :default="true" />
+```
+
+## HTML Structure
+
+The component renders with Bootstrap 5 structure:
+
+```html
+<div class="form-group">
+    <div class="form-check">
+        <input 
+            type="checkbox" 
+            class="form-check-input" 
+            id="check_me" 
+            name="check_me" 
+            value="1"
+        >
+        <label class="form-check-label" for="check_me">
+            Check Me
+            <span class="required">*</span> {{-- if required --}}
+        </label>
+    </div>
+    <small class="form-text">Help text here</small> {{-- if help slot provided --}}
+    <div class="invalid-feedback">Error message</div> {{-- if validation error --}}
+</div>
+```
+
+## CSS Classes
+
+The checkbox input includes:
+- `form-check-input` - Bootstrap 5 checkbox class
+- `is-invalid` - Added when validation errors exist
+
+## Validation
+
+Checkboxes support standard Laravel validation:
+
+```php
+// Controller
+$request->validate([
+    'agree' => 'required|accepted',
+    'permissions' => 'array',
+    'permissions.*' => 'string',
+]);
+```
+
+Validation errors automatically display below the checkbox when `show-errors` is true.
+
+## Arrayable Values
+
+The component handles `Arrayable` instances (Collections, etc.):
+
+```blade
+{{-- $user->permissions is a Collection --}}
+<x-forms::form :model="$user">
+    <x-forms::checkbox 
+        name="permissions[]" 
+        value="edit" 
+    />
+</x-forms::form>
+```
+
+The Collection is automatically converted to array for value checking.

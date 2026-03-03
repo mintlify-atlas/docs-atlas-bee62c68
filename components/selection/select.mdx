@@ -1,0 +1,276 @@
+---
+title: Select
+description: Standard HTML select dropdown component with support for options arrays, Eloquent queries, and model binding
+---
+
+The Select component renders a standard HTML select dropdown with automatic option handling, model binding, and validation support.
+
+## Basic Usage
+
+```blade
+<x-forms::select 
+    name="status" 
+    label="Status" 
+    :options="['draft' => 'Draft', 'published' => 'Published']" 
+/>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the select element
+</ParamField>
+
+<ParamField path="label" type="string">
+  Label text for the select field. Auto-generated from name if not provided
+</ParamField>
+
+<ParamField path="options" type="array|QueryBuilder" default="[]">
+  Options to display in the select. Can be:
+  - Array with key-value pairs: `['value' => 'Label']`
+  - Eloquent query builder: `Category::query()`
+  - Empty array (use slot for custom options)
+</ParamField>
+
+<ParamField path="placeholder" type="string">
+  Placeholder text for empty option. Shows as first option with empty value
+</ParamField>
+
+<ParamField path="multiple" type="bool" default="false">
+  Enable multiple selection. Automatically adds `[]` to name and includes sync field
+</ParamField>
+
+<ParamField path="model" type="mixed">
+  Model instance for value binding. Can be Eloquent model, array, or object
+</ParamField>
+
+<ParamField path="default" type="mixed">
+  Default selected value when no model is bound
+</ParamField>
+
+<ParamField path="required" type="bool" default="false">
+  Mark field as required
+</ParamField>
+
+<ParamField path="disabled" type="bool" default="false">
+  Disable the select element
+</ParamField>
+
+<ParamField path="show-label" type="bool" default="true">
+  Show/hide the label element
+</ParamField>
+
+<ParamField path="show-placeholder" type="bool" default="false">
+  Auto-generate placeholder from label if placeholder not provided
+</ParamField>
+
+<ParamField path="show-errors" type="bool" default="true">
+  Display validation errors
+</ParamField>
+
+<ParamField path="show-js-errors" type="bool" default="false">
+  Display JavaScript validation errors
+</ParamField>
+
+<ParamField path="inline" type="bool" default="false">
+  Render in inline layout
+</ParamField>
+
+<ParamField path="floating" type="bool" default="false">
+  Use floating label style
+</ParamField>
+
+<ParamField path="name-field" type="string">
+  Field name to use for option labels when using Eloquent query (default: 'name')
+</ParamField>
+
+<ParamField path="id-field" type="string">
+  Field name to use for option values when using Eloquent query (default: primary key)
+</ParamField>
+
+<ParamField path="relation" type="bool" default="false">
+  Indicate this select represents a model relationship
+</ParamField>
+
+<ParamField path="exclude-sync-field" type="bool" default="false">
+  Exclude the hidden sync field for multiple selects
+</ParamField>
+
+<ParamField path="sync-field-name" type="string">
+  Custom name for the sync field (default: `sync_{name}`)
+</ParamField>
+
+<ParamField path="tags" type="bool" default="false">
+  Enable tag creation. Includes old input values as options
+</ParamField>
+
+<ParamField path="inline-label-class" type="string">
+  CSS classes for inline label
+</ParamField>
+
+<ParamField path="inline-input-class" type="string">
+  CSS classes for inline input wrapper
+</ParamField>
+
+<ParamField path="form-group-class" type="string">
+  CSS classes for form group wrapper
+</ParamField>
+
+## Examples
+
+### With Placeholder
+
+```blade
+<x-forms::select 
+    name="country" 
+    placeholder="Choose a country..." 
+    :options="['us' => 'United States', 'uk' => 'United Kingdom']" 
+/>
+```
+
+### Multiple Selection
+
+```blade
+<x-forms::select 
+    name="sectors[]" 
+    label="Sectors" 
+    multiple
+>
+    <option value="tech">Technology</option>
+    <option value="finance">Finance</option>
+    <option value="health">Healthcare</option>
+</x-forms::select>
+```
+
+<Note>
+Multiple selects automatically include a hidden sync field to handle empty submissions. Use `exclude-sync-field` to disable this behavior.
+</Note>
+
+### With Eloquent Query
+
+```blade
+<x-forms::select 
+    name="category_id" 
+    label="Category" 
+    :options="App\Models\Category::query()" 
+/>
+```
+
+By default, uses the model's primary key for values and `name` field for labels.
+
+### Custom Field Names
+
+```blade
+<x-forms::select 
+    name="author_id" 
+    label="Author" 
+    :options="App\Models\User::query()" 
+    name-field="full_name"
+    id-field="id"
+/>
+```
+
+### Model Binding
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::select 
+        name="status" 
+        label="Status" 
+        :options="['draft' => 'Draft', 'published' => 'Published']" 
+    />
+</x-forms::form>
+```
+
+The selected value is automatically set from `$article->status`.
+
+### Using Enum Values
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::select 
+        name="status" 
+        label="Status" 
+        :options="[
+            'draft' => 'Draft',
+            'published' => 'Published',
+        ]" 
+    />
+</x-forms::form>
+```
+
+Supports backed enums - automatically extracts the enum value.
+
+### With Slot for Custom Options
+
+```blade
+<x-forms::select name="priority" label="Priority">
+    <option value="low">Low Priority</option>
+    <option value="medium">Medium Priority</option>
+    <option value="high">High Priority</option>
+</x-forms::select>
+```
+
+<Note>
+The slot is only used when the `options` attribute is empty.
+</Note>
+
+### Custom Sync Field
+
+```blade
+<x-forms::select 
+    name="tags[]" 
+    multiple 
+    sync-field-name="custom_sync_name"
+/>
+```
+
+## Sync Field Behavior
+
+When `multiple` is true, a hidden input field is automatically included:
+
+```html
+<input type="hidden" name="sync_sectors" value="1">
+```
+
+This ensures the field is included in form submissions even when no options are selected. The sync field is NOT added when:
+- `exclude-sync-field` is true
+- `disabled` is true
+- `multiple` is false
+
+## Value Binding
+
+The component handles various value types:
+
+- **Eloquent Models**: Extracts the primary key or `id-field` value
+- **Collections**: Uses `pluck()` with `id-field` for multiple selects
+- **Backed Enums**: Automatically extracts the enum value
+- **Arrays**: Directly uses the array values
+- **Old Input**: Automatically populates from `old()` input
+
+## Option Sources
+
+### Array Options
+
+```blade
+:options="['key' => 'Label']"
+```
+
+### Query Builder
+
+```blade
+:options="Category::query()"
+:options="User::where('active', true)"
+```
+
+For query builders:
+- Automatically uses `pluck($nameField, $idField)`
+- Supports accessor attributes
+- Works with translatable models (Javaabu Translatable)
+
+## CSS Classes
+
+The select element includes:
+- `form-select` - Bootstrap 5 select class
+- `is-invalid` - Added when validation errors exist
+- Additional Select2 classes when `is-select2` is true (used internally by Select2 component)

@@ -1,0 +1,263 @@
+---
+title: Installation
+description: Install Javaabu Forms via Composer and optionally publish config, views, and translations
+---
+
+# Installation
+
+Install the Javaabu Forms package in your Laravel application using Composer.
+
+## Install via Composer
+
+<Steps>
+  <Step title="Run Composer Require">
+    Install the package using Composer:
+
+    ```bash
+    composer require javaabu/forms
+    ```
+
+    The package uses Laravel's auto-discovery feature, so the service provider will be registered automatically.
+  </Step>
+
+  <Step title="Verify Installation">
+    After installation, you can immediately start using form components in your Blade views:
+
+    ```blade
+    <x-forms::text name="username" label="Username" />
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  No additional configuration is required to start using the package. It works out of the box with Bootstrap 5.
+</Note>
+
+## Publishing Assets (Optional)
+
+You can optionally publish configuration files, views, and translations to customize the package behavior.
+
+### Publish Configuration File
+
+Publish the configuration file to customize framework settings, icons, and default behavior:
+
+```bash
+php artisan vendor:publish --provider="Javaabu\Forms\FormsServiceProvider" --tag="forms-config"
+```
+
+This creates `config/forms.php` with the following options:
+
+<CodeGroup>
+```php config/forms.php
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Default CSS Framework
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the default CSS framework that will be used by the
+    | package when rendering form components
+    |
+    | Supported: "bootstrap-5", "material-admin-26"
+    |
+    */
+
+    'framework' => 'bootstrap-5',
+
+    'use_eloquent_date_casting' => false,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Framework Settings
+    |--------------------------------------------------------------------------
+    |
+    | Framework specific configs
+    |
+    */
+
+    'frameworks' => [
+        'bootstrap-5' => [
+            'icon-prefix' => 'fa-regular',
+            'date-icon' => 'fa-calendar',
+            'date-icon-wrapper-class' => 'date-icon-wrapper',
+            'datetime-icon' => 'fa-calendar',
+            'time-icon' => 'fa-clock',
+            'date-clear-icon' => 'fa-close',
+            'date-clear-btn-class' => 'btn btn-outline-secondary btn-date-clear disable-w-input',
+            'file-download-icon' => 'fa-arrow-to-bottom',
+            'file-upload-icon' => 'fa-arrow-to-top',
+            'file-clear-icon' => 'fa-close',
+            'image-icon' => 'fa-image',
+            'inline-label-class' => 'col-sm-3 col-lg-2 col-form-label',
+            'inline-input-class' => 'col-sm-9 col-lg-10',
+            'inline-entry-label-class' => 'col-sm-6 col-md-4',
+            'inline-entry-class' => 'col-sm-6 col-md-8',
+            'search-icon' => 'fa-search',
+            'no-items-icon' => 'fa-file',
+        ],
+
+        'material-admin-26' => [
+            'icon-prefix' => 'zmdi',
+            'date-icon' => 'zmdi-calendar',
+            'date-icon-wrapper-class' => 'date-icon-wrapper',
+            'datetime-icon' => 'zmdi-calendar',
+            'time-icon' => 'zmdi-clock',
+            'date-clear-icon' => 'zmdi-close',
+            'date-clear-btn-class' => 'text-body btn-date-clear disable-w-input',
+            'file-download-icon' => 'zmdi-open-in-new',
+            'file-upload-icon' => 'zmdi-upload',
+            'file-clear-icon' => 'zmdi-close',
+            'image-icon' => 'zmdi-image',
+            'inline-label-class' => 'col-sm-3 col-lg-2 col-form-label',
+            'inline-input-class' => 'col-sm-9 col-lg-10',
+            'inline-entry-label-class' => 'col-sm-6 col-md-4',
+            'inline-entry-class' => 'col-sm-6 col-md-8',
+            'search-icon' => 'zmdi-search',
+            'no-items-icon' => 'zmdi-file',
+        ]
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scripts Stack
+    |--------------------------------------------------------------------------
+    |
+    | The name of the stack to push scripts
+    |
+    */
+
+    'scripts_stack' => 'scripts',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google Maps API Key
+    |--------------------------------------------------------------------------
+    |
+    | API key to use for map inputs
+    |
+    */
+
+    'map_api_key' => env('MAP_API_KEY'),
+];
+```
+</CodeGroup>
+
+<Tip>
+  You can add your own custom framework by creating a new entry in the `frameworks` array and setting it as the default in the `framework` key.
+</Tip>
+
+### Publish Views
+
+Publish the Blade view templates to customize the HTML markup of form components:
+
+```bash
+php artisan vendor:publish --provider="Javaabu\Forms\FormsServiceProvider" --tag="forms-views"
+```
+
+Views will be published to `resources/views/vendor/forms/` with subdirectories for each framework:
+
+```
+resources/views/vendor/forms/
+├── bootstrap-5/
+│   ├── input.blade.php
+│   ├── select.blade.php
+│   ├── textarea.blade.php
+│   └── ...
+├── material-admin-26/
+│   └── ...
+└── partials/
+    ├── maps-script.blade.php
+    └── wysiwyg-script.blade.php
+```
+
+<Warning>
+  Only publish views if you need to customize the HTML markup. The package handles updates automatically when using the default views.
+</Warning>
+
+### Publish Translations
+
+Publish translation files to customize labels and messages (like the required field indicator):
+
+```bash
+php artisan vendor:publish --provider="Javaabu\Forms\FormsServiceProvider" --tag="forms-translations"
+```
+
+Translation files will be published to `lang/vendor/forms/`.
+
+<Note>
+  By default, required fields show an asterisk (*) next to the label. Publish translations to change this to text like "(Required)" or another language.
+</Note>
+
+## Custom Artisan Commands
+
+The package registers two helpful Artisan commands for managing view customization:
+
+### Publish Specific Views
+
+```bash
+php artisan forms:publish-view
+```
+
+Interactively publish individual view files instead of all views at once.
+
+### Compare View Changes
+
+```bash
+php artisan forms:diff-views
+```
+
+Compare your published views with the package's default views to see what has changed after package updates.
+
+## Environment Variables
+
+Add these optional environment variables to your `.env` file:
+
+```bash .env
+# Required for map input components
+MAP_API_KEY=your-google-maps-api-key
+```
+
+## Blade Directives
+
+The package automatically registers two Blade directives for model binding:
+
+- `@model($model)` - Start model binding scope
+- `@endmodel` - End model binding scope
+
+These are used internally by the `<x-forms::form>` component and can be used standalone:
+
+```blade
+@model($user)
+    <x-forms::text name="name" />
+    <x-forms::email name="email" />
+@endmodel
+```
+
+## Component Namespace
+
+All form components are registered under the `forms` namespace:
+
+```blade
+<x-forms::input name="field" />
+<x-forms::select name="option" :options="[]" />
+<x-forms::textarea name="content" />
+```
+
+The namespace is defined in `FormsServiceProvider.php`:
+
+```php
+Blade::componentNamespace('Javaabu\\Forms\\Views\\Components', 'forms');
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Requirements" icon="check" href="/requirements">
+    Verify your PHP and Laravel versions meet the minimum requirements
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Create your first form with model binding in under 5 minutes
+  </Card>
+</CardGroup>

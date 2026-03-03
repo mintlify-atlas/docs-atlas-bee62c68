@@ -1,0 +1,446 @@
+---
+title: HandlesMediaValues
+description: Trait for handling Spatie Media Library values in form components
+---
+
+## Overview
+
+The `HandlesMediaValues` trait extends the `HandlesBoundValues` trait to provide specialized functionality for working with the Spatie Media Library package. It handles retrieving media files from Eloquent models and generating appropriate URLs.
+
+**Namespace:** `Javaabu\Forms\Support`
+
+## Trait Definition
+
+```php
+trait HandlesMediaValues
+{
+    use HandlesBoundValues;
+}
+```
+
+## Dependencies
+
+This trait uses the `HandlesBoundValues` trait and integrates with:
+- `Spatie\MediaLibrary\HasMedia` interface
+- `Spatie\MediaLibrary\MediaCollections\Models\Media` model
+
+## Methods
+
+### getBoundValue
+
+```php
+protected function getBoundValue($bind, string $name)
+```
+
+<ParamField path="bind" type="mixed" required>
+  The model/object to retrieve value from. If false, returns null.
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  The attribute name in dot notation.
+</ParamField>
+
+Overrides the parent `getBoundValue` method to handle media files. First attempts to get the value normally (unless `ignoreAccessor` is true), then falls back to retrieving media from the specified collection.
+
+**Returns:** `mixed` - The attribute value, Media object, or null
+
+**Retrieval Logic:**
+
+1. If `$bind` is false, returns null
+2. If `$bind` is null, uses currently bound target
+3. Attempts to get value via accessor (unless `ignoreAccessor` is true)
+4. If value is empty and model implements `HasMedia`, retrieves first media from collection
+5. Returns the value or Media object
+
+**Example:**
+```php
+// Component property
+protected string $collection = 'avatar';
+protected bool $ignoreAccessor = false;
+
+// Get bound value
+$media = $this->getBoundValue($user, 'avatar');
+// Returns Media object from 'avatar' collection
+```
+
+### setValue
+
+```php
+protected function setValue(string $name, $bind = null, $default = null)
+```
+
+<ParamField path="name" type="string" required>
+  The field name in bracket notation.
+</ParamField>
+
+<ParamField path="bind" type="mixed" default="null">
+  The model to retrieve media from.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  Default value if no media found.
+</ParamField>
+
+Retrieves media value, generates URL, extracts filename, and sets the component's `value` and `fileName` properties.
+
+**Returns:** `mixed` - The media URL
+
+**Processing:**
+
+1. Converts name to dot notation
+2. Gets bound value (Media object or URL string)
+3. Generates file URL using `getFileUrl()`
+4. Extracts filename from Media object or URL
+5. Sets `$this->value` to URL and `$this->fileName` to filename
+
+**Example:**
+```php
+public function __construct(string $name, $bind = null)
+{
+    parent::__construct();
+    $this->bindModel($bind);
+    $this->setValue($name, $bind);
+    // $this->value contains URL
+    // $this->fileName contains filename
+}
+```
+
+### getFileNameFromUrl
+
+```php
+protected function getFileNameFromUrl(?string $url): string
+```
+
+<ParamField path="url" type="string|null" required>
+  The file URL to extract filename from.
+</ParamField>
+
+Extracts the filename from a URL path.
+
+**Returns:** `string` - The filename, or empty string if URL is null
+
+**Example:**
+```php
+$filename = $this->getFileNameFromUrl('https://example.com/media/avatar.jpg');
+// Returns: "avatar.jpg"
+
+$filename = $this->getFileNameFromUrl(null);
+// Returns: ""
+```
+
+### getFileUrl
+
+```php
+protected function getFileUrl($media): ?string
+```
+
+<ParamField path="media" type="mixed" required>
+  The media object or URL string.
+</ParamField>
+
+Generates a URL for the media file with support for conversions.
+
+**Returns:** `string|null` - The media URL or null
+
+**Conversion Handling:**
+
+- If `$conversion` is set and generated, returns conversion URL
+- If `$conversion` is not generated, falls back to original
+- If media is a string, returns it as-is
+- Otherwise returns empty string
+
+**Example:**
+```php
+// Component properties
+protected string $conversion = 'thumb';
+
+// Media with conversion
+$url = $this->getFileUrl($media);
+// Returns: "https://example.com/media/1/conversions/avatar-thumb.jpg"
+
+// Media without conversion
+$this->conversion = '';
+$url = $this->getFileUrl($media);
+// Returns: "https://example.com/media/1/avatar.jpg"
+
+// String URL
+$url = $this->getFileUrl('https://example.com/image.jpg');
+// Returns: "https://example.com/image.jpg"
+```
+
+## Usage in Components
+
+### Image Upload Component
+
+```php
+use Javaabu\Forms\Support\HandlesMediaValues;
+use Javaabu\Forms\Views\Components\Component;
+
+class ImageUpload extends Component
+{
+    use HandlesMediaValues;
+    
+    public string $name;
+    public $value; // Will contain the image URL
+    public string $fileName = '';
+    protected string $collection = 'images';
+    protected string $conversion = '';
+    protected bool $ignoreAccessor = false;
+    protected string $view = 'image-upload';
+    
+    public function __construct(
+        string $name,
+        string $collection = 'images',
+        string $conversion = '',
+        bool $ignoreAccessor = false,
+        $bind = null
+    ) {
+        parent::__construct();
+        $this->name = $name;
+        $this->collection = $collection;
+        $this->conversion = $conversion;
+        $this->ignoreAccessor = $ignoreAccessor;
+        $this->bindModel($bind);
+        $this->setValue($name, $bind);
+    }
+}
+```
+
+### File Upload Component
+
+```php
+use Javaabu\Forms\Support\HandlesMediaValues;
+use Javaabu\Forms\Views\Components\Component;
+
+class FileUpload extends Component
+{
+    use HandlesMediaValues;
+    
+    public string $name;
+    public $value;
+    public string $fileName = '';
+    protected string $collection = 'documents';
+    protected string $conversion = '';
+    protected bool $ignoreAccessor = false;
+    
+    public function __construct(
+        string $name,
+        string $collection = 'documents',
+        $bind = null
+    ) {
+        parent::__construct();
+        $this->name = $name;
+        $this->collection = $collection;
+        $this->bindModel($bind);
+        $this->setValue($name, $bind);
+    }
+    
+    public function hasFile(): bool
+    {
+        return !empty($this->value);
+    }
+}
+```
+
+## Blade Component Usage
+
+### Basic Image Upload
+
+```blade
+@model($post)
+    <x-forms::image-upload 
+        name="featured_image"
+        collection="featured-images"
+    />
+    {{-- Displays existing image from $post->getMedia('featured-images')->first() --}}
+@endmodel
+```
+
+### Image with Conversion
+
+```blade
+@model($user)
+    <x-forms::image-upload 
+        name="avatar"
+        collection="avatars"
+        conversion="thumb"
+    />
+    {{-- Displays thumbnail conversion of avatar --}}
+@endmodel
+```
+
+### File Upload
+
+```blade
+@model($document)
+    <x-forms::file-upload 
+        name="attachment"
+        collection="attachments"
+    />
+    {{-- Shows filename: {{ $fileName }} --}}
+    {{-- Download URL: {{ $value }} --}}
+@endmodel
+```
+
+## Model Setup with Spatie Media Library
+
+```php
+use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class Post extends Model implements HasMedia
+{
+    use InteractsWithMedia;
+    
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('featured-images')
+            ->singleFile()
+            ->registerMediaConversions(function (Media $media) {
+                $this->addMediaConversion('thumb')
+                    ->width(200)
+                    ->height(200);
+                    
+                $this->addMediaConversion('banner')
+                    ->width(1200)
+                    ->height(400);
+            });
+            
+        $this->addMediaCollection('attachments')
+            ->acceptsMimeTypes(['application/pdf', 'application/msword']);
+    }
+}
+```
+
+## Blade View Template Example
+
+```blade
+{{-- resources/views/components/image-upload.blade.php --}}
+<div class="form-group">
+    <label for="{{ $id() }}">{{ $label() }}</label>
+    
+    @if($value)
+        <div class="current-image">
+            <img src="{{ $value }}" alt="{{ $fileName }}" class="img-thumbnail">
+            <p>Current file: {{ $fileName }}</p>
+        </div>
+    @endif
+    
+    <input 
+        type="file" 
+        id="{{ $id() }}" 
+        name="{{ $name }}"
+        accept="image/*"
+        class="form-control"
+    />
+    
+    @if($value)
+        <small class="form-text text-muted">
+            Leave empty to keep current image
+        </small>
+    @endif
+</div>
+```
+
+## Ignoring Accessors
+
+Set `ignoreAccessor` to true when you want to bypass model accessors:
+
+```php
+class ImageUpload extends Component
+{
+    use HandlesMediaValues;
+    
+    public function __construct(
+        string $name,
+        string $collection,
+        bool $ignoreAccessor = false
+    ) {
+        // ...
+        $this->ignoreAccessor = $ignoreAccessor;
+    }
+}
+```
+
+Usage:
+
+```blade
+@model($user)
+    {{-- Use accessor if defined --}}
+    <x-forms::image-upload name="avatar" collection="avatars" />
+    
+    {{-- Skip accessor, get media directly --}}
+    <x-forms::image-upload 
+        name="avatar" 
+        collection="avatars"
+        :ignoreAccessor="true"
+    />
+@endmodel
+```
+
+## Complete Example
+
+```php
+use Javaabu\Forms\Support\HandlesMediaValues;
+use Javaabu\Forms\Views\Components\Component;
+
+class ImageUpload extends Component
+{
+    use HandlesMediaValues;
+    
+    public string $name;
+    public string $label;
+    public $value;
+    public string $fileName = '';
+    public array $acceptedTypes = [];
+    protected string $collection = 'images';
+    protected string $conversion = '';
+    protected bool $ignoreAccessor = false;
+    protected string $view = 'image-upload';
+    
+    public function __construct(
+        string $name,
+        string $label = '',
+        string $collection = 'images',
+        string $conversion = '',
+        array $acceptedTypes = [],
+        bool $ignoreAccessor = false,
+        $bind = null,
+        string $framework = ''
+    ) {
+        parent::__construct($framework);
+        $this->name = $name;
+        $this->label = $label;
+        $this->collection = $collection;
+        $this->conversion = $conversion;
+        $this->acceptedTypes = $acceptedTypes;
+        $this->ignoreAccessor = $ignoreAccessor;
+        $this->bindModel($bind);
+        $this->setValue($name, $bind);
+    }
+    
+    public function accept(): string
+    {
+        return empty($this->acceptedTypes) 
+            ? 'image/*' 
+            : implode(',', $this->acceptedTypes);
+    }
+    
+    public function hasCurrentFile(): bool
+    {
+        return !empty($this->value);
+    }
+    
+    public function getPreviewUrl(): string
+    {
+        return $this->value ?? '';
+    }
+}
+```
+
+## Related
+
+- [HandlesBoundValues Trait](/api/traits/handles-bound-values)
+- [Component Base Class](/api/component)
+- [Spatie Media Library Documentation](https://spatie.be/docs/laravel-medialibrary)

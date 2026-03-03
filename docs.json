@@ -1,122 +1,193 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Javaabu Forms",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#3B82F6",
+    "light": "#60A5FA",
+    "dark": "#1E40AF"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/javaabu/forms"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/javaabu/forms"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "requirements",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/model-binding",
+              "concepts/framework-support",
+              "concepts/validation-errors",
+              "concepts/blade-directives"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Form Inputs",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "components/inputs/text",
+              "components/inputs/textarea",
+              "components/inputs/email",
+              "components/inputs/password",
+              "components/inputs/number",
+              "components/inputs/tel",
+              "components/inputs/url",
+              "components/inputs/hidden"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Date & Time Inputs",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "components/datetime/date",
+              "components/datetime/time",
+              "components/datetime/datetime"
+            ]
+          },
+          {
+            "group": "Selection Inputs",
+            "pages": [
+              "components/selection/select",
+              "components/selection/select2",
+              "components/selection/checkbox",
+              "components/selection/radio"
+            ]
+          },
+          {
+            "group": "File Inputs",
+            "pages": [
+              "components/files/file",
+              "components/files/image",
+              "components/files/file-upload",
+              "components/files/image-upload"
+            ]
+          },
+          {
+            "group": "Location Inputs",
+            "pages": [
+              "components/location/latitude",
+              "components/location/longitude",
+              "components/location/map-input"
+            ]
+          },
+          {
+            "group": "Form Structure",
+            "pages": [
+              "components/structure/form",
+              "components/structure/form-group",
+              "components/structure/label",
+              "components/structure/errors",
+              "components/structure/input-help"
+            ]
+          },
+          {
+            "group": "Buttons & Actions",
+            "pages": [
+              "components/buttons/button",
+              "components/buttons/submit",
+              "components/buttons/link-button",
+              "components/buttons/button-group"
+            ]
+          },
+          {
+            "group": "UI Components",
+            "pages": [
+              "components/ui/card",
+              "components/ui/accordion",
+              "components/ui/tabs",
+              "components/ui/table",
+              "components/ui/modal",
+              "components/ui/alert"
+            ]
+          },
+          {
+            "group": "Display Components",
+            "pages": [
+              "components/display/text-entry",
+              "components/display/boolean-entry",
+              "components/display/status",
+              "components/display/infolist"
+            ]
+          },
+          {
+            "group": "Utility Components",
+            "pages": [
+              "components/utility/conditional-link",
+              "components/utility/conditional-wrapper",
+              "components/utility/nav-tabs",
+              "components/utility/no-items"
+            ]
+          },
+          {
+            "group": "Advanced Features",
+            "pages": [
+              "advanced/wysiwyg",
+              "advanced/search-form",
+              "advanced/filter",
+              "advanced/bulk-actions",
+              "advanced/per-page",
+              "advanced/pagination"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/framework-settings",
+              "configuration/icons",
+              "configuration/customization",
+              "configuration/publishing-views"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Core Classes",
             "pages": [
-              "api-reference/introduction"
+              "api/component",
+              "api/forms-data-binder",
+              "api/forms-service-provider"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Traits",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/traits/handles-validation-errors",
+              "api/traits/handles-default-and-old-value",
+              "api/traits/handles-bound-values",
+              "api/traits/handles-media-values",
+              "api/traits/formats-values"
+            ]
+          },
+          {
+            "group": "Commands",
+            "pages": [
+              "api/commands/publish-view",
+              "api/commands/diff-views"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

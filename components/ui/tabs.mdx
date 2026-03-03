@@ -1,0 +1,308 @@
+---
+title: Tabs
+description: Create tabbed navigation interfaces with Bootstrap nav tabs
+---
+
+The Tabs component creates a tabbed interface using Bootstrap's nav tabs. It supports multiple tab panes with automatic content switching.
+
+## Basic Usage
+
+```blade
+<x-forms::tabs :tabs="[
+    ['name' => 'home', 'title' => 'Home'],
+    ['name' => 'profile', 'title' => 'Profile'],
+    ['name' => 'contact', 'title' => 'Contact']
+]">
+    <x-slot:home>
+        <h4>Home Content</h4>
+        <p>Content for the home tab.</p>
+    </x-slot:home>
+    
+    <x-slot:profile>
+        <h4>Profile Content</h4>
+        <p>Content for the profile tab.</p>
+    </x-slot:profile>
+    
+    <x-slot:contact>
+        <h4>Contact Content</h4>
+        <p>Content for the contact tab.</p>
+    </x-slot:contact>
+</x-forms::tabs>
+```
+
+## Tabs Component
+
+### Attributes
+
+<ParamField path="tabs" type="array|Collection" default="[]">
+  Array or Collection of tab definitions. Each tab should be an associative array with:
+  - `name` (string, required): Unique identifier for the tab
+  - `title` (string): Display title for the tab (auto-generated from name if not provided)
+  - `url` (string): Optional URL for link tabs (default: '#')
+  - `disabled` (bool): Whether the tab is disabled
+</ParamField>
+
+<ParamField path="active" type="string" default="">
+  The name of the initially active tab. If not provided, the first tab will be active.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use (e.g., 'bootstrap-5')
+</ParamField>
+
+<ParamField path="class" type="string">
+  Additional CSS classes to apply to the tab container
+</ParamField>
+
+## Nested Components
+
+### Tab Nav Item
+
+Individual navigation tab button or link.
+
+**Component:** `x-forms::tabs.nav-item`
+
+**Attributes:**
+
+<ParamField path="title" type="string" required>
+  The display title for the tab
+</ParamField>
+
+<ParamField path="name" type="string" default="">
+  The unique identifier for the nav item
+</ParamField>
+
+<ParamField path="target" type="string" default="">
+  The ID of the tab pane to show when clicked
+</ParamField>
+
+<ParamField path="url" type="string" default="#">
+  The URL for the tab (use '#' for tab panes)
+</ParamField>
+
+<ParamField path="active" type="bool" default="false">
+  Whether this tab is currently active
+</ParamField>
+
+<ParamField path="disabled" type="bool" default="false">
+  Whether this tab is disabled
+</ParamField>
+
+<ParamField path="isTab" type="bool" default="false">
+  Whether this is a tab (true) or a link (false)
+</ParamField>
+
+### Tab Pane
+
+The content container for each tab.
+
+**Component:** `x-forms::tabs.pane`
+
+**Attributes:**
+
+<ParamField path="name" type="string" required>
+  Unique identifier for the tab pane (used to generate ID)
+</ParamField>
+
+<ParamField path="labelledBy" type="string" default="">
+  The ID of the nav item that controls this pane (auto-generated if not provided)
+</ParamField>
+
+<ParamField path="active" type="bool" default="false">
+  Whether this pane is currently visible
+</ParamField>
+
+**Bootstrap Classes:** `tab-pane`, `fade`, `active` (when visible), `show` (when visible)
+
+## Using Named Slots
+
+Slot names are automatically generated from tab names:
+
+```blade
+<x-forms::tabs :tabs="[
+    ['name' => 'overview'],
+    ['name' => 'specifications'],
+    ['name' => 'reviews']
+]">
+    <x-slot:overview>
+        <p>Product overview content</p>
+    </x-slot:overview>
+    
+    <x-slot:specifications>
+        <table class="table">
+            <tr><td>Weight</td><td>1.5kg</td></tr>
+            <tr><td>Dimensions</td><td>30x20x10cm</td></tr>
+        </table>
+    </x-slot:specifications>
+    
+    <x-slot:reviews>
+        <div class="reviews">Customer reviews...</div>
+    </x-slot:reviews>
+</x-forms::tabs>
+```
+
+## Tab with External Links
+
+You can mix tabs and external links:
+
+```blade
+<x-forms::tabs :tabs="[
+    ['name' => 'details', 'title' => 'Details'],
+    ['name' => 'external', 'title' => 'Documentation', 'url' => 'https://example.com/docs'],
+]">
+    <x-slot:details>
+        <p>Product details content</p>
+    </x-slot:details>
+</x-forms::tabs>
+```
+
+## Setting Active Tab
+
+```blade
+<x-forms::tabs 
+    :tabs="[
+        ['name' => 'tab1', 'title' => 'Tab 1'],
+        ['name' => 'tab2', 'title' => 'Tab 2'],
+        ['name' => 'tab3', 'title' => 'Tab 3']
+    ]"
+    active="tab2"
+>
+    <x-slot:tab1>Content 1</x-slot:tab1>
+    <x-slot:tab2>Content 2 (Initially visible)</x-slot:tab2>
+    <x-slot:tab3>Content 3</x-slot:tab3>
+</x-forms::tabs>
+```
+
+## Disabled Tabs
+
+```blade
+<x-forms::tabs :tabs="[
+    ['name' => 'available', 'title' => 'Available'],
+    ['name' => 'coming-soon', 'title' => 'Coming Soon', 'disabled' => true]
+]">
+    <x-slot:available>
+        <p>Available content</p>
+    </x-slot:available>
+</x-forms::tabs>
+```
+
+## Manual Tab Definition
+
+```blade
+<div class="tab-container">
+    <ul class="nav nav-tabs" role="tablist">
+        <x-forms::tabs.nav-item
+            name="home-tab"
+            target="home"
+            title="Home"
+            :is-tab="true"
+            :active="true"
+        />
+        <x-forms::tabs.nav-item
+            name="profile-tab"
+            target="profile"
+            title="Profile"
+            :is-tab="true"
+        />
+    </ul>
+    
+    <div class="tab-content">
+        <x-forms::tabs.pane name="home" :active="true">
+            Home content
+        </x-forms::tabs.pane>
+        
+        <x-forms::tabs.pane name="profile">
+            Profile content
+        </x-forms::tabs.pane>
+    </div>
+</div>
+```
+
+## Complete Example
+
+```blade
+<x-forms::tabs 
+    class="mb-4"
+    :tabs="[
+        ['name' => 'dashboard', 'title' => 'Dashboard'],
+        ['name' => 'settings', 'title' => 'Settings'],
+        ['name' => 'help', 'title' => 'Help']
+    ]"
+    active="dashboard"
+>
+    <x-slot:dashboard>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Welcome Back!</h4>
+                <p>Here's your dashboard overview.</p>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Statistics</h5>
+                        <p>Key metrics...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </x-slot:dashboard>
+    
+    <x-slot:settings>
+        <h4>Settings</h4>
+        <form>
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </x-slot:settings>
+    
+    <x-slot:help>
+        <h4>Help & Documentation</h4>
+        <p>Find answers to common questions.</p>
+    </x-slot:help>
+</x-forms::tabs>
+```
+
+## Component Structure
+
+```html
+<div class="tab-container">
+    <!-- Navigation -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#tab1">Tab 1</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#tab2">Tab 2</a>
+        </li>
+    </ul>
+    
+    <!-- Content -->
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab1">
+            Content 1
+        </div>
+        <div class="tab-pane fade" id="tab2">
+            Content 2
+        </div>
+    </div>
+</div>
+```
+
+## Bootstrap Integration
+
+This component uses Bootstrap 5 nav tabs:
+- `.tab-container` - Wrapper container
+- `.nav` - Navigation list
+- `.nav-tabs` - Tab styling for navigation
+- `.nav-item` - Individual nav item
+- `.nav-link` - Tab link
+- `.active` - Active tab/pane
+- `.disabled` - Disabled tab
+- `.tab-content` - Tab content container
+- `.tab-pane` - Individual tab content
+- `.fade`, `.show` - Transition classes
+
+For more information, see [Bootstrap Nav Tabs Documentation](https://getbootstrap.com/docs/5.0/components/navs-tabs/).

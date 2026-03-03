@@ -1,0 +1,401 @@
+---
+title: Pagination
+description: Pagination Blade partial and pagination component
+---
+
+## Overview
+
+The package includes custom pagination Blade partials that display pagination links with item counts. The pagination view shows total entries and provides navigation controls.
+
+## Available Pagination Views
+
+The package provides framework-specific pagination partials:
+
+- `forms::bootstrap-5.pagination`
+- `forms::material-admin-26.pagination`
+
+## Basic Usage
+
+```blade
+{{ $users->links('forms::bootstrap-5.pagination') }}
+```
+
+## Pagination Template Features
+
+The pagination partial includes:
+
+1. **Entry Count Display** - Shows current count and total entries
+2. **Previous/Next Links** - Navigation to adjacent pages
+3. **Page Numbers** - Clickable page numbers
+4. **Ellipsis** - "..." separator for large page ranges
+5. **Active State** - Highlights current page
+6. **Disabled State** - Grays out unavailable navigation
+
+## Template Structure
+
+```blade
+@if($paginator->count())
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="text-muted">
+            {{ trans_choice(__('Showing :count from total :total entry|Showing :count from total :total entries',
+                ['count' =>  $paginator->count(),
+                'total' => $paginator->total()]
+            ), $paginator->total()) }}
+        </div>
+    </div>
+@endif
+
+@if ($paginator->hasPages())
+    <nav>
+        <ul class="pagination">
+            {{-- Previous Page Link --}}
+            {{-- Pagination Elements --}}
+            {{-- Next Page Link --}}
+        </ul>
+    </nav>
+@endif
+```
+
+## Complete Examples
+
+### Basic Pagination
+
+```blade
+<div class="card">
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($users as $user)
+                    <tr>
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>{{ $user->role }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        {{ $users->links('forms::bootstrap-5.pagination') }}
+    </div>
+</div>
+```
+
+### With Query Parameters
+
+```blade
+{{-- Preserve filters, search, and sorting --}}
+{{ $products->appends(request()->all())->links('forms::bootstrap-5.pagination') }}
+```
+
+### With Specific Parameters
+
+```blade
+{{ $orders->appends([
+    'search' => request('search'),
+    'status' => request('status'),
+    'orderby' => request('orderby'),
+    'order' => request('order')
+])->links('forms::bootstrap-5.pagination') }}
+```
+
+### With Per Page Selector
+
+```blade
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <label>Show:</label>
+        <x-forms::per-page />
+        <label>entries</label>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <!-- Table content -->
+</div>
+
+{{ $items->appends(request()->all())->links('forms::bootstrap-5.pagination') }}
+```
+
+## Controller Setup
+
+### Basic Pagination
+
+```php
+public function index()
+{
+    $users = User::paginate(20);
+
+    return view('users.index', compact('users'));
+}
+```
+
+### With Per Page Parameter
+
+```php
+public function index(Request $request)
+{
+    $perPage = $request->input('per_page', 20);
+
+    $users = User::paginate($perPage);
+
+    return view('users.index', compact('users'));
+}
+```
+
+### With Filters and Sorting
+
+```php
+public function index(Request $request)
+{
+    $query = Product::query();
+
+    // Apply search
+    if ($search = $request->input('search')) {
+        $query->where('name', 'like', "%{$search}%");
+    }
+
+    // Apply filters
+    if ($categoryId = $request->input('category_id')) {
+        $query->where('category_id', $categoryId);
+    }
+
+    if ($status = $request->input('status')) {
+        $query->where('status', $status);
+    }
+
+    // Apply sorting
+    $orderBy = $request->input('orderby', 'created_at');
+    $order = $request->input('order', 'desc');
+    $query->orderBy($orderBy, $order);
+
+    // Paginate
+    $perPage = $request->input('per_page', 20);
+    $products = $query->paginate($perPage);
+
+    return view('products.index', compact('products'));
+}
+```
+
+## Complete Filter + Pagination Example
+
+```blade
+{{-- Filter Form --}}
+<x-forms::form method="GET" action="{{ route('products.index') }}">
+    {{-- Search and Per Page --}}
+    <div class="d-flex justify-content-between mb-3">
+        <div style="width: 300px;">
+            <x-forms::search-form route="products.index" />
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label>Show:</label>
+            <x-forms::per-page />
+            <label>entries</label>
+        </div>
+    </div>
+
+    {{-- Filters --}}
+    <x-forms::filter>
+        <div class="row">
+            <div class="col-md-4">
+                <x-forms::select 
+                    name="category_id" 
+                    label="Category" 
+                    :options="$categories"
+                    allow-clear
+                />
+            </div>
+            <div class="col-md-4">
+                <x-forms::select 
+                    name="status" 
+                    label="Status" 
+                    :options="$statuses"
+                    allow-clear
+                />
+            </div>
+            <div class="col-md-4">
+                <x-forms::date name="created_from" label="Created From" />
+            </div>
+        </div>
+    </x-forms::filter>
+
+    <x-forms::filter-submit 
+        :cancel-url="route('products.index')"
+        export="xlsx"
+    />
+</x-forms::form>
+
+{{-- Results Table --}}
+<div class="card mt-4">
+    <div class="card-body">
+        @if($products->count())
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <a href="{{ request()->fullUrlWithQuery([
+                                    'orderby' => 'name',
+                                    'order' => request('orderby') == 'name' && request('order') == 'asc' ? 'desc' : 'asc'
+                                ]) }}">
+                                    Name
+                                    @if(request('orderby') == 'name')
+                                        <i class="fa fa-sort-{{ request('order') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>
+                                <a href="{{ request()->fullUrlWithQuery([
+                                    'orderby' => 'price',
+                                    'order' => request('orderby') == 'price' && request('order') == 'asc' ? 'desc' : 'asc'
+                                ]) }}">
+                                    Price
+                                    @if(request('orderby') == 'price')
+                                        <i class="fa fa-sort-{{ request('order') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($products as $product)
+                            <tr>
+                                <td>{{ $product->name }}</td>
+                                <td>{{ $product->category->name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ $product->status == 'active' ? 'success' : 'secondary' }}">
+                                        {{ ucfirst($product->status) }}
+                                    </span>
+                                </td>
+                                <td>${{ number_format($product->price, 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Pagination with preserved parameters --}}
+            {{ $products->appends(request()->all())->links('forms::bootstrap-5.pagination') }}
+        @else
+            <div class="text-center text-muted py-5">
+                <i class="fa fa-inbox fa-3x mb-3"></i>
+                <p>No products found</p>
+            </div>
+        @endif
+    </div>
+</div>
+```
+
+## Translation Support
+
+The pagination count text supports pluralization:
+
+```php
+// resources/lang/en/messages.php
+return [
+    'Showing :count from total :total entry|Showing :count from total :total entries' => 
+        'Showing :count from total :total entry|Showing :count from total :total entries',
+];
+```
+
+Customize for other languages:
+
+```php
+// resources/lang/es/messages.php
+return [
+    'Showing :count from total :total entry|Showing :count from total :total entries' => 
+        'Mostrando :count de :total entrada|Mostrando :count de :total entradas',
+];
+```
+
+## Customizing Pagination
+
+### Publish Views
+
+```bash
+php artisan vendor:publish --tag=forms-views
+```
+
+Then edit:
+```
+resources/views/vendor/forms/bootstrap-5/pagination.blade.php
+```
+
+### Custom Styling
+
+```css
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-link {
+    color: #007bff;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+}
+```
+
+## AJAX Pagination
+
+```javascript
+// Listen for pagination link clicks
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.pagination a')) {
+        e.preventDefault();
+        const url = e.target.closest('a').href;
+
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Update results container
+            document.getElementById('results').innerHTML = html;
+
+            // Update URL
+            window.history.pushState({}, '', url);
+        });
+    }
+});
+```
+
+## Simple Pagination
+
+For large datasets, use simple pagination (no page numbers):
+
+```php
+$users = User::simplePaginate(20);
+```
+
+This generates Previous/Next links only, which is more performant for very large tables.
+
+## Cursor Pagination
+
+For even better performance on large datasets:
+
+```php
+$users = User::cursorPaginate(20);
+```
+
+## Related Components
+
+- [Per Page](/advanced/per-page) - Items per page selector
+- [Filter](/advanced/filter) - Filter form wrapper
+- [Search Form](/advanced/search-form) - Quick search component

@@ -1,0 +1,316 @@
+---
+title: Per Page Selector
+description: Dropdown component for selecting items per page in paginated lists
+---
+
+## Overview
+
+The Per Page component provides a Select2 dropdown that allows users to change the number of items displayed per page in paginated lists.
+
+## Basic Usage
+
+```blade
+<x-forms::per-page />
+```
+
+## Component Attributes
+
+<ParamField path="amounts" type="array" default="[10 => 10, 20 => 20, 50 => 50, 100 => 100, 500 => 500]">
+  Available per-page options as an associative array
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework (bootstrap-5, material-admin-26)
+</ParamField>
+
+## Template Structure
+
+The component automatically handles the selected value and includes current per_page in options:
+
+```blade
+@php
+$selected_per_page = $per_page ?? request('per_page', get_setting('per_page'));
+
+if (! in_array($selected_per_page, $amounts)) {
+    $amounts[$selected_per_page] = $selected_per_page;
+}
+@endphp
+
+<x-forms::select2 
+    name="per_page" 
+    :options="$amounts" 
+    :default="$selected_per_page"
+/>
+```
+
+## Default Behavior
+
+### Priority Order for Selected Value
+
+1. `$per_page` attribute if provided
+2. `per_page` query parameter from request
+3. `get_setting('per_page')` - Application setting
+
+### Dynamic Options
+
+If the current `per_page` value is not in the default amounts array, it's automatically added to ensure the current selection is always available.
+
+## Usage in Filter Forms
+
+```blade
+<x-forms::form method="GET" action="{{ route('users.index') }}">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <x-forms::search-form route="users.index" />
+        </div>
+        <div>
+            <label>Per Page:</label>
+            <x-forms::per-page />
+        </div>
+    </div>
+
+    <x-forms::filter>
+        <!-- Filter fields -->
+    </x-forms::filter>
+
+    <x-forms::filter-submit :cancel-url="route('users.index')" />
+</x-forms::form>
+```
+
+## Custom Amounts
+
+```blade
+<x-forms::per-page 
+    :amounts="[
+        5 => '5 items',
+        10 => '10 items',
+        25 => '25 items',
+        50 => '50 items'
+    ]"
+/>
+```
+
+## With Auto-Submit
+
+Auto-submit the form when per-page changes:
+
+```blade
+<x-forms::form method="GET" action="{{ route('products.index') }}" id="filter-form">
+    <div class="row align-items-center mb-3">
+        <div class="col-auto">
+            <label for="per-page-select" class="col-form-label">Show:</label>
+        </div>
+        <div class="col-auto">
+            <x-forms::per-page id="per-page-select" />
+        </div>
+        <div class="col-auto">
+            <label class="col-form-label">entries</label>
+        </div>
+    </div>
+
+    <!-- Other filters -->
+</x-forms::form>
+
+@push('scripts')
+<script>
+    document.querySelector('select[name="per_page"]').addEventListener('change', function() {
+        document.getElementById('filter-form').submit();
+    });
+</script>
+@endpush
+```
+
+## Controller Implementation
+
+```php
+public function index(Request $request)
+{
+    $perPage = $request->input('per_page', setting('per_page', 20));
+
+    // Validate per_page to prevent abuse
+    if (!in_array($perPage, [10, 20, 50, 100, 500])) {
+        $perPage = 20;
+    }
+
+    $users = User::query()
+        ->when($request->input('search'), function($query, $search) {
+            $query->where('name', 'like', "%{$search}%");
+        })
+        ->paginate($perPage);
+
+    return view('users.index', compact('users'));
+}
+```
+
+## Complete Example with Pagination
+
+```blade
+<x-forms::form method="GET" action="{{ route('orders.index') }}" id="orders-filter">
+    {{-- Top Bar --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        {{-- Search --}}
+        <div style="width: 300px;">
+            <x-forms::search-form route="orders.index" placeholder="Search orders..." />
+        </div>
+
+        {{-- Per Page --}}
+        <div class="d-flex align-items-center gap-2">
+            <label class="mb-0">Show:</label>
+            <div style="width: 100px;">
+                <x-forms::per-page />
+            </div>
+            <label class="mb-0">entries</label>
+        </div>
+    </div>
+
+    {{-- Filters --}}
+    <x-forms::filter>
+        <div class="row">
+            <div class="col-md-4">
+                <x-forms::select 
+                    name="status" 
+                    label="Status" 
+                    :options="$statuses"
+                    allow-clear
+                />
+            </div>
+            <div class="col-md-4">
+                <x-forms::date name="from_date" label="From Date" />
+            </div>
+            <div class="col-md-4">
+                <x-forms::date name="to_date" label="To Date" />
+            </div>
+        </div>
+    </x-forms::filter>
+
+    <x-forms::filter-submit :cancel-url="route('orders.index')" />
+</x-forms::form>
+
+{{-- Results --}}
+<div class="card mt-4">
+    <div class="card-body">
+        {{-- Table --}}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($orders as $order)
+                        <tr>
+                            <td>{{ $order->order_number }}</td>
+                            <td>{{ $order->customer->name }}</td>
+                            <td>{{ $order->created_at->format('Y-m-d') }}</td>
+                            <td>{{ $order->status }}</td>
+                            <td>{{ $order->total }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        {{ $orders->appends(request()->all())->links('forms::bootstrap-5.pagination') }}
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    // Auto-submit on per-page change
+    document.querySelector('select[name="per_page"]').addEventListener('change', function() {
+        document.getElementById('orders-filter').submit();
+    });
+</script>
+@endpush
+```
+
+## Settings Integration
+
+The component uses the `get_setting()` helper function. Define default per-page in your settings:
+
+```php
+// config/settings.php or database settings
+'per_page' => 20,
+```
+
+Or create a settings helper:
+
+```php
+if (!function_exists('get_setting')) {
+    function get_setting($key, $default = null)
+    {
+        return config("settings.{$key}", $default);
+    }
+}
+```
+
+## Preserving Query Parameters
+
+When using with pagination, append all request parameters:
+
+```blade
+{{ $items->appends(request()->all())->links('forms::bootstrap-5.pagination') }}
+```
+
+This ensures that:
+- Search terms are preserved
+- Filter values remain applied
+- Per-page selection persists
+- Sort order is maintained
+
+## Styling
+
+The component uses Select2, which can be styled:
+
+```css
+.select2-container {
+    min-width: 80px;
+}
+
+.select2-container .select2-selection--single {
+    height: 38px;
+}
+```
+
+## JavaScript Integration
+
+### Auto-Submit Helper
+
+```javascript
+// Auto-submit any form when per_page changes
+function initPerPageAutoSubmit() {
+    document.querySelectorAll('select[name="per_page"]').forEach(select => {
+        select.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initPerPageAutoSubmit);
+```
+
+### Loading State
+
+```javascript
+document.querySelector('select[name="per_page"]').addEventListener('change', function() {
+    // Show loading spinner
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner-border spinner-border-sm ms-2';
+    this.parentElement.appendChild(spinner);
+
+    // Submit form
+    this.closest('form').submit();
+});
+```
+
+## Related Components
+
+- [Pagination](/advanced/pagination) - Pagination links partial
+- [Filter](/advanced/filter) - Filter form wrapper
+- [Search Form](/advanced/search-form) - Quick search component

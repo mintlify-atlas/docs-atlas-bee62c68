@@ -1,0 +1,252 @@
+---
+title: No Items
+description: Display a placeholder when no items are found with optional create action
+---
+
+The `no-items` component displays a centered placeholder message when a list or collection is empty, with an optional create button for authorized users.
+
+## Basic Usage
+
+```blade
+@if($users->isEmpty())
+    <x-forms::no-items 
+        model-type="users"
+        create-action="{{ route('users.create') }}"
+    />
+@endif
+```
+
+## Custom Messages
+
+Override the default title and message:
+
+```blade
+<x-forms::no-items 
+    title="No products found"
+    message="Start by adding your first product to the catalog."
+    create-action="{{ route('products.create') }}"
+/>
+```
+
+## Custom Icon
+
+Change the icon displayed:
+
+```blade
+<x-forms::no-items 
+    icon="fas fa-inbox"
+    model-type="messages"
+    create-action="{{ route('messages.create') }}"
+/>
+```
+
+## Permission-Based Create Button
+
+Show the create button only for authorized users:
+
+```blade
+<x-forms::no-items 
+    :model="App\Models\Post::class"
+    model-type="posts"
+    create-action="{{ route('posts.create') }}"
+/>
+```
+
+The create button will only appear if `auth()->user()->can('create', $model)` returns true.
+
+## Explicit Create Button Control
+
+Manually control whether the create button is shown:
+
+```blade
+<x-forms::no-items 
+    model-type="orders"
+    create-action="{{ route('orders.create') }}"
+    :show-create="false"
+/>
+```
+
+## Custom Create Button
+
+Provide your own create button using the slot:
+
+```blade
+<x-forms::no-items 
+    title="No team members yet"
+    message="Invite your team members to collaborate."
+>
+    <a href="{{ route('team.invite') }}" class="btn btn-primary btn-lg">
+        <i class="fas fa-user-plus me-2"></i> Invite Team Member
+    </a>
+</x-forms::no-items>
+```
+
+## Without Create Button
+
+Display just the message without any action:
+
+```blade
+<x-forms::no-items 
+    title="All caught up!"
+    message="You have no pending notifications."
+    :show-create="false"
+/>
+```
+
+## Different Model Types
+
+```blade
+<!-- For resources -->
+<x-forms::no-items model-type="articles" create-action="{{ route('articles.create') }}" />
+
+<!-- For entities -->
+<x-forms::no-items model-type="customers" create-action="{{ route('customers.create') }}" />
+
+<!-- For records -->
+<x-forms::no-items model-type="invoices" create-action="{{ route('invoices.create') }}" />
+```
+
+## Attributes
+
+<ParamField path="createAction" type="string" default="#">
+  The URL for the create action button
+</ParamField>
+
+<ParamField path="model" type="string|object" default="null">
+  The model class or instance used for authorization checks. When provided, the create button only shows if the user has create permission
+</ParamField>
+
+<ParamField path="icon" type="string" default="">
+  The CSS class for the icon to display. If not provided, uses the framework's default no-items icon
+</ParamField>
+
+<ParamField path="modelType" type="string" default="null">
+  The name of the model type (e.g., "users", "posts") used in the default message
+</ParamField>
+
+<ParamField path="showCreate" type="bool" default="null">
+  Explicitly control whether to show the create button. When null, determined by user permissions on the model
+</ParamField>
+
+<ParamField path="title" type="string" default="null">
+  The title text. Defaults to "It's a bit lonely here."
+</ParamField>
+
+<ParamField path="message" type="string" default="null">
+  The message text. Defaults to "Let's create some new :model_type."
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use for rendering
+</ParamField>
+
+## Default Behavior
+
+### Default Title
+If no title is provided, displays: **"It's a bit lonely here."**
+
+### Default Message
+If no message is provided, displays: **"Let's create some new :model_type."** where `:model_type` is replaced with the `modelType` attribute or "items" if not specified.
+
+### Default Icon
+Uses the framework's configured `no-items-icon` setting.
+
+### Create Button Authorization
+When `model` is provided and `showCreate` is null:
+- Checks `auth()->user()->can('create', $model)`
+- Only shows button if check passes
+
+## Styling
+
+The component is rendered in a Bootstrap card with centered content:
+
+```html
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Card with icon, message, and button -->
+        </div>
+    </div>
+</div>
+```
+
+## Examples
+
+### Products Listing
+
+```blade
+@if($products->isEmpty())
+    <x-forms::no-items 
+        :model="App\Models\Product::class"
+        model-type="products"
+        icon="fas fa-box"
+        create-action="{{ route('products.create') }}"
+    />
+@else
+    @foreach($products as $product)
+        <!-- Product display -->
+    @endforeach
+@endif
+```
+
+### Custom Empty State with Multiple Actions
+
+```blade
+<x-forms::no-items 
+    title="No documents uploaded"
+    message="Upload your first document to get started."
+    icon="fas fa-file-upload"
+>
+    <div class="d-flex gap-2 justify-content-center">
+        <a href="{{ route('documents.upload') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-upload me-2"></i> Upload Document
+        </a>
+        <a href="{{ route('documents.import') }}" class="btn btn-outline-primary btn-lg">
+            <i class="fas fa-file-import me-2"></i> Import from Cloud
+        </a>
+    </div>
+</x-forms::no-items>
+```
+
+### Search Results
+
+```blade
+@if($searchResults->isEmpty())
+    <x-forms::no-items 
+        title="No results found"
+        message="Try adjusting your search terms or filters."
+        icon="fas fa-search"
+        :show-create="false"
+    />
+@endif
+```
+
+### Filtered List
+
+```blade
+@if($filteredOrders->isEmpty())
+    <x-forms::no-items 
+        title="No orders match your filters"
+        message="Try changing your filter criteria to see more results."
+        icon="fas fa-filter"
+        :show-create="false"
+    />
+@else
+    <!-- Orders list -->
+@endif
+```
+
+### Admin Panel with Strict Permissions
+
+```blade
+@if($reports->isEmpty())
+    <x-forms::no-items 
+        :model="App\Models\Report::class"
+        model-type="reports"
+        icon="fas fa-chart-bar"
+        create-action="{{ route('admin.reports.create') }}"
+        title="No reports available"
+        message="Generate your first report to start tracking analytics."
+    />
+@endif
+```

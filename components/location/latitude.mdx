@@ -1,0 +1,176 @@
+---
+title: Latitude
+description: Input component for capturing latitude coordinates with built-in validation
+---
+
+The Latitude component is a specialized numeric input for capturing latitude coordinates with automatic validation and precision handling.
+
+## Basic Usage
+
+```blade
+<x-forms::latitude 
+    name="latitude" 
+    label="Location Latitude" 
+/>
+```
+
+## With Model Binding
+
+```blade
+<x-forms::latitude 
+    name="location.latitude" 
+    label="Latitude"
+    :model="$venue"
+/>
+```
+
+## Component Attributes
+
+<ParamField path="name" type="string" required>
+  The input field name
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  Label text displayed above the input
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  Model instance for automatic value binding
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  Default value when no model or old input exists
+</ParamField>
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Display validation errors below the input
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Show or hide the label
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Input placeholder text
+</ParamField>
+
+<ParamField path="showPlaceholder" type="boolean" default="false">
+  Auto-generate placeholder from label
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark field as required
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Display label and input inline (horizontal layout)
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Enable floating label style
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="">
+  Additional CSS classes for inline label
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="">
+  Additional CSS classes for inline input wrapper
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript validation error display
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  CSS framework override (bootstrap-5, material-admin-26)
+</ParamField>
+
+## Default Attributes
+
+The Latitude component automatically applies these HTML attributes:
+
+- **type**: `number`
+- **step**: `0.000001` (6 decimal precision)
+- **min**: `-90` (South Pole)
+- **max**: `90` (North Pole)
+
+## Examples
+
+### With Validation
+
+```blade
+<x-forms::latitude 
+    name="coordinates.lat" 
+    label="Latitude"
+    required
+    :model="$location"
+/>
+```
+
+### Inline Layout
+
+```blade
+<x-forms::latitude 
+    name="lat" 
+    label="Latitude"
+    inline
+/>
+```
+
+### Custom Placeholder
+
+```blade
+<x-forms::latitude 
+    name="location_lat" 
+    label="Venue Latitude"
+    placeholder="e.g., 4.1755"
+/>
+```
+
+### With Map Input
+
+The Latitude component is commonly used alongside Map Input:
+
+```blade
+<x-forms::map-input
+    name="location"
+    label="Location"
+    lat-name="latitude"
+    lng-name="longitude"
+    :model="$venue"
+    :enable-coordinates="true"
+/>
+```
+
+## Geospatial Integration
+
+When using with Laravel Eloquent Spatial models:
+
+```php
+use MatanYadaev\EloquentSpatial\Objects\Point;
+
+class Venue extends Model
+{
+    protected $casts = [
+        'location' => Point::class,
+    ];
+}
+```
+
+```blade
+{{-- Map input automatically extracts lat/lng from Point --}}
+<x-forms::map-input
+    name="location"
+    label="Venue Location"
+    :model="$venue"
+/>
+```
+
+## Notes
+
+- The component extends the base Input component with `type="number"`
+- Latitude values are constrained between -90° (South) and 90° (North)
+- Precision is set to 6 decimal places (approximately 0.11 meters accuracy)
+- Works seamlessly with the Map Input component for visual coordinate selection
+- Supports model binding with Point objects from eloquent-spatial package

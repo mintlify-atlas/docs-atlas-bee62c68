@@ -1,0 +1,311 @@
+---
+title: DateTime
+description: DateTime picker input component with calendar icon and clear button
+---
+
+The DateTime component renders a datetime input with an integrated datetime picker, calendar icon, and clear button. It combines date and time selection in a single input field.
+
+## Basic Usage
+
+```blade
+<x-forms::datetime
+    name="published_at"
+    label="Published At"
+/>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the input field.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text displayed above the input. If empty, a label will be auto-generated from the name.
+</ParamField>
+
+<ParamField path="model" type="Model|null" default="null">
+  The Eloquent model instance to bind the input to. When provided, the component will automatically populate the value from the model.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  Default value for the input when no model or old value exists.
+</ParamField>
+
+<ParamField path="dateFormat" type="string" default="">
+  Custom date format for displaying the value. When empty, uses default formatting. Accepts PHP date format strings (e.g., `Y-m-d H:i:s`, `d/m/Y H:i`, `m/d/Y h:i A`).
+</ParamField>
+
+<ParamField path="icon" type="string" default="">
+  Custom icon class for the calendar icon. Defaults to framework-configured icon:
+  - Bootstrap 5: `fa-regular fa-calendar`
+  - Material Admin 26: `zmdi zmdi-calendar`
+</ParamField>
+
+<ParamField path="clearIcon" type="string" default="">
+  Custom icon class for the clear button. Defaults to framework-configured icon:
+  - Bootstrap 5: `fa-regular fa-close`
+  - Material Admin 26: `zmdi zmdi-close`
+</ParamField>
+
+<ParamField path="clearBtnClass" type="string" default="">
+  Custom CSS classes for the clear button. Defaults to framework-configured classes:
+  - Bootstrap 5: `btn btn-outline-secondary btn-date-clear disable-w-input`
+  - Material Admin 26: `text-body btn-date-clear disable-w-input`
+</ParamField>
+
+<ParamField path="iconWrapperClass" type="string" default="">
+  CSS classes for the icon wrapper element. Defaults to `date-icon-wrapper`.
+</ParamField>
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Display validation errors below the input.
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Show or hide the label element.
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Placeholder text for the input. Auto-generated from label if `showPlaceholder` is true.
+</ParamField>
+
+<ParamField path="showPlaceholder" type="boolean" default="false">
+  Automatically generate placeholder from label.
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark the field as required with an asterisk in the label.
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Render the input in horizontal/inline layout.
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Use Bootstrap floating label style.
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="">
+  Custom CSS classes for inline label. Defaults to framework configuration.
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="">
+  Custom CSS classes for inline input wrapper. Defaults to framework configuration.
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript validation error display.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework. Options: `bootstrap-5`, `material-admin-26`.
+</ParamField>
+
+## Examples
+
+### Basic DateTime Input
+
+```blade
+<x-forms::datetime
+    name="event_start"
+    label="Event Start"
+    :required="true"
+/>
+```
+
+### With Model Binding
+
+```blade
+<x-forms::datetime
+    name="created_at"
+    label="Created At"
+    :model="$post"
+/>
+```
+
+### Custom DateTime Format
+
+```blade
+{{-- Display as YYYY-MM-DD HH:MM:SS --}}
+<x-forms::datetime
+    name="scheduled_at"
+    label="Scheduled At"
+    dateFormat="Y-m-d H:i:s"
+/>
+
+{{-- Display as DD/MM/YYYY HH:MM --}}
+<x-forms::datetime
+    name="appointment_at"
+    label="Appointment At"
+    dateFormat="d/m/Y H:i"
+/>
+
+{{-- Display as Month DD, YYYY at HH:MM AM/PM --}}
+<x-forms::datetime
+    name="published_at"
+    label="Published At"
+    dateFormat="F d, Y \a\t h:i A"
+/>
+```
+
+### With Custom Icons
+
+```blade
+<x-forms::datetime
+    name="booking_datetime"
+    label="Booking Date & Time"
+    icon="fas fa-calendar-check"
+    clearIcon="fas fa-times"
+/>
+```
+
+### Inline Layout
+
+```blade
+<x-forms::datetime
+    name="deadline_at"
+    label="Deadline"
+    :inline="true"
+/>
+```
+
+### Floating Label
+
+```blade
+<x-forms::datetime
+    name="last_login"
+    label="Last Login"
+    :floating="true"
+/>
+```
+
+### With Placeholder
+
+```blade
+<x-forms::datetime
+    name="delivery_datetime"
+    label="Delivery Date & Time"
+    placeholder="Select date and time"
+/>
+```
+
+### With Default Value
+
+```blade
+{{-- Default to current datetime --}}
+<x-forms::datetime
+    name="timestamp"
+    label="Timestamp"
+    :default="now()"
+/>
+
+{{-- Default to specific datetime --}}
+<x-forms::datetime
+    name="launch_datetime"
+    label="Launch Date & Time"
+    :default="\Carbon\Carbon::parse('2024-12-31 23:59:59')"
+/>
+```
+
+### Event Scheduling Example
+
+```blade
+<div class="row">
+    <div class="col-md-6">
+        <x-forms::datetime
+            name="event_start_at"
+            label="Event Starts"
+            :required="true"
+            dateFormat="Y-m-d H:i"
+        />
+    </div>
+    <div class="col-md-6">
+        <x-forms::datetime
+            name="event_end_at"
+            label="Event Ends"
+            :required="true"
+            dateFormat="Y-m-d H:i"
+        />
+    </div>
+</div>
+```
+
+### With Additional Attributes
+
+```blade
+<x-forms::datetime
+    name="reminder_datetime"
+    label="Reminder"
+    class="custom-datetime-input"
+    id="reminder-datetime"
+    data-min-date="2024-01-01 00:00"
+    data-max-date="2024-12-31 23:59"
+/>
+```
+
+### Publication Management
+
+```blade
+<x-forms::datetime
+    name="published_at"
+    label="Publish Date"
+    placeholder="Leave empty to save as draft"
+    dateFormat="Y-m-d H:i"
+/>
+
+<x-forms::datetime
+    name="expires_at"
+    label="Expiration Date"
+    placeholder="Leave empty for no expiration"
+    dateFormat="Y-m-d H:i"
+/>
+```
+
+## Configuration
+
+The DateTime component uses configuration from `config/forms.php`:
+
+### Eloquent Date Casting
+
+```php
+'use_eloquent_date_casting' => false,
+```
+
+When enabled, datetime inputs automatically cast values from Eloquent models to the appropriate format for the datetime picker.
+
+### Framework Icon Settings
+
+```php
+'frameworks' => [
+    'bootstrap-5' => [
+        'icon-prefix' => 'fa-regular',
+        'datetime-icon' => 'fa-calendar',
+        'date-icon-wrapper-class' => 'date-icon-wrapper',
+        'date-clear-icon' => 'fa-close',
+        'date-clear-btn-class' => 'btn btn-outline-secondary btn-date-clear disable-w-input',
+    ],
+    
+    'material-admin-26' => [
+        'icon-prefix' => 'zmdi',
+        'datetime-icon' => 'zmdi-calendar',
+        'date-icon-wrapper-class' => 'date-icon-wrapper',
+        'date-clear-icon' => 'zmdi-close',
+        'date-clear-btn-class' => 'text-body btn-date-clear disable-w-input',
+    ]
+]
+```
+
+## Implementation Details
+
+The DateTime component:
+- Renders with the `datetime-picker` CSS class for JavaScript initialization
+- Displays a calendar icon in an input group prepend
+- Includes a clear button to reset the datetime value
+- Supports datetime formatting via the `dateFormat` attribute
+- Extends the Date component with `type="datetime"` hardcoded
+- Uses the datetime-specific icon from framework configuration
+- Automatically handles Eloquent model datetime casting when configured
+
+**Source**: `src/Views/Components/Datetime.php:5`
+**View**: `resources/views/bootstrap-5/input.blade.php:6`

@@ -1,0 +1,150 @@
+---
+title: Boolean Entry
+description: Display boolean values as Yes/No text
+---
+
+The Boolean Entry component displays boolean values as localized Yes/No text. It extends the Text Entry component and automatically formats boolean values.
+
+## Basic Usage
+
+```blade
+<x-forms::boolean-entry name="is_active" label="Active" />
+```
+
+## With Model Binding
+
+```blade
+<x-forms::boolean-entry 
+    name="is_published" 
+    label="Published" 
+    :model="$post" 
+/>
+```
+
+## Explicit Value
+
+```blade
+<x-forms::boolean-entry 
+    label="Is Verified" 
+    :value="true" 
+/>
+```
+
+## Inline Layout
+
+Display in horizontal layout:
+
+```blade
+<x-forms::boolean-entry 
+    name="is_admin" 
+    label="Administrator" 
+    :model="$user"
+    :inline="true" 
+/>
+```
+
+## Without Label
+
+```blade
+<x-forms::boolean-entry 
+    name="is_active" 
+    :show-label="false"
+    :model="$user" 
+/>
+```
+
+## Multiple Entries
+
+Display multiple boolean fields:
+
+```blade
+<div class="row">
+    <div class="col-md-6">
+        <x-forms::boolean-entry 
+            name="is_published" 
+            label="Published" 
+            :model="$post"
+            :inline="true" 
+        />
+    </div>
+    <div class="col-md-6">
+        <x-forms::boolean-entry 
+            name="is_featured" 
+            label="Featured" 
+            :model="$post"
+            :inline="true" 
+        />
+    </div>
+</div>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" default="">
+  The field name used to retrieve the boolean value from the bound model
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text to display
+</ParamField>
+
+<ParamField path="value" type="boolean|null" default="null">
+  The boolean value to display. If not provided, the value is retrieved from the model using the name attribute
+</ParamField>
+
+<ParamField path="model" type="Model" default="null">
+  The model instance to retrieve the value from
+</ParamField>
+
+<ParamField path="show-label" type="boolean" default="true">
+  Whether to display the label
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Display the entry in horizontal layout with label and value side-by-side
+</ParamField>
+
+<ParamField path="inline-entry-label-class" type="string" default="col-sm-6 col-md-4">
+  Custom CSS classes for the label column when using inline layout
+</ParamField>
+
+<ParamField path="inline-entry-class" type="string" default="col-sm-6 col-md-8">
+  Custom CSS classes for the value column when using inline layout
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework (bootstrap-5, material-admin-26)
+</ParamField>
+
+## Value Formatting
+
+The component automatically formats boolean values:
+
+- `true` → Displays the translated "Yes" string (`forms::strings.yes`)
+- `false` → Displays the translated "No" string (`forms::strings.no`)
+- `null` → Displays the translated "blank" string (`forms::strings.blank`)
+
+## Localization
+
+The component uses translation strings from the `forms` package:
+
+- `forms::strings.yes` - Default: "Yes"
+- `forms::strings.no` - Default: "No"
+- `forms::strings.blank` - Default: "-"
+
+You can customize these translations in your language files.
+
+## Inheritance
+
+Boolean Entry extends the Text Entry component with:
+- Automatic boolean-to-text conversion
+- Fixed `multiline="false"` (cannot be changed)
+- All other Text Entry features (inline layout, custom classes, etc.)
+
+## Rendering
+
+The component renders using the same template as Text Entry:
+- Definition list (`<dl>`) structure
+- `<dt>` tag for the label
+- `<dd>` tag for the formatted Yes/No/Blank value
+- Bootstrap grid classes when using inline layout

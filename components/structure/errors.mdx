@@ -1,0 +1,236 @@
+---
+title: Errors
+description: Display validation error messages for form inputs
+---
+
+The `<x-forms::errors>` component displays validation error messages for form fields. It automatically shows errors from Laravel's validation system.
+
+## Basic Usage
+
+```blade
+<x-forms::text name="email" label="Email" />
+<x-forms::errors name="email" />
+```
+
+The component uses Laravel's `@error` directive and only displays when validation fails for the specified field.
+
+## Attributes
+
+<ParamField path="name" type="string" default="">
+  The name of the form field to display errors for. Supports dot notation for nested fields and automatically converts brackets to dots (e.g., `user[email]` becomes `user.email`).
+</ParamField>
+
+<ParamField path="bag" type="string" default="default">
+  The error bag to check. Laravel supports multiple error bags for different forms on the same page.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the CSS framework for this component.
+</ParamField>
+
+## How It Works
+
+The component wraps Laravel's `@error` directive:
+
+```blade
+<x-forms::errors name="email" />
+```
+
+Renders as:
+
+```html
+@error('email')
+<div class="invalid-feedback">
+    {{ $message }}
+</div>
+@enderror
+```
+
+The error message only appears when validation fails for that field.
+
+## Display Patterns
+
+Errors typically display below the input field:
+
+```blade
+<div class="mb-3">
+    <label for="email" class="form-label">Email</label>
+    <input type="email" name="email" class="form-control" />
+    <x-forms::errors name="email" />
+</div>
+```
+
+With Bootstrap's `invalid-feedback` class, errors display in red below the input.
+
+## Nested Fields
+
+Use dot notation for nested array fields:
+
+```blade
+<x-forms::text name="user[email]" label="Email" />
+<x-forms::errors name="user.email" />
+```
+
+Or use brackets directly (automatically converted):
+
+```blade
+<x-forms::errors name="user[email]" />
+```
+
+## Array Fields
+
+For array fields, the component removes the `[]` suffix:
+
+```blade
+<input type="text" name="tags[]" class="form-control" />
+<x-forms::errors name="tags" />
+```
+
+## Multiple Error Bags
+
+Laravel allows multiple error bags on the same page:
+
+```blade
+<!-- Login form with 'login' error bag -->
+<x-forms::text name="email" label="Email" />
+<x-forms::errors name="email" bag="login" />
+
+<!-- Registration form with 'registration' error bag -->
+<x-forms::text name="email" label="Email" />
+<x-forms::errors name="registration.email" bag="registration" />
+```
+
+Controller example:
+
+```php
+return back()->withErrors([
+    'email' => 'Invalid credentials'
+], 'login');
+```
+
+## Bootstrap Validation States
+
+Combine with Bootstrap's validation classes:
+
+```blade
+<input 
+    type="email" 
+    name="email" 
+    class="form-control @error('email') is-invalid @enderror" 
+    value="{{ old('email') }}"
+/>
+<x-forms::errors name="email" />
+```
+
+The `.is-invalid` class makes the error visible (displays the `.invalid-feedback` element).
+
+## JavaScript Errors
+
+For client-side validation errors, use the `<x-forms::js-errors>` component:
+
+```blade
+<input type="email" name="email" class="form-control" />
+<x-forms::js-errors name="email" />
+```
+
+Renders as:
+
+```html
+<ul class="invalid-feedback email-error">
+    {{ $slot }}
+</ul>
+```
+
+The slugified name class (e.g., `email-error`, `user-name-error`) allows JavaScript to target and populate errors:
+
+```javascript
+// Show error with JavaScript
+document.querySelector('.email-error').innerHTML = '<li>Email is required</li>';
+document.querySelector('input[name="email"]').classList.add('is-invalid');
+```
+
+## Automatic Inclusion
+
+Most input components automatically include error display:
+
+```blade
+<!-- Errors are shown automatically -->
+<x-forms::text name="email" label="Email" />
+<x-forms::email name="contact_email" label="Contact Email" />
+```
+
+Use the errors component directly only when building custom form structures.
+
+## Styling
+
+The component uses Bootstrap's `.invalid-feedback` class by default:
+
+```css
+.invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+    color: #dc3545;
+}
+
+.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+```
+
+## Complete Example
+
+```blade
+<x-forms::form action="/register" method="POST">
+    <!-- Email field with errors -->
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input 
+            type="email" 
+            name="email" 
+            id="email"
+            class="form-control @error('email') is-invalid @enderror" 
+            value="{{ old('email') }}"
+        />
+        <x-forms::errors name="email" />
+    </div>
+    
+    <!-- Password field with errors -->
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input 
+            type="password" 
+            name="password" 
+            id="password"
+            class="form-control @error('password') is-invalid @enderror"
+        />
+        <x-forms::errors name="password" />
+    </div>
+    
+    <!-- Nested field errors -->
+    <div class="mb-3">
+        <label for="address_city" class="form-label">City</label>
+        <input 
+            type="text" 
+            name="address[city]" 
+            id="address_city"
+            class="form-control @error('address.city') is-invalid @enderror" 
+            value="{{ old('address.city') }}"
+        />
+        <x-forms::errors name="address.city" />
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Register</button>
+</x-forms::form>
+```
+
+With validation rules:
+
+```php
+$request->validate([
+    'email' => 'required|email|unique:users',
+    'password' => 'required|min:8|confirmed',
+    'address.city' => 'required|string',
+]);
+```

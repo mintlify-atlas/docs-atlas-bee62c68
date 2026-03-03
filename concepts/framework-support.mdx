@@ -1,0 +1,288 @@
+---
+title: Framework Support
+description: Configure Bootstrap 5 or Material Admin 26 CSS frameworks for form rendering
+---
+
+## Supported Frameworks
+
+Javaabu Forms supports two CSS frameworks out of the box:
+
+- **Bootstrap 5** (default)
+- **Material Admin 26**
+
+The framework configuration is defined in `config/config.php` (`config/config.php:16`).
+
+## Setting the Default Framework
+
+Configure the default framework in `config/forms.php`:
+
+```php
+return [
+    'framework' => 'bootstrap-5', // or 'material-admin-26'
+];
+```
+
+## Per-Component Framework Override
+
+Every form component accepts a `framework` parameter:
+
+```blade
+{{-- Use Bootstrap 5 --}}
+<x-forms::input name="title" label="Title" framework="bootstrap-5" />
+
+{{-- Use Material Admin 26 --}}
+<x-forms::input name="title" label="Title" framework="material-admin-26" />
+```
+
+## Framework Configuration
+
+Each framework has its own configuration section in `config/config.php` (`config/config.php:29`):
+
+### Bootstrap 5 Configuration
+
+```php
+'frameworks' => [
+    'bootstrap-5' => [
+        'icon-prefix' => 'fa-regular',
+        'date-icon' => 'fa-calendar',
+        'date-icon-wrapper-class' => 'date-icon-wrapper',
+        'datetime-icon' => 'fa-calendar',
+        'time-icon' => 'fa-clock',
+        'date-clear-icon' => 'fa-close',
+        'date-clear-btn-class' => 'btn btn-outline-secondary btn-date-clear disable-w-input',
+        'file-download-icon' => 'fa-arrow-to-bottom',
+        'file-upload-icon' => 'fa-arrow-to-top',
+        'file-clear-icon' => 'fa-close',
+        'image-icon' => 'fa-image',
+        'inline-label-class' => 'col-sm-3 col-lg-2 col-form-label',
+        'inline-input-class' => 'col-sm-9 col-lg-10',
+        'inline-entry-label-class' => 'col-sm-6 col-md-4',
+        'inline-entry-class' => 'col-sm-6 col-md-8',
+        'search-icon' => 'fa-search',
+        'no-items-icon' => 'fa-file',
+    ],
+]
+```
+
+### Material Admin 26 Configuration
+
+```php
+'frameworks' => [
+    'material-admin-26' => [
+        'icon-prefix' => 'zmdi',
+        'date-icon' => 'zmdi-calendar',
+        'date-icon-wrapper-class' => 'date-icon-wrapper',
+        'datetime-icon' => 'zmdi-calendar',
+        'time-icon' => 'zmdi-clock',
+        'date-clear-icon' => 'zmdi-close',
+        'date-clear-btn-class' => 'text-body btn-date-clear disable-w-input',
+        'file-download-icon' => 'zmdi-open-in-new',
+        'file-upload-icon' => 'zmdi-upload',
+        'file-clear-icon' => 'zmdi-close',
+        'image-icon' => 'zmdi-image',
+        'inline-label-class' => 'col-sm-3 col-lg-2 col-form-label',
+        'inline-input-class' => 'col-sm-9 col-lg-10',
+        'inline-entry-label-class' => 'col-sm-6 col-md-4',
+        'inline-entry-class' => 'col-sm-6 col-md-8',
+        'search-icon' => 'zmdi-search',
+        'no-items-icon' => 'zmdi-file',
+    ],
+]
+```
+
+## Configuration Options
+
+### Icon Settings
+
+| Option | Description |
+|--------|-------------|
+| `icon-prefix` | CSS class prefix for icons (FontAwesome vs Zmdi) |
+| `date-icon` | Icon class for date inputs |
+| `datetime-icon` | Icon class for datetime inputs |
+| `time-icon` | Icon class for time inputs |
+| `date-clear-icon` | Icon class for date clear button |
+| `file-download-icon` | Icon class for file download button |
+| `file-upload-icon` | Icon class for file upload button |
+| `file-clear-icon` | Icon class for file clear button |
+| `image-icon` | Icon class for image inputs |
+| `search-icon` | Icon class for search inputs |
+| `no-items-icon` | Icon class for empty state displays |
+
+### Layout Classes
+
+| Option | Description |
+|--------|-------------|
+| `date-icon-wrapper-class` | Wrapper class for date icon |
+| `date-clear-btn-class` | Button class for date clear action |
+| `inline-label-class` | Grid class for inline form labels |
+| `inline-input-class` | Grid class for inline form inputs |
+| `inline-entry-label-class` | Grid class for inline entry labels |
+| `inline-entry-class` | Grid class for inline entry content |
+
+## Accessing Framework Config
+
+Components can access framework configuration using the `frameworkConfig()` method:
+
+```php
+// In a component class
+$this->frameworkConfig('date-icon'); // Returns 'fa-calendar' or 'zmdi-calendar'
+```
+
+Example from `FormGroup` component (`src/Views/Components/FormGroup.php:45`):
+
+```php
+$this->inlineInputClass = $inlineInputClass ?: $this->frameworkConfig('inline-input-class');
+```
+
+## Deep Merging Framework Config
+
+The service provider performs deep merging of framework configurations (`src/FormsServiceProvider.php:68`), allowing you to override specific settings:
+
+```php
+protected function mergeConfig(): void
+{
+    // merge package config with user defined config
+    $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'forms');
+
+    // Deep merge for nested 'framework' config
+    $default = require __DIR__.'/../config/config.php';
+    $default_frameworks = $default['frameworks'];
+
+    foreach ($default_frameworks as $framework => $configs) {
+        $user_config = config('forms.frameworks.' . $framework);
+
+        config()->set(
+            'forms.frameworks.' . $framework,
+            array_merge($configs, is_array($user_config) ? $user_config : [])
+        );
+    }
+}
+```
+
+## Customizing Framework Settings
+
+Publish the configuration file:
+
+```bash
+php artisan vendor:publish --tag=forms-config
+```
+
+Then modify `config/forms.php` to override specific framework settings:
+
+```php
+return [
+    'framework' => 'bootstrap-5',
+    
+    'frameworks' => [
+        'bootstrap-5' => [
+            // Override only the settings you need
+            'icon-prefix' => 'fa-solid',
+            'date-icon' => 'fa-calendar-day',
+            'inline-label-class' => 'col-md-4 col-form-label',
+            'inline-input-class' => 'col-md-8',
+        ],
+    ],
+];
+```
+
+<Note>
+  You only need to specify the settings you want to override. The package will merge your settings with the defaults.
+</Note>
+
+## Framework-Specific Views
+
+The package maintains separate Blade views for each framework:
+
+```
+resources/views/
+├── bootstrap-5/
+│   ├── input.blade.php
+│   ├── select.blade.php
+│   ├── checkbox.blade.php
+│   └── ...
+└── material-admin-26/
+    ├── input.blade.php
+    ├── select.blade.php
+    ├── checkbox.blade.php
+    └── ...
+```
+
+Each framework's views use the appropriate CSS classes and structure.
+
+## Example: Bootstrap 5 Input Rendering
+
+From `resources/views/bootstrap-5/input.blade.php` (`resources/views/bootstrap-5/input.blade.php:20`):
+
+```blade
+<input
+    {!! $attributes->merge([
+        'class' => 'form-control' . 
+                   ($type === 'color' ? ' form-control-color' : '') . 
+                   ($hasError($name) ? ' is-invalid' : '') . 
+                   ($isDateInput() ? ' ' . $datePickerClass() : ''),
+        'required' => $required
+    ] + $getDefaultAttributes()) !!}
+    type="{{ $type }}"
+    value="{{ $value ?? ($type === 'color' ? '#000000' : '') }}"
+    name="{{ $name }}"
+    @if($label && ! $attributes->get('id'))
+        id="{{ $id() }}"
+    @endif
+/>
+```
+
+## Icon Font Dependencies
+
+### Bootstrap 5
+
+Requires Font Awesome (Free or Pro):
+
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+```
+
+### Material Admin 26
+
+Requires Material Design Iconic Font:
+
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css" />
+```
+
+<Warning>
+  Make sure to include the appropriate icon font library for your chosen framework, or customize the icon settings to match your available icon library.
+</Warning>
+
+## Additional Configuration
+
+### Scripts Stack
+
+Configure where component scripts are pushed (`config/config.php:80`):
+
+```php
+'scripts_stack' => 'scripts',
+```
+
+This allows components to inject JavaScript:
+
+```blade
+@push('scripts')
+    <script>
+        // Component JavaScript
+    </script>
+@endpush
+```
+
+### Google Maps API Key
+
+For map input components (`config/config.php:91`):
+
+```php
+'map_api_key' => env('MAP_API_KEY'),
+```
+
+Set in your `.env`:
+
+```
+MAP_API_KEY=your_google_maps_api_key
+```

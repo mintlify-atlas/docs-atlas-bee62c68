@@ -1,0 +1,359 @@
+---
+title: File Upload
+description: File upload component with Spatie Media Library integration
+---
+
+The File Upload component is a specialized version of the File component that provides upload-style button styling. It automatically enables upload mode and integrates with Spatie Media Library for handling file uploads.
+
+## Basic Usage
+
+```blade
+<x-forms::file-upload name="document" />
+```
+
+## Key Differences from File Component
+
+The File Upload component differs from the regular File component in these ways:
+
+1. **Upload Button Styling**: Shows an "Upload file" button with upload icon instead of "Select file" and "Change" buttons
+2. **Permanent Upload Mode**: The `upload` attribute is always `true` and cannot be changed
+3. **Visual Style**: Designed for modern upload interfaces with prominent upload button
+
+## With Model Binding
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::file-upload name="featured_image" />
+</x-forms::form>
+```
+
+## File Types
+
+```blade
+{{-- Document upload --}}
+<x-forms::file-upload 
+    name="document" 
+    type="document" 
+/>
+
+{{-- Multiple file types --}}
+<x-forms::file-upload 
+    name="attachment" 
+    :type="['document', 'image']" 
+/>
+
+{{-- PDF only --}}
+<x-forms::file-upload 
+    name="contract" 
+    mimetypes="application/pdf" 
+    extensions="pdf" 
+/>
+```
+
+## Custom Validation
+
+```blade
+{{-- Custom max size --}}
+<x-forms::file-upload 
+    name="large_document" 
+    :max-size="10240" 
+    help="Maximum file size: 10MB" 
+/>
+
+{{-- Custom mime types --}}
+<x-forms::file-upload 
+    name="spreadsheet" 
+    :mimetypes="[
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ]" 
+    :extensions="['xls', 'xlsx']" 
+/>
+```
+
+## Upload Icons
+
+The upload button displays an upload icon by default:
+
+```blade
+{{-- Default upload icon --}}
+<x-forms::file-upload name="document" />
+{{-- Bootstrap 5: fa-arrow-to-top --}}
+{{-- Material Admin: zmdi-upload --}}
+
+{{-- Custom upload icon --}}
+<x-forms::file-upload 
+    name="document" 
+    upload-icon="fa-cloud-upload" 
+/>
+```
+
+## Spatie Media Library Integration
+
+```blade
+{{-- Upload to custom collection --}}
+<x-forms::file-upload 
+    name="attachment" 
+    collection="documents" 
+/>
+
+{{-- With conversion --}}
+<x-forms::file-upload 
+    name="thumbnail" 
+    collection="images" 
+    conversion="thumb" 
+/>
+```
+
+### Model Setup
+
+Your model should implement the `HasMedia` interface:
+
+```php
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class Article extends Model implements HasMedia
+{
+    use InteractsWithMedia;
+    
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('documents')
+            ->acceptsMimeTypes(['application/pdf', 'application/msword']);
+    }
+}
+```
+
+## Client-Side File Size Validation
+
+The component includes client-side validation for maximum file size:
+
+```blade
+<x-forms::file-upload 
+    name="document" 
+    :max-size="5120" 
+/>
+```
+
+This adds a `data-max-file-size` attribute to the input that can be used by JavaScript:
+
+```html
+<input 
+    type="file" 
+    name="document" 
+    data-max-file-size="5120" 
+/>
+```
+
+## Display Hints
+
+```blade
+{{-- Show automatic hint --}}
+<x-forms::file-upload 
+    name="document" 
+    :show-hint="true" 
+/>
+{{-- Displays: "Only .pdf, .doc and .docx files of max 5MB allowed." --}}
+
+{{-- Custom help text --}}
+<x-forms::file-upload 
+    name="document" 
+    help="Upload your signed contract in PDF format." 
+/>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the file upload input
+</ParamField>
+
+<ParamField path="label" type="string">
+  Label text for the file upload. Auto-generated from name if not provided
+</ParamField>
+
+<ParamField path="type" type="string|array" default="document">
+  File type category. Accepts: `document`, `image`, or array of types
+</ParamField>
+
+<ParamField path="mimetypes" type="string|array">
+  Allowed mime types. Overrides automatic detection from `type`
+</ParamField>
+
+<ParamField path="extensions" type="string|array">
+  Allowed file extensions. Overrides automatic detection from mime types
+</ParamField>
+
+<ParamField path="max-size" type="int">
+  Maximum file size in kilobytes. Adds `data-max-file-size` attribute for client-side validation
+</ParamField>
+
+<ParamField path="collection" type="string">
+  Spatie Media Library collection name. Defaults to the input name
+</ParamField>
+
+<ParamField path="conversion" type="string">
+  Spatie Media Library conversion name to display
+</ParamField>
+
+<ParamField path="file-input-class" type="string">
+  Additional CSS classes for the file input wrapper
+</ParamField>
+
+<ParamField path="clear-icon" type="string">
+  Icon class for the clear/remove button
+</ParamField>
+
+<ParamField path="download-icon" type="string">
+  Icon class for the download link. Framework default: `fa-arrow-to-bottom` or `zmdi-open-in-new`
+</ParamField>
+
+<ParamField path="upload-icon" type="string">
+  Icon class for the upload button. Framework default: `fa-arrow-to-top` or `zmdi-upload`
+</ParamField>
+
+<ParamField path="model" type="object">
+  Model instance to bind to. Automatically retrieves file from media library
+</ParamField>
+
+<ParamField path="default" type="string">
+  Default file URL if no value is bound
+</ParamField>
+
+<ParamField path="show-hint" type="bool" default="true">
+  Show automatic hint with allowed file types and max size
+</ParamField>
+
+<ParamField path="show-errors" type="bool" default="true">
+  Show validation errors
+</ParamField>
+
+<ParamField path="show-label" type="bool" default="true">
+  Show the label
+</ParamField>
+
+<ParamField path="required" type="bool" default="false">
+  Mark the field as required
+</ParamField>
+
+<ParamField path="disabled" type="bool" default="false">
+  Disable the file upload
+</ParamField>
+
+<ParamField path="ignore-accessor" type="bool" default="false">
+  Ignore model accessors when retrieving value. Only retrieve from media library
+</ParamField>
+
+<ParamField path="inline" type="bool" default="false">
+  Display label and input inline (horizontal layout)
+</ParamField>
+
+<ParamField path="help" type="string">
+  Custom help text. Overrides automatic hint
+</ParamField>
+
+## Examples
+
+### Document Upload with Size Limit
+
+```blade
+<x-forms::file-upload 
+    name="contract" 
+    label="Contract Document"
+    type="document"
+    :max-size="5120"
+    help="Upload your signed contract (max 5MB)."
+    required
+/>
+```
+
+### PDF-Only Upload
+
+```blade
+<x-forms::file-upload 
+    name="invoice" 
+    label="Invoice"
+    mimetypes="application/pdf"
+    extensions="pdf"
+    :max-size="2048"
+/>
+```
+
+### Media Library Upload
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::file-upload 
+        name="attachment" 
+        label="Article Attachment"
+        collection="documents" 
+        :max-size="10240"
+    />
+</x-forms::form>
+```
+
+### Custom Upload Icon
+
+```blade
+<x-forms::file-upload 
+    name="backup" 
+    label="Backup File"
+    upload-icon="fa-cloud-upload-alt"
+    help="Upload your database backup file."
+/>
+```
+
+## Upload Mode Behavior
+
+In upload mode, the component:
+
+1. **Shows Upload Button**: Displays "Upload file" button with upload icon
+2. **Persistent Button**: The upload button remains visible even after file selection
+3. **File Size Validation**: Adds `data-max-file-size` attribute when `max-size` is specified
+4. **Modern UI**: Provides a more modern upload interface compared to traditional file inputs
+
+## Handling Uploads
+
+In your controller:
+
+```php
+public function store(Request $request)
+{
+    $request->validate([
+        'document' => 'required|file|mimes:pdf,doc,docx|max:5120',
+    ]);
+    
+    $article = Article::create($request->all());
+    
+    if ($request->hasFile('document')) {
+        $article->addMedia($request->file('document'))
+            ->toMediaCollection('documents');
+    }
+    
+    return redirect()->route('articles.show', $article);
+}
+```
+
+## Multiple File Support
+
+For multiple file uploads, you can use the same component with the `multiple` attribute:
+
+```blade
+<x-forms::file-upload 
+    name="attachments[]" 
+    label="Attachments"
+    multiple
+/>
+```
+
+Note: Handle multiple files in your controller:
+
+```php
+if ($request->hasFile('attachments')) {
+    foreach ($request->file('attachments') as $file) {
+        $article->addMedia($file)
+            ->toMediaCollection('documents');
+    }
+}
+```

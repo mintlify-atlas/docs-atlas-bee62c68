@@ -1,0 +1,312 @@
+---
+title: HandlesDefaultAndOldValue
+description: Trait for managing default values and old input in form components
+---
+
+## Overview
+
+The `HandlesDefaultAndOldValue` trait provides methods for retrieving form field values with priority given to old input (from failed validation), then bound model values, and finally explicit default values.
+
+**Namespace:** `Javaabu\Forms\Support`
+
+## Trait Definition
+
+```php
+trait HandlesDefaultAndOldValue
+{
+    use HandlesBoundValues;
+}
+```
+
+## Dependencies
+
+This trait uses the `HandlesBoundValues` trait to access bound model data.
+
+## Methods
+
+### getValue
+
+```php
+protected function getValue(string $name, $bind = null, $default = null)
+```
+
+<ParamField path="name" type="string" required>
+  The field name in bracket notation (e.g., `user[email]`).
+</ParamField>
+
+<ParamField path="bind" type="mixed" default="null">
+  The model or object to retrieve the value from. If null, uses the currently bound model.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  The default value to use if no bound value exists.
+</ParamField>
+
+Retrieves a value with the following priority:
+1. Old input (from previous request)
+2. Bound model value
+3. Explicit default value
+
+**Returns:** `mixed` - The resolved value
+
+**Value Resolution Logic:**
+```php
+// 1. Convert name to dot notation
+$inputName = 'user.email'; // from 'user[email]'
+
+// 2. Try to get from bound model
+$boundValue = $this->getBoundValue($bind, $inputName);
+
+// 3. Use bound value or fall back to default
+$default = $boundValue ?? $default;
+
+// 4. Return old input or the default
+return old($inputName, $default);
+```
+
+**Example:**
+```php
+// With bound model
+$value = $this->getValue('email', $user, 'default@example.com');
+// Returns:
+// 1. old('email') if present (from failed validation)
+// 2. $user->email if no old input
+// 3. 'default@example.com' if user has no email
+
+// With currently bound model
+$value = $this->getValue('email');
+// Uses model from @model directive
+```
+
+### setValue
+
+```php
+protected function setValue(string $name, $bind = null, $default = null)
+```
+
+<ParamField path="name" type="string" required>
+  The field name in bracket notation.
+</ParamField>
+
+<ParamField path="bind" type="mixed" default="null">
+  The model or object to retrieve the value from.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  The default value to use.
+</ParamField>
+
+Retrieves a value using `getValue()` and assigns it to the component's `$value` property.
+
+**Returns:** `mixed` - The resolved value
+
+**Example:**
+```php
+public function __construct(string $name, $bind = null, $default = null)
+{
+    parent::__construct();
+    $this->name = $name;
+    $this->setValue($name, $bind, $default);
+}
+```
+
+## Usage in Components
+
+### Basic Component with Default Values
+
+```php
+use Javaabu\Forms\Support\HandlesDefaultAndOldValue;
+use Javaabu\Forms\Views\Components\Component;
+
+class TextInput extends Component
+{
+    use HandlesDefaultAndOldValue;
+    
+    public string $name;
+    public $value;
+    protected string $view = 'text';
+    
+    public function __construct(
+        string $name,
+        $bind = null,
+        $default = null
+    ) {
+        parent::__construct();
+        $this->name = $name;
+        $this->bindModel($bind);
+        $this->setValue($name, $bind, $default);
+    }
+}
+```
+
+Corresponding Blade view:
+
+```blade
+<input 
+    type="text" 
+    name="{{ $name }}" 
+    value="{{ $value }}"
+/>
+```
+
+### Usage in Blade
+
+```blade
+{{-- With explicit default --}}
+<x-forms::text name="email" default="user@example.com" />
+
+{{-- With bound model --}}
+@model($user)
+    <x-forms::text name="email" />
+    {{-- Uses $user->email as default --}}
+@endmodel
+
+{{-- After validation failure --}}
+<x-forms::text name="email" />
+{{-- Shows old('email') if validation failed --}}
+```
+
+## Value Priority Examples
+
+### Example 1: Fresh Form
+
+```blade
+<x-forms::text name="email" default="test@example.com" />
+```
+
+Result:
+- Old input: None
+- Bound value: None
+- **Value shown:** `test@example.com`
+
+### Example 2: Edit Form with Model
+
+```blade
+@model($user) {{-- $user->email = 'john@example.com' --}}
+    <x-forms::text name="email" default="test@example.com" />
+@endmodel
+```
+
+Result:
+- Old input: None
+- Bound value: `john@example.com`
+- **Value shown:** `john@example.com`
+
+### Example 3: After Validation Failure
+
+```php
+// User submitted form with email='invalid@'
+// Validation failed, redirected back with old input
+```
+
+```blade
+@model($user) {{-- $user->email = 'john@example.com' --}}
+    <x-forms::text name="email" default="test@example.com" />
+@endmodel
+```
+
+Result:
+- Old input: `invalid@`
+- Bound value: `john@example.com`
+- **Value shown:** `invalid@` (from old input)
+
+## Working with Nested Fields
+
+```blade
+@model($user)
+    {{-- Simple field --}}
+    <x-forms::text name="name" />
+    {{-- Uses $user->name --}}
+    
+    {{-- Nested field with bracket notation --}}
+    <x-forms::text name="profile[bio]" />
+    {{-- Uses $user->profile->bio --}}
+    
+    {{-- Array field --}}
+    <x-forms::text name="tags[]" />
+    {{-- Uses $user->tags array --}}
+@endmodel
+```
+
+## Name Conversion
+
+The trait automatically converts bracket notation to dot notation for Laravel's data access helpers:
+
+```php
+'user[profile][email]' → 'user.profile.email'
+'settings[notification]' → 'settings.notification'
+'items[]' → 'items'
+```
+
+This allows:
+- Proper old() input retrieval
+- Correct model attribute access via data_get()
+
+## Complete Example with Select
+
+```php
+use Javaabu\Forms\Support\HandlesDefaultAndOldValue;
+use Javaabu\Forms\Views\Components\Component;
+
+class Select extends Component
+{
+    use HandlesDefaultAndOldValue;
+    
+    public string $name;
+    public $value;
+    public array $options;
+    protected string $view = 'select';
+    
+    public function __construct(
+        string $name,
+        array $options = [],
+        $bind = null,
+        $default = null
+    ) {
+        parent::__construct();
+        $this->name = $name;
+        $this->options = $options;
+        $this->bindModel($bind);
+        $this->setValue($name, $bind, $default);
+    }
+    
+    public function isSelected($optionValue): bool
+    {
+        return $this->value == $optionValue;
+    }
+}
+```
+
+Blade view:
+
+```blade
+<select name="{{ $name }}">
+    @foreach($options as $optionValue => $optionLabel)
+        <option 
+            value="{{ $optionValue }}"
+            @selected($isSelected($optionValue))
+        >
+            {{ $optionLabel }}
+        </option>
+    @endforeach
+</select>
+```
+
+Usage:
+
+```blade
+@model($user) {{-- $user->role_id = 2 --}}
+    <x-forms::select 
+        name="role_id"
+        :options="['1' => 'Admin', '2' => 'User', '3' => 'Guest']"
+    />
+    {{-- Option '2' will be selected --}}
+@endmodel
+```
+
+## Related
+
+- [HandlesBoundValues Trait](/api/traits/handles-bound-values)
+- [HandlesValidationErrors Trait](/api/traits/handles-validation-errors)
+- [Component Base Class](/api/component)
+- [FormsDataBinder](/api/forms-data-binder)

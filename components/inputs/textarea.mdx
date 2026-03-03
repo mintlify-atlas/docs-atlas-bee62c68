@@ -1,0 +1,260 @@
+---
+title: Textarea
+description: A multi-line text input component for capturing longer text content
+---
+
+The Textarea component renders a multi-line text area with Bootstrap styling, optional WYSIWYG editor support, and validation error handling.
+
+## Basic Usage
+
+```blade
+<x-forms::textarea name="description" label="Description" />
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The textarea name attribute. Used for form submission and error handling.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text displayed for the textarea. If empty, a label will be auto-generated from the name.
+</ParamField>
+
+<ParamField path="rows" type="integer" default="3">
+  The number of visible text rows.
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The model instance to bind to. The component will automatically fetch the value from the model using the name attribute.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  The default value if no model value or old input exists.
+</ParamField>
+
+<ParamField path="value" type="mixed" default="null">
+  Explicitly set the textarea value, overriding model and default values.
+</ParamField>
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Whether to display validation errors below the textarea.
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Whether to display the label. Set to `false` to hide the label.
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Custom placeholder text for the textarea.
+</ParamField>
+
+<ParamField path="showPlaceholder" type="boolean" default="false">
+  Automatically use the label as placeholder text when `true`.
+</ParamField>
+
+<ParamField path="wysiwyg" type="boolean" default="false">
+  Enable WYSIWYG editor functionality. Adds the `wysiwyg` CSS class and includes necessary scripts.
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark the textarea as required. Adds HTML5 required attribute and displays a required indicator on the label.
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Display the label and textarea inline (horizontal layout).
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Enable Bootstrap floating label style.
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="">
+  Additional CSS classes for the inline label wrapper.
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="">
+  Additional CSS classes for the inline input wrapper.
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript-based error display for client-side validation.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Specify a custom framework theme. Defaults to the configured framework.
+</ParamField>
+
+## Examples
+
+### Basic Textarea
+
+```blade
+<x-forms::textarea 
+    name="description" 
+    label="Description" 
+/>
+```
+
+### Custom Row Height
+
+```blade
+<x-forms::textarea 
+    name="bio" 
+    label="Biography"
+    :rows="5"
+/>
+```
+
+### With Default Value
+
+```blade
+<x-forms::textarea 
+    name="notes" 
+    label="Notes"
+    default="Enter your notes here..."
+/>
+```
+
+### With Model Binding
+
+```blade
+<x-forms::textarea 
+    name="description" 
+    label="Product Description"
+    :model="$product"
+/>
+```
+
+### Required Field
+
+```blade
+<x-forms::textarea 
+    name="message" 
+    label="Message"
+    :required="true"
+/>
+```
+
+### With Placeholder
+
+```blade
+<x-forms::textarea 
+    name="comments" 
+    label="Comments"
+    placeholder="Enter your comments here..."
+    :rows="4"
+/>
+```
+
+### Floating Label
+
+```blade
+<x-forms::textarea 
+    name="feedback" 
+    label="Feedback"
+    :floating="true"
+    :rows="4"
+/>
+```
+
+### WYSIWYG Editor
+
+```blade
+<x-forms::textarea 
+    name="content" 
+    label="Content"
+    :wysiwyg="true"
+    :rows="10"
+/>
+```
+
+### Inline Layout
+
+```blade
+<x-forms::textarea 
+    name="address" 
+    label="Address"
+    :inline="true"
+    inline-label-class="col-md-3"
+    inline-input-class="col-md-9"
+/>
+```
+
+### Without Label
+
+```blade
+<x-forms::textarea 
+    name="quick_note" 
+    :show-label="false"
+    placeholder="Quick note..."
+/>
+```
+
+### With Explicit Value
+
+```blade
+<x-forms::textarea 
+    name="template" 
+    label="Email Template"
+    :value="$emailTemplate"
+/>
+```
+
+### With Additional Attributes
+
+```blade
+<x-forms::textarea 
+    name="message" 
+    label="Message"
+    class="custom-textarea"
+    id="msg-input"
+    maxlength="500"
+    autocomplete="off"
+/>
+```
+
+### With Help Text
+
+```blade
+<x-forms::textarea name="description" label="Description">
+    <x-slot:help>
+        Provide a detailed description of your product (max 500 characters).
+    </x-slot:help>
+</x-forms::textarea>
+```
+
+## Value Resolution
+
+The component resolves the textarea value in the following order:
+
+1. Explicit `value` parameter (if provided)
+2. Old input (from validation errors)
+3. Model value (if model is provided)
+4. Default value (if specified)
+5. Empty string
+
+## WYSIWYG Editor
+
+When `wysiwyg` is enabled:
+- The `wysiwyg` CSS class is added to the textarea
+- WYSIWYG initialization scripts are automatically included
+- The scripts are pushed to the configured scripts stack (only once per page)
+
+## Validation Error Display
+
+When validation fails, the textarea automatically:
+- Adds the `is-invalid` Bootstrap class
+- Displays error messages below the textarea (if `showErrors` is `true`)
+- Preserves user input through Laravel's old input
+
+## Implementation Details
+
+The Textarea component:
+- Extends the base Input component with type set to `textarea`
+- Uses a separate Blade view (`textarea.blade.php`) for rendering
+- Supports all standard HTML textarea attributes via attribute merging
+- Integrates with Laravel's validation error bag
+- HTML content in the value is rendered as-is (using `{!! $value !!}`)
+
+**Source**: `/src/Views/Components/Textarea.php:16`

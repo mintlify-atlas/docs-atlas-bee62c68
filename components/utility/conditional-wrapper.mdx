@@ -1,0 +1,225 @@
+---
+title: Conditional Wrapper
+description: Conditionally show, hide, or disable form sections based on field values
+---
+
+The `conditional-wrapper` component creates form sections that dynamically show, hide, or disable based on the value of another field. This is useful for creating dependent fields and dynamic form layouts.
+
+## Basic Usage
+
+```blade
+<x-forms::conditional-wrapper 
+    enable-elem="user_type"
+    enable-value="company"
+>
+    <x-forms::text name="company_name" label="Company Name" />
+    <x-forms::text name="tax_number" label="Tax Number" />
+</x-forms::conditional-wrapper>
+```
+
+## Value-Based Enabling
+
+Show fields only when a select or input has a specific value:
+
+```blade
+<x-forms::select name="payment_method" label="Payment Method">
+    <option value="card">Credit Card</option>
+    <option value="bank">Bank Transfer</option>
+    <option value="cash">Cash</option>
+</x-forms::select>
+
+<x-forms::conditional-wrapper 
+    enable-elem="payment_method"
+    enable-value="card"
+>
+    <x-forms::text name="card_number" label="Card Number" />
+    <x-forms::text name="cvv" label="CVV" />
+</x-forms::conditional-wrapper>
+```
+
+## Checkbox Enabling
+
+Show fields based on checkbox state:
+
+```blade
+<x-forms::checkbox name="has_shipping_address" label="Use different shipping address" />
+
+<x-forms::conditional-wrapper 
+    enable-elem="has_shipping_address"
+    enable-value="1"
+    :enable-checkbox="true"
+>
+    <x-forms::text name="shipping_street" label="Street" />
+    <x-forms::text name="shipping_city" label="City" />
+    <x-forms::text name="shipping_zip" label="ZIP Code" />
+</x-forms::conditional-wrapper>
+```
+
+## Array Values
+
+Enable when the field matches any value in an array:
+
+```blade
+<x-forms::select name="account_type" label="Account Type">
+    <option value="basic">Basic</option>
+    <option value="premium">Premium</option>
+    <option value="enterprise">Enterprise</option>
+</x-forms::select>
+
+<x-forms::conditional-wrapper 
+    enable-elem="account_type"
+    :enable-value="['premium', 'enterprise']"
+>
+    <x-forms::text name="priority_support" label="Priority Support Email" />
+    <x-forms::text name="account_manager" label="Account Manager" />
+</x-forms::conditional-wrapper>
+```
+
+## Hide vs Disable
+
+By default, fields are hidden when the condition is not met. Use `:hide-fields="false"` to keep them visible but disabled:
+
+```blade
+<x-forms::conditional-wrapper 
+    enable-elem="subscription_level"
+    enable-value="pro"
+    :hide-fields="false"
+>
+    <x-forms::text name="api_key" label="API Key" />
+</x-forms::conditional-wrapper>
+```
+
+## Disable Fields
+
+Disable fields instead of hiding them:
+
+```blade
+<x-forms::conditional-wrapper 
+    enable-elem="is_editable"
+    enable-value="0"
+    :disable="true"
+>
+    <x-forms::text name="locked_field" label="Locked Field" />
+</x-forms::conditional-wrapper>
+```
+
+## Multiple Conditions
+
+Combine multiple conditional wrappers for complex logic:
+
+```blade
+<x-forms::select name="product_type" label="Product Type">
+    <option value="physical">Physical</option>
+    <option value="digital">Digital</option>
+</x-forms::select>
+
+<x-forms::conditional-wrapper 
+    enable-elem="product_type"
+    enable-value="physical"
+>
+    <x-forms::text name="weight" label="Weight (kg)" />
+    <x-forms::text name="dimensions" label="Dimensions" />
+    
+    <x-forms::checkbox name="requires_refrigeration" label="Requires Refrigeration" />
+    
+    <x-forms::conditional-wrapper 
+        enable-elem="requires_refrigeration"
+        enable-value="1"
+        :enable-checkbox="true"
+    >
+        <x-forms::text name="temperature_range" label="Temperature Range" />
+    </x-forms::conditional-wrapper>
+</x-forms::conditional-wrapper>
+```
+
+## Attributes
+
+<ParamField path="enableElem" type="string" required>
+  The name of the field that controls this wrapper's visibility/state
+</ParamField>
+
+<ParamField path="enableValue" type="mixed" required>
+  The value that the controlling field must have to enable this wrapper. Can be a string, number, or array of values
+</ParamField>
+
+<ParamField path="hideFields" type="bool" default="false">
+  Whether to hide the fields when disabled (true) or just disable them (false)
+</ParamField>
+
+<ParamField path="disable" type="bool" default="false">
+  Whether to disable the fields instead of hiding them
+</ParamField>
+
+<ParamField path="enableCheckbox" type="bool" default="false">
+  Set to true when the controlling element is a checkbox
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  The CSS framework to use for rendering
+</ParamField>
+
+## Data Attributes
+
+The component renders these data attributes for JavaScript handling:
+
+- `data-enable-elem`: The controlling field name
+- `data-enable-section-value`: The value that enables this section
+- `data-enable-section-checkbox`: Set when using checkbox mode
+- `data-hide-fields`: Set to "true" when fields should be hidden
+- `data-disable`: Set to "true" when fields should be disabled
+
+## JavaScript Integration
+
+The component relies on JavaScript to handle the conditional logic. Ensure your forms package JavaScript is included:
+
+```blade
+@push('scripts')
+    <script src="{{ asset('vendor/javaabu/forms/js/forms.js') }}"></script>
+@endpush
+```
+
+## Examples
+
+### Shipping Options Form
+
+```blade
+<x-forms::select name="shipping_method" label="Shipping Method">
+    <option value="standard">Standard</option>
+    <option value="express">Express</option>
+    <option value="overnight">Overnight</option>
+</x-forms::select>
+
+<x-forms::conditional-wrapper 
+    enable-elem="shipping_method"
+    :enable-value="['express', 'overnight']"
+>
+    <x-forms::text name="delivery_date" label="Preferred Delivery Date" />
+    <x-forms::text name="contact_phone" label="Contact Phone" />
+</x-forms::conditional-wrapper>
+```
+
+### Dynamic Pricing Fields
+
+```blade
+<x-forms::select name="pricing_model" label="Pricing Model">
+    <option value="fixed">Fixed Price</option>
+    <option value="variable">Variable Pricing</option>
+    <option value="tiered">Tiered Pricing</option>
+</x-forms::select>
+
+<x-forms::conditional-wrapper 
+    enable-elem="pricing_model"
+    enable-value="fixed"
+>
+    <x-forms::text name="fixed_price" label="Price" />
+</x-forms::conditional-wrapper>
+
+<x-forms::conditional-wrapper 
+    enable-elem="pricing_model"
+    enable-value="tiered"
+>
+    <x-forms::text name="tier_1_price" label="Tier 1 Price" />
+    <x-forms::text name="tier_2_price" label="Tier 2 Price" />
+    <x-forms::text name="tier_3_price" label="Tier 3 Price" />
+</x-forms::conditional-wrapper>
+```

@@ -1,0 +1,235 @@
+---
+title: Requirements
+description: PHP and Laravel version requirements for Javaabu Forms
+---
+
+# Requirements
+
+Javaabu Forms has minimal requirements and supports a wide range of PHP and Laravel versions.
+
+## Minimum Versions
+
+The package requires:
+
+<CardGroup cols={2}>
+  <Card title="PHP Version" icon="php">
+    **PHP 8.1** or higher
+  </Card>
+  <Card title="Laravel Version" icon="laravel">
+    **Laravel 9.52** or higher
+  </Card>
+</CardGroup>
+
+## Supported Versions
+
+Based on the `composer.json` requirements:
+
+### PHP
+
+```json
+"php": "^8.1"
+```
+
+- PHP 8.1.x
+- PHP 8.2.x
+- PHP 8.3.x
+- PHP 8.4.x (future)
+
+### Laravel
+
+```json
+"illuminate/support": "^9.52 || ^10.0 || ^11.0.1 || ^12.0 || ^13.0"
+```
+
+- Laravel 9.52+
+- Laravel 10.x
+- Laravel 11.x
+- Laravel 12.x
+- Laravel 13.x
+
+<Tip>
+  The package is actively maintained and tested against the latest Laravel versions.
+</Tip>
+
+## Required Dependencies
+
+These packages are automatically installed with Javaabu Forms:
+
+| Package | Version | Purpose |
+|---------|---------|----------|
+| `illuminate/support` | ^9.52 \|\| ^10.0 \|\| ^11.0.1 \|\| ^12.0 \|\| ^13.0 | Laravel framework support |
+| `javaabu/settings` | ^1.7 | Settings management integration |
+| `javaabu/helpers` | ^1.70 | Helper functions and utilities |
+
+<Note>
+  These dependencies are installed automatically via Composer - you don't need to install them separately.
+</Note>
+
+## Optional Dependencies
+
+These packages are optional and only needed if you use specific components:
+
+### Spatie Media Library
+
+```bash
+composer require spatie/laravel-medialibrary
+```
+
+**Required for:**
+- `<x-forms::file-upload>` component
+- `<x-forms::image-upload>` component
+
+**Supported versions:** ^10.3.4 or ^11.4
+
+<Warning>
+  File and image upload components will not work without Spatie Media Library installed.
+</Warning>
+
+### Javaabu Geospatial
+
+```bash
+composer require javaabu/geospatial
+```
+
+**Required for:**
+- `<x-forms::map-input>` component
+- `<x-forms::latitude>` component (enhanced)
+- `<x-forms::longitude>` component (enhanced)
+
+**Underlying dependency:** matanyadaev/laravel-eloquent-spatial (^2.10 or ^4.6)
+
+<Tip>
+  The basic `<x-forms::latitude>` and `<x-forms::longitude>` components work without Geospatial, but the map component requires it.
+</Tip>
+
+## Frontend Requirements
+
+### CSS Framework
+
+You must have one of these CSS frameworks in your application:
+
+**Bootstrap 5** (default)
+```html
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+```
+
+**Material Admin 26** (alternative)
+```html
+<!-- Include Material Admin 26 CSS -->
+```
+
+Change the framework in `config/forms.php`:
+```php
+'framework' => 'material-admin-26',
+```
+
+### Icons
+
+The package uses icon fonts for enhanced UI elements (date pickers, file uploads, etc.):
+
+**For Bootstrap 5:**
+```html
+<!-- Font Awesome (default) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+```
+
+**For Material Admin 26:**
+```html
+<!-- Material Design Iconic Font -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css" rel="stylesheet">
+```
+
+<Note>
+  Icon prefixes are configurable in `config/forms.php` under each framework's settings.
+</Note>
+
+### JavaScript Libraries
+
+Some components require additional JavaScript libraries:
+
+**Select2** (for `<x-forms::select2>`)
+```html
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+```
+
+**Date Picker** (for date/time components)
+- The package expects a date picker library initialized in your application
+- Component adds `.date-picker` class for initialization hooks
+
+**WYSIWYG Editor** (for `<x-forms::wysiwyg>`)
+- Configure your preferred editor (TinyMCE, CKEditor, etc.)
+- The component provides a textarea target for initialization
+
+**Google Maps** (for `<x-forms::map-input>`)
+```html
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+```
+Set your API key in `.env`:
+```bash
+MAP_API_KEY=your-google-maps-api-key
+```
+
+## Blade Scripts Stack
+
+Ensure your layout file includes a scripts stack for component JavaScript:
+
+```blade
+@stack('scripts')
+```
+
+This stack is used by map inputs and WYSIWYG components. The stack name is configurable in `config/forms.php`:
+
+```php
+'scripts_stack' => 'scripts',
+```
+
+## Development Requirements
+
+If you're contributing to the package, additional dev dependencies are required:
+
+| Package | Version |
+|---------|----------|
+| `orchestra/testbench-browser-kit` | ^7.0 \|\| ^8.0 \|\| ^9.0 \|\| ^10.0 |
+| `phpunit/phpunit` | ^9.5 \|\| ^10.5 \|\| ^11.5.3 \|\| ^12.5.8 \|\| ^13.0.3 |
+| `composer/semver` | ^3.4 |
+
+## Compatibility Check
+
+To verify your environment meets all requirements:
+
+<Steps>
+  <Step title="Check PHP Version">
+    ```bash
+    php --version
+    ```
+    Should show 8.1.0 or higher
+  </Step>
+  <Step title="Check Laravel Version">
+    ```bash
+    php artisan --version
+    ```
+    Should show Laravel 9.52 or higher
+  </Step>
+  <Step title="Install the Package">
+    ```bash
+    composer require javaabu/forms
+    ```
+    Composer will automatically check compatibility
+  </Step>
+</Steps>
+
+<Warning>
+  If your environment doesn't meet the minimum requirements, Composer will display an error message with details.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Javaabu Forms and publish configuration files
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Create your first form in under 5 minutes
+  </Card>
+</CardGroup>

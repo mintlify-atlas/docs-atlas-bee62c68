@@ -1,0 +1,295 @@
+---
+title: Hidden Input
+description: A hidden input component for storing invisible form data
+---
+
+The Hidden component renders a hidden input field that stores data without displaying it to the user. Useful for passing IDs, tokens, and other data through forms.
+
+## Basic Usage
+
+```blade
+<x-forms::hidden name="user_id" :default="$user->id" />
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The input name attribute. Used for form submission.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label (not displayed for hidden inputs, but available for internal use).
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The model instance to bind to. The component will automatically fetch the value from the model using the name attribute.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  The default value if no model value or old input exists.
+</ParamField>
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Whether to display validation errors. Note: Errors are typically not shown for hidden fields.
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Whether to display the label. Hidden inputs never display labels regardless of this setting.
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark the input as required (primarily for validation purposes).
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Inline layout option (not applicable to hidden inputs).
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Floating label option (not applicable to hidden inputs).
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript-based error display.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Specify a custom framework theme.
+</ParamField>
+
+## Examples
+
+### Basic Hidden Input
+
+```blade
+<x-forms::hidden name="id" :default="123" />
+```
+
+### With Model Binding
+
+```blade
+<x-forms::hidden name="user_id" :model="$user" />
+```
+
+### In Edit Forms
+
+```blade
+<x-forms::form-open route="posts.update" :model="$post">
+    {{-- Hidden field to pass the post ID --}}
+    <x-forms::hidden name="id" :model="$post" />
+    
+    <x-forms::text 
+        name="title" 
+        label="Title"
+        :model="$post"
+        :required="true"
+    />
+    
+    <x-forms::textarea 
+        name="content" 
+        label="Content"
+        :model="$post"
+        :required="true"
+    />
+    
+    <x-forms::submit>Update Post</x-forms::submit>
+</x-forms::form-open>
+```
+
+### CSRF Token Alternative
+
+```blade
+{{-- Though Laravel provides @csrf, you could use: --}}
+<x-forms::hidden name="_token" :default="csrf_token()" />
+```
+
+### Passing State
+
+```blade
+<x-forms::form-open route="search">
+    {{-- Hidden field to maintain filter state --}}
+    <x-forms::hidden name="filter" :default="$activeFilter" />
+    
+    <x-forms::text 
+        name="query" 
+        label="Search"
+        :show-label="false"
+        placeholder="Search..."
+    />
+    
+    <x-forms::submit>Search</x-forms::submit>
+</x-forms::form-open>
+```
+
+### Multiple Hidden Fields
+
+```blade
+<x-forms::form-open route="orders.create">
+    <x-forms::hidden name="product_id" :default="$product->id" />
+    <x-forms::hidden name="price" :default="$product->price" />
+    <x-forms::hidden name="referrer" :default="request()->headers->get('referer')" />
+    
+    <x-forms::number 
+        name="quantity" 
+        label="Quantity"
+        :required="true"
+        min="1"
+    />
+    
+    <x-forms::submit>Add to Cart</x-forms::submit>
+</x-forms::form-open>
+```
+
+### Workflow Step Tracking
+
+```blade
+<x-forms::form-open route="wizard.step2">
+    {{-- Track current step --}}
+    <x-forms::hidden name="step" default="2" />
+    <x-forms::hidden name="session_id" :default="$sessionId" />
+    
+    {{-- Step 2 fields --}}
+    <x-forms::text name="address" label="Address" :required="true" />
+    <x-forms::text name="city" label="City" :required="true" />
+    
+    <x-forms::submit>Continue</x-forms::submit>
+</x-forms::form-open>
+```
+
+### Parent ID in Nested Forms
+
+```blade
+<x-forms::form-open route="comments.store">
+    {{-- Hidden field for parent post --}}
+    <x-forms::hidden name="post_id" :default="$post->id" />
+    
+    {{-- Optional parent comment for replies --}}
+    @if($parentComment)
+        <x-forms::hidden name="parent_id" :default="$parentComment->id" />
+    @endif
+    
+    <x-forms::textarea 
+        name="body" 
+        label="Comment"
+        :required="true"
+        :rows="3"
+    />
+    
+    <x-forms::submit>Post Comment</x-forms::submit>
+</x-forms::form-open>
+```
+
+### Tracking Metadata
+
+```blade
+<x-forms::form-open route="feedback.submit">
+    {{-- Track page and timestamp --}}
+    <x-forms::hidden name="page_url" :default="url()->current()" />
+    <x-forms::hidden name="timestamp" :default="now()->toIso8601String()" />
+    <x-forms::hidden name="user_agent" :default="request()->userAgent()" />
+    
+    <x-forms::textarea 
+        name="message" 
+        label="Feedback"
+        :required="true"
+    />
+    
+    <x-forms::submit>Submit Feedback</x-forms::submit>
+</x-forms::form-open>
+```
+
+### Default Value from Session
+
+```blade
+<x-forms::hidden 
+    name="return_url" 
+    :default="session('return_url', url()->previous())" 
+/>
+```
+
+## Value Resolution
+
+The component resolves the input value in the following order:
+
+1. Old input (from validation errors)
+2. Model value (if model is provided)
+3. Default value (if specified)
+4. Empty string
+
+## Form Wrapping
+
+Unlike other input components:
+- Hidden inputs are NOT wrapped in a form group
+- Labels are never displayed (even if `showLabel` is `true`)
+- The component renders a minimal `<input type="hidden">` element
+
+## Common Use Cases
+
+### 1. Resource IDs
+Pass record IDs in edit/update forms:
+```blade
+<x-forms::hidden name="id" :model="$record" />
+```
+
+### 2. Foreign Keys
+Pass parent record IDs in related forms:
+```blade
+<x-forms::hidden name="user_id" :default="$user->id" />
+```
+
+### 3. State Tracking
+Maintain application state across requests:
+```blade
+<x-forms::hidden name="current_step" :default="$step" />
+```
+
+### 4. Metadata
+Pass additional context data:
+```blade
+<x-forms::hidden name="source" default="newsletter" />
+```
+
+## Security Considerations
+
+**Important**: Hidden inputs are NOT secure:
+- Values are visible in the HTML source
+- Can be modified by users via browser tools
+- Should NOT be used for sensitive data
+- Always validate hidden input values on the server
+
+### Best Practices
+
+```blade
+{{-- ✅ Good: Non-sensitive IDs --}}
+<x-forms::hidden name="post_id" :default="$post->id" />
+
+{{-- ❌ Bad: Sensitive data --}}
+<x-forms::hidden name="is_admin" :default="true" /> {{-- Can be modified! --}}
+<x-forms::hidden name="api_secret" :default="$secret" /> {{-- Visible in HTML! --}}
+
+{{-- ✅ Good: Use session instead --}}
+{{ session(['is_admin' => true]) }}
+```
+
+## Validation
+
+You can still validate hidden fields on the server:
+
+```php
+// Controller validation
+$request->validate([
+    'post_id' => ['required', 'integer', 'exists:posts,id'],
+    'step' => ['required', 'in:1,2,3,4'],
+]);
+```
+
+## Implementation Details
+
+The Hidden component:
+- Extends the base Input component with type set to `hidden`
+- Does NOT render form group, label, or error wrappers (handled by conditional in Blade view)
+- Supports all standard HTML input attributes via attribute merging
+- Integrates with Laravel's validation error bag
+- Works seamlessly with Laravel's old input helper
+
+**Source**: `/src/Views/Components/Hidden.php:12`

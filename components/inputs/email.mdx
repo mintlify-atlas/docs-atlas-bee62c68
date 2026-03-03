@@ -1,0 +1,236 @@
+---
+title: Email Input
+description: An email input component with built-in HTML5 validation
+---
+
+The Email component renders an email input field with HTML5 email validation, Bootstrap styling, and validation error handling.
+
+## Basic Usage
+
+```blade
+<x-forms::email name="email" label="Email Address" />
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The input name attribute. Used for form submission and error handling.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text displayed for the input. If empty, a label will be auto-generated from the name.
+</ParamField>
+
+<ParamField path="model" type="mixed" default="null">
+  The model instance to bind to. The component will automatically fetch the value from the model using the name attribute.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  The default value if no model value or old input exists.
+</ParamField>
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Whether to display validation errors below the input.
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Whether to display the label. Set to `false` to hide the label.
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Custom placeholder text for the input.
+</ParamField>
+
+<ParamField path="showPlaceholder" type="boolean" default="false">
+  Automatically use the label as placeholder text when `true`.
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark the input as required. Adds HTML5 required attribute and displays a required indicator on the label.
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Display the label and input inline (horizontal layout).
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Enable Bootstrap floating label style.
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="">
+  Additional CSS classes for the inline label wrapper.
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="">
+  Additional CSS classes for the inline input wrapper.
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript-based error display for client-side validation.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Specify a custom framework theme. Defaults to the configured framework.
+</ParamField>
+
+## Examples
+
+### Basic Email Input
+
+```blade
+<x-forms::email 
+    name="email" 
+    label="Email Address" 
+/>
+```
+
+### Required Email Field
+
+```blade
+<x-forms::email 
+    name="email" 
+    label="Email Address"
+    :required="true"
+/>
+```
+
+### With Model Binding
+
+```blade
+<x-forms::email 
+    name="email" 
+    label="User Email"
+    :model="$user"
+/>
+```
+
+### With Default Value
+
+```blade
+<x-forms::email 
+    name="contact_email" 
+    label="Contact Email"
+    default="contact@example.com"
+/>
+```
+
+### With Placeholder
+
+```blade
+<x-forms::email 
+    name="email" 
+    label="Email"
+    placeholder="you@example.com"
+/>
+
+{{-- Or use label as placeholder --}}
+<x-forms::email 
+    name="email" 
+    label="Email Address"
+    :show-placeholder="true"
+/>
+```
+
+### Floating Label
+
+```blade
+<x-forms::email 
+    name="email" 
+    label="Email Address"
+    :floating="true"
+/>
+```
+
+### Inline Layout
+
+```blade
+<x-forms::email 
+    name="email" 
+    label="Email"
+    :inline="true"
+    inline-label-class="col-md-3"
+    inline-input-class="col-md-9"
+/>
+```
+
+### Without Label
+
+```blade
+<x-forms::email 
+    name="newsletter_email" 
+    :show-label="false"
+    placeholder="Enter your email..."
+/>
+```
+
+### With Additional Attributes
+
+```blade
+<x-forms::email 
+    name="email" 
+    label="Email Address"
+    class="custom-email-input"
+    autocomplete="email"
+    multiple
+/>
+```
+
+### With Help Text
+
+```blade
+<x-forms::email name="email" label="Email Address">
+    <x-slot:help>
+        We'll never share your email with anyone else.
+    </x-slot:help>
+</x-forms::email>
+```
+
+### Newsletter Signup Form
+
+```blade
+<x-forms::form-open>
+    <x-forms::email 
+        name="email" 
+        label="Subscribe to our newsletter"
+        :required="true"
+        placeholder="Enter your email address"
+    />
+    
+    <x-forms::submit>Subscribe</x-forms::submit>
+</x-forms::form-open>
+```
+
+## Value Resolution
+
+The component resolves the input value in the following order:
+
+1. Old input (from validation errors)
+2. Model value (if model is provided)
+3. Default value (if specified)
+4. Empty string
+
+## HTML5 Email Validation
+
+The email input type provides built-in browser validation:
+- Validates email format automatically
+- Shows browser-specific validation messages
+- Works with HTML5 form validation API
+- Can be combined with server-side Laravel validation
+
+## Validation Error Display
+
+When validation fails, the input automatically:
+- Adds the `is-invalid` Bootstrap class
+- Displays error messages below the input (if `showErrors` is `true`)
+- Preserves user input through Laravel's old input
+
+## Implementation Details
+
+The Email component:
+- Extends the base Input component with type set to `email`
+- Supports all standard HTML input attributes via attribute merging
+- Leverages browser's native email validation
+- Integrates with Laravel's validation error bag
+- Works seamlessly with Laravel's old input helper
+
+**Source**: `/src/Views/Components/Email.php:12`

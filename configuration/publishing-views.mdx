@@ -1,0 +1,343 @@
+---
+title: 'Publishing Views'
+description: 'Publish and customize form component Blade templates'
+icon: 'file-code'
+---
+
+## Overview
+
+Javaabu Forms provides Artisan commands to help you publish and manage custom view files. This allows you to customize the HTML structure and styling of form components without modifying the package itself.
+
+## Publishing Assets
+
+The package provides three publishable asset groups:
+
+### Configuration File
+
+Publish the configuration file to customize package settings:
+
+```bash
+php artisan vendor:publish --tag=forms-config
+```
+
+**Published to:** `config/forms.php`
+
+### View Templates
+
+Publish all view templates for customization:
+
+```bash
+php artisan vendor:publish --tag=forms-views
+```
+
+**Published to:** `resources/views/vendor/forms/`
+
+### Translation Files
+
+Publish translation strings:
+
+```bash
+php artisan vendor:publish --tag=forms-translations
+```
+
+**Published to:** `lang/vendor/forms/`
+
+**Available languages:**
+- English (`en/strings.php`)
+- Dhivehi (`dv/strings.php`)
+
+## Selective View Publishing
+
+Instead of publishing all views at once, you can selectively publish individual view files using the `forms:publish-view` command.
+
+### Interactive View Selection
+
+Run the command without options to interactively select a view:
+
+```bash
+php artisan forms:publish-view
+```
+
+The command will display a searchable list of all available views with their current status:
+
+```
+Available view files:
+
+  New: components/date.blade.php
+  Published: components/text.blade.php
+  New: components/select.blade.php
+  New: components/textarea.blade.php
+  ...
+```
+
+**Status indicators:**
+- <span style="color: green">**New**</span> - Not yet published to your application
+- <span style="color: orange">**Published**</span> - Already exists in `resources/views/vendor/forms/`
+
+<Note>
+  On Windows, the command uses a simple select interface. On other systems, it provides a searchable interface for easier navigation.
+</Note>
+
+### Publishing All Views
+
+To publish all view files at once:
+
+```bash
+php artisan forms:publish-view --all
+```
+
+### Force Overwrite
+
+If a view file already exists, the command will prompt you to confirm overwriting. To skip the prompt and force overwrite:
+
+```bash
+php artisan forms:publish-view --force
+```
+
+Or combine with `--all`:
+
+```bash
+php artisan forms:publish-view --all --force
+```
+
+## Command Reference
+
+<ParamField path="--all" type="flag">
+  Publish all view files instead of selecting individual files.
+</ParamField>
+
+<ParamField path="--force" type="flag">
+  Overwrite existing files without prompting for confirmation.
+</ParamField>
+
+### Command Implementation
+
+The publish command is defined in `PublishViewCommand.php`:
+
+```php PublishViewCommand.php (src/Commands/PublishViewCommand.php:15-19)
+protected $signature = 'forms:publish-view
+    {--all : Publish all view files}
+    {--force : Overwrite existing files without prompting}';
+
+protected $description = 'Publish one or more form view files to your application for customization.';
+```
+
+## Checking for Redundant Views
+
+Over time, you may have published views that are no longer customized and match the package's default views. The `forms:diff-views` command helps identify these redundant files.
+
+### View all Published Views
+
+Check the status of all published views:
+
+```bash
+php artisan forms:diff-views
+```
+
+**Output:**
+
+```
++-----------+----------------------------------+
+| Status    | View                             |
++-----------+----------------------------------+
+| REDUNDANT | components/text.blade.php        |
+| MODIFIED  | components/date.blade.php        |
+| REDUNDANT | components/checkbox.blade.php    |
+| MODIFIED  | components/select.blade.php      |
++-----------+----------------------------------+
+
+Summary:
+  Redundant (can be deleted): 2
+  Modified (customized override): 2
+```
+
+**Status meanings:**
+- **REDUNDANT** - Published view is identical to the package view (safe to delete)
+- **MODIFIED** - Published view contains custom changes
+
+### Show Only Redundant Views
+
+To filter and show only redundant views:
+
+```bash
+php artisan forms:diff-views --only-redundant
+```
+
+### Delete Redundant Views
+
+Automatically delete all redundant published views:
+
+```bash
+php artisan forms:diff-views --delete-redundant
+```
+
+The command will prompt for confirmation:
+
+```
+Delete 2 redundant view file(s) from your application? (yes/no) [no]:
+```
+
+Confirming will delete the redundant files:
+
+```
+  DELETED components/text.blade.php
+  DELETED components/checkbox.blade.php
+```
+
+<Warning>
+  The `--delete-redundant` flag will permanently delete files. Make sure you have backups or version control before proceeding.
+</Warning>
+
+## Diff Command Reference
+
+<ParamField path="--only-redundant" type="flag">
+  Show only published views that are identical to the package views. Hides modified views from the output.
+</ParamField>
+
+<ParamField path="--delete-redundant" type="flag">
+  Delete redundant published views after listing them. Requires confirmation.
+</ParamField>
+
+### Command Implementation
+
+The diff command is defined in `DiffViewsCommand.php`:
+
+```php DiffViewsCommand.php (src/Commands/DiffViewsCommand.php:11-15)
+protected $signature = 'forms:diff-views
+    {--only-redundant : Show only published views that are identical to the package views}
+    {--delete-redundant : Delete redundant published views after listing them}';
+
+protected $description = 'Find redundant or modified published form views in your application.';
+```
+
+## View Customization Workflow
+
+### Recommended Workflow
+
+1. **Identify the component** you want to customize
+2. **Publish only that view** using `forms:publish-view`
+3. **Edit the published view** in `resources/views/vendor/forms/`
+4. **Test your changes** in your application
+5. **Periodically check for redundant views** using `forms:diff-views`
+
+### Example: Customizing the Text Input
+
+1. Publish the text input view:
+
+```bash
+php artisan forms:publish-view
+# Select: components/text.blade.php
+```
+
+2. Edit the published view:
+
+```blade resources/views/vendor/forms/components/text.blade.php
+{{-- Add custom wrapper --}}
+<div class="custom-text-input-wrapper">
+    {{-- Original component markup --}}
+    <input type="text" {{ $attributes }} />
+</div>
+```
+
+3. The component will now use your custom view:
+
+```blade
+<x-forms::text name="email" />
+{{-- Renders with your custom wrapper --}}
+```
+
+4. Later, check if your customization is still needed:
+
+```bash
+php artisan forms:diff-views
+# Shows MODIFIED status for components/text.blade.php
+```
+
+## View Resolution Priority
+
+Laravel resolves views in the following order:
+
+1. **Published views** in `resources/views/vendor/forms/`
+2. **Package views** in the package's `resources/views/` directory
+
+This means your published views always take precedence over the package's default views.
+
+## Service Provider Configuration
+
+The package registers publishable assets and commands in `FormsServiceProvider.php`:
+
+```php FormsServiceProvider.php (src/FormsServiceProvider.php:17-29)
+if ($this->app->runningInConsole()) {
+    $this->publishes([
+        __DIR__ . '/../config/config.php' => config_path('forms.php'),
+    ], 'forms-config');
+    
+    $this->publishes([
+        __DIR__ . '/../lang' => lang_path('vendor/forms'),
+    ], 'forms-translations');
+    
+    $this->publishes([
+        __DIR__ . '/../resources/views' => resource_path('views/vendor/forms'),
+    ], 'forms-views');
+}
+```
+
+And registers the custom commands:
+
+```php FormsServiceProvider.php (src/FormsServiceProvider.php:60-65)
+if ($this->app->runningInConsole()) {
+    $this->commands([
+        \Javaabu\Forms\Commands\PublishViewCommand::class,
+        \Javaabu\Forms\Commands\DiffViewsCommand::class,
+    ]);
+}
+```
+
+## Best Practices
+
+<Check>**Do's:**</Check>
+
+- Publish only the views you need to customize
+- Use version control to track changes to published views
+- Regularly run `forms:diff-views` to identify redundant customizations
+- Document your view customizations for team members
+- Test published views across all supported frameworks
+
+<Warning>**Don'ts:**</Warning>
+
+- Don't publish all views unless you need to customize many components
+- Don't delete published views without checking if they're modified
+- Don't edit package views directly (they'll be overwritten on update)
+- Don't forget to review published views after package updates
+
+## Troubleshooting
+
+### Published View Not Being Used
+
+**Check view location:**
+```bash
+ls resources/views/vendor/forms/
+```
+
+**Clear view cache:**
+```bash
+php artisan view:clear
+```
+
+### Command Not Found
+
+**Make sure the package is installed:**
+```bash
+composer show javaabu/forms
+```
+
+**Clear config cache:**
+```bash
+php artisan config:clear
+```
+
+## Next Steps
+
+- [Framework Settings](/configuration/framework-settings) - Configure framework-specific options
+- [Customization](/configuration/customization) - Learn about runtime configuration
+- [Form Inputs](/components/inputs/text) - Explore available form components

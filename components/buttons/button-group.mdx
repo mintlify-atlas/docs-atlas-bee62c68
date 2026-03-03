@@ -1,0 +1,216 @@
+---
+title: Button Group
+description: Group multiple buttons together in a horizontal or vertical layout
+---
+
+The ButtonGroup component creates a container for grouping related buttons together, supporting both horizontal (inline) and vertical layouts using Bootstrap's button group styling.
+
+## Basic Usage
+
+```blade
+<x-forms::button-group>
+    <x-forms::button>Left</x-forms::button>
+    <x-forms::button>Middle</x-forms::button>
+    <x-forms::button>Right</x-forms::button>
+</x-forms::button-group>
+```
+
+## Attributes
+
+<ParamField path="inline" type="boolean" default="true">
+  Controls the layout orientation of the button group:
+  - `true` - Horizontal layout (uses `btn-group` class)
+  - `false` - Vertical layout (uses `btn-group-vertical` class)
+</ParamField>
+
+## Examples
+
+### Horizontal Button Group (Default)
+
+```blade
+<x-forms::button-group>
+    <x-forms::button color="primary">Save</x-forms::button>
+    <x-forms::button color="secondary">Cancel</x-forms::button>
+    <x-forms::button color="danger">Delete</x-forms::button>
+</x-forms::button-group>
+```
+
+### Vertical Button Group
+
+```blade
+<x-forms::button-group :inline="false">
+    <x-forms::button color="primary">Option 1</x-forms::button>
+    <x-forms::button color="primary">Option 2</x-forms::button>
+    <x-forms::button color="primary">Option 3</x-forms::button>
+</x-forms::button-group>
+```
+
+### Action Buttons
+
+```blade
+<x-forms::button-group>
+    <x-forms::link-button :url="route('posts.show', $post)" color="info">
+        <i class="fas fa-eye"></i> View
+    </x-forms::link-button>
+    
+    <x-forms::link-button :url="route('posts.edit', $post)" color="warning">
+        <i class="fas fa-edit"></i> Edit
+    </x-forms::link-button>
+    
+    <x-forms::button type="button" color="danger" onclick="confirmDelete()">
+        <i class="fas fa-trash"></i> Delete
+    </x-forms::button>
+</x-forms::button-group>
+```
+
+### Toggle Buttons
+
+```blade
+<x-forms::button-group role="group" aria-label="Text alignment">
+    <x-forms::button type="button" color="secondary">
+        <i class="fas fa-align-left"></i>
+    </x-forms::button>
+    <x-forms::button type="button" color="secondary">
+        <i class="fas fa-align-center"></i>
+    </x-forms::button>
+    <x-forms::button type="button" color="secondary">
+        <i class="fas fa-align-right"></i>
+    </x-forms::button>
+</x-forms::button-group>
+```
+
+### Mixed Button Types
+
+```blade
+<x-forms::button-group>
+    <x-forms::button type="button" color="primary">
+        Button
+    </x-forms::button>
+    
+    <x-forms::link-button url="/link" color="primary">
+        Link
+    </x-forms::link-button>
+    
+    <x-forms::submit color="primary">
+        Submit
+    </x-forms::submit>
+</x-forms::button-group>
+```
+
+### Vertical Action Menu
+
+```blade
+<x-forms::button-group :inline="false">
+    <x-forms::link-button url="/dashboard" color="light" class="text-start">
+        <i class="fas fa-home"></i> Dashboard
+    </x-forms::link-button>
+    
+    <x-forms::link-button url="/profile" color="light" class="text-start">
+        <i class="fas fa-user"></i> Profile
+    </x-forms::link-button>
+    
+    <x-forms::link-button url="/settings" color="light" class="text-start">
+        <i class="fas fa-cog"></i> Settings
+    </x-forms::link-button>
+    
+    <x-forms::link-button url="/logout" color="light" class="text-start">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </x-forms::link-button>
+</x-forms::button-group>
+```
+
+### Form Actions
+
+```blade
+<form method="POST" action="/users">
+    @csrf
+    
+    <x-forms::input name="name" label="Name" />
+    <x-forms::input name="email" label="Email" />
+    
+    <x-forms::button-group class="mt-3">
+        <x-forms::link-button url="/users" color="secondary">
+            Cancel
+        </x-forms::link-button>
+        
+        <x-forms::submit color="primary">
+            Create User
+        </x-forms::submit>
+    </x-forms::button-group>
+</form>
+```
+
+### With Custom Classes
+
+```blade
+<x-forms::button-group class="shadow-sm" role="group">
+    <x-forms::button color="primary">One</x-forms::button>
+    <x-forms::button color="primary">Two</x-forms::button>
+    <x-forms::button color="primary">Three</x-forms::button>
+</x-forms::button-group>
+```
+
+### Toolbar with Multiple Groups
+
+```blade
+<div class="btn-toolbar" role="toolbar">
+    <x-forms::button-group class="me-2">
+        <x-forms::button color="secondary">1</x-forms::button>
+        <x-forms::button color="secondary">2</x-forms::button>
+        <x-forms::button color="secondary">3</x-forms::button>
+    </x-forms::button-group>
+    
+    <x-forms::button-group class="me-2">
+        <x-forms::button color="secondary">4</x-forms::button>
+        <x-forms::button color="secondary">5</x-forms::button>
+    </x-forms::button-group>
+    
+    <x-forms::button-group>
+        <x-forms::button color="secondary">6</x-forms::button>
+    </x-forms::button-group>
+</div>
+```
+
+### Status Filters
+
+```blade
+<x-forms::button-group>
+    <x-forms::button type="button" color="outline-primary" class="active">
+        All
+    </x-forms::button>
+    <x-forms::button type="button" color="outline-primary">
+        Active
+    </x-forms::button>
+    <x-forms::button type="button" color="outline-primary">
+        Pending
+    </x-forms::button>
+    <x-forms::button type="button" color="outline-primary">
+        Archived
+    </x-forms::button>
+</x-forms::button-group>
+```
+
+## Implementation Details
+
+The ButtonGroup component:
+- Renders a `<div>` element with `role="group"` for accessibility
+- Applies `btn-group` class for horizontal layout when `inline=true`
+- Applies `btn-group-vertical` class for vertical layout when `inline=false`
+- Supports all standard HTML div attributes via attribute merging
+- Automatically groups child buttons with proper Bootstrap styling
+
+**Bootstrap Classes**:
+- `btn-group` - Horizontal button group
+- `btn-group-vertical` - Vertical button group
+
+**Accessibility**:
+- Always includes `role="group"` for screen readers
+- Consider adding `aria-label` for better accessibility:
+
+```blade
+<x-forms::button-group aria-label="User actions">
+    {{-- buttons --}}
+</x-forms::button-group>
+```
+
+**Source**: `/src/Views/Components/ButtonGroup.php:15`

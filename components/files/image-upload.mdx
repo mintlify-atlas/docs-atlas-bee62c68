@@ -1,0 +1,492 @@
+---
+title: Image Upload
+description: Image upload component with preview and Spatie Media Library integration
+---
+
+The Image Upload component is a specialized version of the Image component that provides upload-style button styling. It automatically enables upload mode and integrates with Spatie Media Library for handling image uploads with preview functionality.
+
+## Basic Usage
+
+```blade
+<x-forms::image-upload 
+    name="featured_image" 
+    width="500" 
+    height="500" 
+/>
+```
+
+## Key Differences from Image Component
+
+The Image Upload component differs from the regular Image component in these ways:
+
+1. **Upload Button Styling**: Shows an "Upload file" button with upload icon
+2. **Permanent Upload Mode**: The `upload` attribute is always `true` and cannot be changed
+3. **Modern Interface**: Designed for contemporary upload experiences with prominent upload button
+
+## With Model Binding
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::image-upload 
+        name="featured_image" 
+        width="800" 
+        height="600" 
+    />
+</x-forms::form>
+```
+
+## Image Preview Styles
+
+```blade
+{{-- Square avatar with circular preview --}}
+<x-forms::image-upload 
+    name="avatar" 
+    width="200" 
+    height="200" 
+    :circle="true" 
+/>
+
+{{-- Banner with cover mode --}}
+<x-forms::image-upload 
+    name="banner" 
+    width="1920" 
+    height="400" 
+    :cover="true" 
+    :fullwidth="true" 
+/>
+
+{{-- Thumbnail with aspect ratio --}}
+<x-forms::image-upload 
+    name="thumbnail" 
+    width="400" 
+    height="300" 
+    :aspect-ratio="0.75" 
+/>
+```
+
+## Image Dimensions
+
+The component provides automatic hints based on specified dimensions:
+
+```blade
+<x-forms::image-upload 
+    name="banner" 
+    width="1920" 
+    height="400" 
+    :show-hint="true" 
+/>
+{{-- Displays: "Recommended 1920px x 400px. Only .jpeg, .png, .gif and .svg files of max 5MB allowed." --}}
+```
+
+## File Type Control
+
+```blade
+{{-- All image types (default) --}}
+<x-forms::image-upload 
+    name="photo" 
+    width="400" 
+    height="400" 
+/>
+
+{{-- Specific formats only --}}
+<x-forms::image-upload 
+    name="photo" 
+    width="400" 
+    height="400" 
+    :mimetypes="['image/jpeg', 'image/png']" 
+    :extensions="['jpg', 'png']" 
+/>
+
+{{-- Custom size limit --}}
+<x-forms::image-upload 
+    name="high_res_photo" 
+    width="2000" 
+    height="2000" 
+    :max-size="10240" 
+/>
+```
+
+## Spatie Media Library Integration
+
+```blade
+{{-- Upload to custom collection --}}
+<x-forms::image-upload 
+    name="avatar" 
+    collection="profile_photos" 
+    width="200" 
+    height="200" 
+/>
+
+{{-- Display conversion --}}
+<x-forms::image-upload 
+    name="thumbnail" 
+    collection="featured_image" 
+    conversion="thumb" 
+    width="150" 
+    height="150" 
+/>
+```
+
+### Model Setup with Conversions
+
+```php
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
+class Article extends Model implements HasMedia
+{
+    use InteractsWithMedia;
+    
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('featured_image')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png'])
+            ->registerMediaConversions(function (Media $media) {
+                $this->addMediaConversion('thumb')
+                    ->width(150)
+                    ->height(150)
+                    ->sharpen(10);
+                    
+                $this->addMediaConversion('preview')
+                    ->width(800)
+                    ->height(600)
+                    ->optimize();
+            });
+    }
+}
+```
+
+## Custom Icons
+
+```blade
+{{-- Custom placeholder icon --}}
+<x-forms::image-upload 
+    name="photo" 
+    width="400" 
+    height="400" 
+    icon="fa-camera" 
+/>
+
+{{-- Custom upload icon --}}
+<x-forms::image-upload 
+    name="photo" 
+    width="400" 
+    height="400" 
+    upload-icon="fa-cloud-upload-alt" 
+/>
+```
+
+## Aspect Ratio Control
+
+```blade
+{{-- Maintain calculated aspect ratio --}}
+<x-forms::image-upload 
+    name="photo" 
+    width="800" 
+    height="600" 
+    :maintain-aspect-ratio="true" 
+/>
+
+{{-- Custom aspect ratio --}}
+<x-forms::image-upload 
+    name="banner" 
+    width="1200" 
+    height="400" 
+    :aspect-ratio="3" 
+/>
+
+{{-- Square images (1:1) --}}
+<x-forms::image-upload 
+    name="product" 
+    width="600" 
+    height="600" 
+    :aspect-ratio="1" 
+/>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the image upload input
+</ParamField>
+
+<ParamField path="label" type="string">
+  Label text for the image upload. Auto-generated from name if not provided
+</ParamField>
+
+<ParamField path="width" type="int" default="400">
+  Recommended image width in pixels. Used for display hints
+</ParamField>
+
+<ParamField path="height" type="int" default="400">
+  Recommended image height in pixels. Used for display hints
+</ParamField>
+
+<ParamField path="cover" type="bool" default="false">
+  Use cover mode for preview (fills container, may crop image)
+</ParamField>
+
+<ParamField path="fullwidth" type="bool" default="false">
+  Make preview take full width of container
+</ParamField>
+
+<ParamField path="maintain-aspect-ratio" type="bool" default="true">
+  Maintain the aspect ratio defined by width/height
+</ParamField>
+
+<ParamField path="circle" type="bool" default="false">
+  Display preview as a circle. Perfect for avatars. Forces 1:1 aspect ratio
+</ParamField>
+
+<ParamField path="aspect-ratio" type="float">
+  Custom aspect ratio (height/width). Overrides calculated ratio from width/height
+</ParamField>
+
+<ParamField path="icon" type="string">
+  Icon class for empty image placeholder. Framework default: `fa-image` or `zmdi-image`
+</ParamField>
+
+<ParamField path="upload-icon" type="string">
+  Icon class for the upload button. Framework default: `fa-arrow-to-top` or `zmdi-upload`
+</ParamField>
+
+<ParamField path="type" type="string|array" default="image">
+  File type category. Defaults to `image` for all image formats
+</ParamField>
+
+<ParamField path="mimetypes" type="string|array">
+  Allowed image mime types. Default: `image/jpeg`, `image/png`, `image/gif`, etc.
+</ParamField>
+
+<ParamField path="extensions" type="string|array">
+  Allowed file extensions. Automatically determined from mime types if not specified
+</ParamField>
+
+<ParamField path="max-size" type="int">
+  Maximum file size in kilobytes. Uses system default for images if not specified
+</ParamField>
+
+<ParamField path="collection" type="string">
+  Spatie Media Library collection name. Defaults to the input name
+</ParamField>
+
+<ParamField path="conversion" type="string">
+  Spatie Media Library conversion name to display in preview
+</ParamField>
+
+<ParamField path="file-input-class" type="string">
+  Additional CSS classes for the file input wrapper
+</ParamField>
+
+<ParamField path="model" type="object">
+  Model instance to bind to. Automatically retrieves image from media library
+</ParamField>
+
+<ParamField path="default" type="string">
+  Default image URL if no value is bound
+</ParamField>
+
+<ParamField path="show-hint" type="bool" default="true">
+  Show automatic hint with recommended dimensions and file requirements
+</ParamField>
+
+<ParamField path="show-errors" type="bool" default="true">
+  Show validation errors
+</ParamField>
+
+<ParamField path="show-label" type="bool" default="true">
+  Show the label
+</ParamField>
+
+<ParamField path="required" type="bool" default="false">
+  Mark the field as required
+</ParamField>
+
+<ParamField path="disabled" type="bool" default="false">
+  Disable the image upload
+</ParamField>
+
+<ParamField path="ignore-accessor" type="bool" default="false">
+  Ignore model accessors when retrieving value. Only retrieve from media library
+</ParamField>
+
+<ParamField path="inline" type="bool" default="false">
+  Display label and input inline (horizontal layout)
+</ParamField>
+
+<ParamField path="help" type="string">
+  Custom help text. Overrides automatic hints
+</ParamField>
+
+## Examples
+
+### Avatar Upload (Circular)
+
+```blade
+<x-forms::image-upload 
+    name="avatar" 
+    label="Profile Photo"
+    width="200" 
+    height="200" 
+    :circle="true" 
+    collection="avatars" 
+    upload-icon="fa-camera"
+    required
+/>
+```
+
+### Banner Upload (Cover Mode)
+
+```blade
+<x-forms::image-upload 
+    name="banner" 
+    label="Page Banner"
+    width="1920" 
+    height="400" 
+    :cover="true" 
+    :fullwidth="true" 
+    :max-size="5120" 
+    help="Upload a high-resolution banner (max 5MB)."
+/>
+```
+
+### Product Image Upload
+
+```blade
+<x-forms::image-upload 
+    name="product_image" 
+    label="Product Photo"
+    width="600" 
+    height="600" 
+    :aspect-ratio="1" 
+    collection="products" 
+    :mimetypes="['image/jpeg', 'image/png']" 
+    help="Upload a square product image."
+    required
+/>
+```
+
+### Thumbnail with Preview Conversion
+
+```blade
+<x-forms::form :model="$article">
+    <x-forms::image-upload 
+        name="thumbnail" 
+        label="Article Thumbnail"
+        width="300" 
+        height="200" 
+        collection="featured_image" 
+        conversion="preview" 
+    />
+</x-forms::form>
+```
+
+### Social Media Image
+
+```blade
+<x-forms::image-upload 
+    name="og_image" 
+    label="Open Graph Image"
+    width="1200" 
+    height="630" 
+    :aspect-ratio="0.525" 
+    :max-size="8192" 
+    help="Recommended size for Facebook and Twitter (1200x630px)."
+/>
+```
+
+## Upload Behavior
+
+The Image Upload component provides:
+
+1. **Image Preview**: Shows selected image before upload
+2. **Empty State**: Displays placeholder icon when no image is selected
+3. **Upload Button**: Prominent "Upload file" button with icon
+4. **Remove Option**: Button to clear selected image
+5. **Aspect Ratio**: Maintains specified aspect ratio in preview
+6. **Responsive**: Adapts to container width
+
+## Handling Image Uploads
+
+In your controller:
+
+```php
+public function store(Request $request)
+{
+    $request->validate([
+        'featured_image' => 'required|image|mimes:jpeg,png|max:5120',
+    ]);
+    
+    $article = Article::create($request->all());
+    
+    if ($request->hasFile('featured_image')) {
+        $article->addMedia($request->file('featured_image'))
+            ->toMediaCollection('featured_image');
+    }
+    
+    return redirect()->route('articles.show', $article);
+}
+
+public function update(Request $request, Article $article)
+{
+    $request->validate([
+        'featured_image' => 'nullable|image|mimes:jpeg,png|max:5120',
+    ]);
+    
+    $article->update($request->all());
+    
+    if ($request->hasFile('featured_image')) {
+        // Clear existing media
+        $article->clearMediaCollection('featured_image');
+        
+        // Add new media
+        $article->addMedia($request->file('featured_image'))
+            ->toMediaCollection('featured_image');
+    }
+    
+    return redirect()->route('articles.show', $article);
+}
+```
+
+## Client-Side Validation
+
+The component automatically adds validation attributes:
+
+```html
+<input 
+    type="file" 
+    accept="image/jpeg,image/png,image/gif" 
+    name="featured_image" 
+    data-max-file-size="5120" 
+/>
+```
+
+These can be used with JavaScript for client-side validation before upload.
+
+## Image Processing
+
+Combine with Spatie Media Library's powerful image processing:
+
+```php
+public function registerMediaConversions(Media $media = null): void
+{
+    $this->addMediaConversion('thumb')
+        ->width(150)
+        ->height(150)
+        ->sharpen(10)
+        ->format('webp');
+        
+    $this->addMediaConversion('medium')
+        ->width(800)
+        ->height(600)
+        ->optimize();
+        
+    $this->addMediaConversion('large')
+        ->width(1920)
+        ->height(1080)
+        ->format('webp')
+        ->quality(85);
+}
+```

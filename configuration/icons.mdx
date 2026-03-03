@@ -1,0 +1,246 @@
+---
+title: 'Icon Configuration'
+description: 'Configure icons for different CSS frameworks'
+icon: 'icons'
+---
+
+## Icon Systems
+
+Javaabu Forms supports different icon libraries depending on the CSS framework you're using:
+
+- **Bootstrap 5**: Font Awesome icons (default: `fa-regular` prefix)
+- **Material Admin 2.6**: Zurb Material Design icons (`zmdi` prefix)
+
+## Icon Configuration Structure
+
+Icons are configured per framework in the `frameworks` array of your `config/forms.php` file. Each framework has its own set of icon mappings.
+
+### Icon Prefix
+
+<ParamField path="icon-prefix" type="string" required>
+  The base icon class prefix used by your icon library.
+  
+  **Examples:**
+  - `fa-regular` for Font Awesome Regular icons
+  - `fa-solid` for Font Awesome Solid icons
+  - `zmdi` for Material Design icons
+</ParamField>
+
+```php
+'frameworks' => [
+    'bootstrap-5' => [
+        'icon-prefix' => 'fa-regular',
+        // Other settings...
+    ],
+]
+```
+
+## Date & Time Icons
+
+Configure icons for date and time picker components.
+
+<ParamField path="date-icon" type="string" required>
+  Icon displayed on date picker inputs.
+  
+  **Default (Bootstrap 5):** `fa-calendar`  
+  **Default (Material Admin):** `zmdi-calendar`
+</ParamField>
+
+<ParamField path="datetime-icon" type="string" required>
+  Icon displayed on datetime picker inputs.
+  
+  **Default (Bootstrap 5):** `fa-calendar`  
+  **Default (Material Admin):** `zmdi-calendar`
+</ParamField>
+
+<ParamField path="time-icon" type="string" required>
+  Icon displayed on time picker inputs.
+  
+  **Default (Bootstrap 5):** `fa-clock`  
+  **Default (Material Admin):** `zmdi-clock`
+</ParamField>
+
+<ParamField path="date-clear-icon" type="string" required>
+  Icon displayed on the clear button for date/time inputs.
+  
+  **Default (Bootstrap 5):** `fa-close`  
+  **Default (Material Admin):** `zmdi-close`
+</ParamField>
+
+### Example Configuration
+
+```php
+'frameworks' => [
+    'bootstrap-5' => [
+        'icon-prefix' => 'fa-regular',
+        'date-icon' => 'fa-calendar',
+        'datetime-icon' => 'fa-calendar',
+        'time-icon' => 'fa-clock',
+        'date-clear-icon' => 'fa-close',
+    ],
+]
+```
+
+## File Upload Icons
+
+Configure icons for file and image upload components.
+
+<ParamField path="file-upload-icon" type="string" required>
+  Icon displayed on file upload buttons.
+  
+  **Default (Bootstrap 5):** `fa-arrow-to-top`  
+  **Default (Material Admin):** `zmdi-upload`
+</ParamField>
+
+<ParamField path="file-download-icon" type="string" required>
+  Icon displayed on file download links.
+  
+  **Default (Bootstrap 5):** `fa-arrow-to-bottom`  
+  **Default (Material Admin):** `zmdi-open-in-new`
+</ParamField>
+
+<ParamField path="file-clear-icon" type="string" required>
+  Icon displayed on the clear button for file inputs.
+  
+  **Default (Bootstrap 5):** `fa-close`  
+  **Default (Material Admin):** `zmdi-close`
+</ParamField>
+
+<ParamField path="image-icon" type="string" required>
+  Icon displayed for image upload components.
+  
+  **Default (Bootstrap 5):** `fa-image`  
+  **Default (Material Admin):** `zmdi-image`
+</ParamField>
+
+### Example Configuration
+
+```php
+'frameworks' => [
+    'bootstrap-5' => [
+        'file-upload-icon' => 'fa-arrow-to-top',
+        'file-download-icon' => 'fa-arrow-to-bottom',
+        'file-clear-icon' => 'fa-close',
+        'image-icon' => 'fa-image',
+    ],
+]
+```
+
+## Search & UI Icons
+
+Configure icons for search and other UI elements.
+
+<ParamField path="search-icon" type="string" required>
+  Icon displayed in search input fields.
+  
+  **Default (Bootstrap 5):** `fa-search`  
+  **Default (Material Admin):** `zmdi-search`
+</ParamField>
+
+<ParamField path="no-items-icon" type="string" required>
+  Icon displayed when no items are found in listings or searches.
+  
+  **Default (Bootstrap 5):** `fa-file`  
+  **Default (Material Admin):** `zmdi-file`
+</ParamField>
+
+### Example Configuration
+
+```php
+'frameworks' => [
+    'bootstrap-5' => [
+        'search-icon' => 'fa-search',
+        'no-items-icon' => 'fa-file',
+    ],
+]
+```
+
+## Using Custom Icon Libraries
+
+You can configure the package to work with any icon library by updating the icon configuration.
+
+### Example: Using Font Awesome Solid Icons
+
+```php
+'frameworks' => [
+    'bootstrap-5' => [
+        'icon-prefix' => 'fa-solid', // Changed from fa-regular
+        'date-icon' => 'fa-calendar-days',
+        'time-icon' => 'fa-clock',
+        'file-upload-icon' => 'fa-upload',
+        'search-icon' => 'fa-magnifying-glass',
+        // Other icons...
+    ],
+]
+```
+
+### Example: Using Custom SVG Icons
+
+If you're using a custom icon system, update the icon classes to match your implementation:
+
+```php
+'frameworks' => [
+    'bootstrap-5' => [
+        'icon-prefix' => 'icon', // Your custom prefix
+        'date-icon' => 'icon-calendar',
+        'time-icon' => 'icon-time',
+        'file-upload-icon' => 'icon-upload',
+        'search-icon' => 'icon-search',
+        // Other icons...
+    ],
+]
+```
+
+## Complete Icon Configuration
+
+Here's a complete example showing all icon settings for both supported frameworks:
+
+```php config/forms.php
+return [
+    'framework' => 'bootstrap-5',
+    
+    'frameworks' => [
+        'bootstrap-5' => [
+            // Icon system
+            'icon-prefix' => 'fa-regular',
+            
+            // Date & time icons
+            'date-icon' => 'fa-calendar',
+            'datetime-icon' => 'fa-calendar',
+            'time-icon' => 'fa-clock',
+            'date-clear-icon' => 'fa-close',
+            
+            // File icons
+            'file-upload-icon' => 'fa-arrow-to-top',
+            'file-download-icon' => 'fa-arrow-to-bottom',
+            'file-clear-icon' => 'fa-close',
+            'image-icon' => 'fa-image',
+            
+            // UI icons
+            'search-icon' => 'fa-search',
+            'no-items-icon' => 'fa-file',
+        ],
+        
+        'material-admin-26' => [
+            // Icon system
+            'icon-prefix' => 'zmdi',
+            
+            // Date & time icons
+            'date-icon' => 'zmdi-calendar',
+            'datetime-icon' => 'zmdi-calendar',
+            'time-icon' => 'zmdi-clock',
+            'date-clear-icon' => 'zmdi-close',
+            
+            // File icons
+            'file-upload-icon' => 'zmdi-upload',
+            'file-download-icon' => 'zmdi-open-in-new',
+            'file-clear-icon' => 'zmdi-close',
+            'image-icon' => 'zmdi-image',
+            
+            // UI icons
+            'search-icon' => 'zmdi-search',
+            'no-items-icon' => 'zmdi-file',
+        ],
+    ],
+];
+```

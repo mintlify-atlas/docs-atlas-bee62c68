@@ -1,0 +1,330 @@
+---
+title: Blade Directives
+description: Custom Blade directives for model binding and form functionality
+---
+
+## Overview
+
+Javaabu Forms registers custom Blade directives in the service provider to enhance form functionality. These directives provide syntactic sugar for common form operations.
+
+## Registered Directives
+
+All directives are registered in `FormsServiceProvider` (`src/FormsServiceProvider.php:35`).
+
+## @model and @endmodel
+
+The model binding directives bind data sources to form components within their scope.
+
+### Registration
+
+```php
+Blade::directive('model', function ($model) {
+    return '<?php app(\Javaabu\Forms\FormsDataBinder::class)->bind(' . $model . '); ?>';
+});
+
+Blade::directive('endmodel', function ($model) {
+    return '<?php app(\Javaabu\Forms\FormsDataBinder::class)->pop(); ?>';
+});
+```
+
+### How It Works
+
+<Steps>
+  <Step title="@model Pushes Data">
+    The `@model` directive resolves the `FormsDataBinder` singleton from the container and calls `bind()` to push the data onto the binding stack
+  </Step>
+  <Step title="Components Retrieve Data">
+    Form components within the directive scope automatically retrieve values from the bound data
+  </Step>
+  <Step title="@endmodel Pops Data">
+    The `@endmodel` directive calls `pop()` to remove the data from the binding stack
+  </Step>
+</Steps>
+
+### Usage
+
+#### Binding an Eloquent Model
+
+```blade
+@model($user)
+    <x-forms::input name="name" label="Name" />
+    <x-forms::input name="email" label="Email" type="email" />
+    <x-forms::textarea name="bio" label="Bio" />
+@endmodel
+```
+
+Compiled output:
+
+```php
+<?php app(\Javaabu\Forms\FormsDataBinder::class)->bind($user); ?>
+    <x-forms::input name="name" label="Name" />
+    <x-forms::input name="email" label="Email" type="email" />
+    <x-forms::textarea name="bio" label="Bio" />
+<?php app(\Javaabu\Forms\FormsDataBinder::class)->pop(); ?>
+```
+
+#### Binding an Array
+
+```blade
+@php
+    $data = [
+        'title' => 'My Article',
+        'content' => 'Article content...',
+    ];
+@endphp
+
+@model($data)
+    <x-forms::input name="title" label="Title" />
+    <x-forms::textarea name="content" label="Content" />
+@endmodel
+```
+
+#### Nested Model Bindings
+
+```blade
+@model($company)
+    <x-forms::input name="name" label="Company Name" />
+    
+    @model($company->address)
+        <x-forms::input name="street" label="Street" />
+        <x-forms::input name="city" label="City" />
+        <x-forms::input name="postal_code" label="Postal Code" />
+    @endmodel
+    
+    <x-forms::input name="phone" label="Phone" />
+@endmodel
+```
+
+The binding stack handles nested models correctly, with inner bindings taking precedence.
+
+### Real Example from Tests
+
+From `tests/TestSupport/views/text-entry-status.blade.php`:
+
+```blade
+@php
+    $article = new \Javaabu\Forms\Tests\TestSupport\Models\Article();
+    $article->status = \Javaabu\Forms\Tests\TestSupport\Enums\ArticleStatuses::Published;
+@endphp
+
+@model($article)
+<x-forms::text-entry name="status"/>
+@endmodel
+```
+
+From `tests/TestSupport/views/text-entry-multiline.blade.php`:
+
+```blade
+@php
+    $org = [
+        'name' => "Javaabu\nCompany"
+    ];
+@endphp
+
+@model($org)
+<x-forms::text-entry label="Name" name="name" multiline />
+@endmodel
+```
+
+## Component Namespace Registration
+
+While not a directive, the service provider also registers the component namespace (`src/FormsServiceProvider.php:44`):
+
+```php
+Blade::componentNamespace('Javaabu\\Forms\\Views\\Components', 'forms');
+```
+
+This allows you to use components with the `forms::` prefix:
+
+```blade
+<x-forms::input name="title" label="Title" />
+<x-forms::select name="category" :options="$categories" />
+<x-forms::checkbox name="agree" label="I agree" />
+```
+
+## Directive Compilation
+
+Blade compiles directives at view compilation time, not at runtime. This means:
+
+- Directives are converted to PHP code once and cached
+- The compiled views are stored in `storage/framework/views/`
+- Directive logic executes on every page render after compilation
+
+### Example Compilation
+
+Original Blade:
+
+```blade
+@model($user)
+    <x-forms::input name="name" label="Name" />
+@endmodel
+```
+
+Compiled PHP (simplified):
+
+```php
+<?php app(\Javaabu\Forms\FormsDataBinder::class)->bind($user); ?>
+<?php
+    $component = $__componentOriginal->resolve(['name' => 'name', 'label' => 'Name']);
+    $component->render();
+?>
+<?php app(\Javaabu\Forms\FormsDataBinder::class)->pop(); ?>
+```
+
+## Singleton Data Binder
+
+The `FormsDataBinder` is registered as a singleton (`src/FormsServiceProvider.php:55`):
+
+```php
+$this->app->singleton(FormsDataBinder::class, fn () => new FormsDataBinder());
+```
+
+This ensures:
+- Only one instance exists per request
+- All components access the same binding stack
+- Model bindings persist throughout view rendering
+- The binding stack is cleared after the request
+
+## Best Practices
+
+### Always Close Directives
+
+```blade
+<!-- Good -->
+@model($user)
+    <x-forms::input name="name" label="Name" />
+@endmodel
+
+<!-- Bad: Unclosed directive -->
+@model($user)
+    <x-forms::input name="name" label="Name" />
+```
+
+<Warning>
+  Unclosed `@model` directives leave data on the binding stack, which can cause unexpected behavior in subsequent components.
+</Warning>
+
+### Use @model for Multiple Fields
+
+When binding data to many fields, use `@model` instead of repeating `:model` on each component:
+
+```blade
+<!-- Good: Clean and maintainable -->
+@model($user)
+    <x-forms::input name="name" label="Name" />
+    <x-forms::input name="email" label="Email" />
+    <x-forms::input name="phone" label="Phone" />
+    <x-forms::textarea name="bio" label="Bio" />
+@endmodel
+
+<!-- Verbose: Works but repetitive -->
+<x-forms::input name="name" label="Name" :model="$user" />
+<x-forms::input name="email" label="Email" :model="$user" />
+<x-forms::input name="phone" label="Phone" :model="$user" />
+<x-forms::textarea name="bio" label="Bio" :model="$user" />
+```
+
+### Use :model for Single Fields or Overrides
+
+Use the `:model` prop when:
+- Binding a single field
+- Overriding the directive binding
+- Disabling model binding with `:model="false"`
+
+```blade
+@model($user)
+    <x-forms::input name="name" label="Name" />
+    
+    <!-- Override with different model -->
+    <x-forms::select name="country_id" :options="$countries" :model="$address" />
+    
+    <!-- Disable binding -->
+    <x-forms::input name="search" label="Search" :model="false" />
+@endmodel
+```
+
+### Nested Binding Scope
+
+Inner bindings automatically take precedence:
+
+```blade
+@model($user)
+    {{-- Uses $user->name --}}
+    <x-forms::input name="name" label="Name" />
+    
+    @model($user->profile)
+        {{-- Uses $user->profile->name --}}
+        <x-forms::input name="name" label="Profile Name" />
+    @endmodel
+    
+    {{-- Back to $user->name --}}
+    <x-forms::input name="email" label="Email" />
+@endmodel
+```
+
+## Directive Variables
+
+The directives accept any PHP expression:
+
+```blade
+{{-- Variable --}}
+@model($user)
+
+{{-- Object property --}}
+@model($company->address)
+
+{{-- Array access --}}
+@model($data['user'])
+
+{{-- Method call --}}
+@model($this->getUser())
+
+{{-- Inline array --}}
+@model(['name' => 'John', 'email' => 'john@example.com'])
+```
+
+<Note>
+  The expression passed to `@model` must be valid PHP that evaluates to a model, array, or any data source. It's injected directly into the compiled PHP code.
+</Note>
+
+## Extending with Custom Directives
+
+You can register additional directives in your own service provider:
+
+```php
+use Illuminate\Support\Facades\Blade;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function boot()
+    {
+        // Custom directive for read-only forms
+        Blade::directive('readonly', function () {
+            return '<?php config(["forms.readonly" => true]); ?>';
+        });
+        
+        Blade::directive('endreadonly', function () {
+            return '<?php config(["forms.readonly" => false]); ?>';
+        });
+    }
+}
+```
+
+Usage:
+
+```blade
+@readonly
+    <x-forms::input name="name" label="Name" disabled />
+    <x-forms::input name="email" label="Email" disabled />
+@endreadonly
+```
+
+## Clearing the View Cache
+
+After modifying directives or upgrading the package, clear the view cache:
+
+```bash
+php artisan view:clear
+```
+
+This forces Laravel to recompile all Blade views with the updated directive logic.

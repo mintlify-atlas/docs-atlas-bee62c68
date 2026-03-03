@@ -1,0 +1,219 @@
+---
+title: Form Group
+description: Wrapper component for form inputs with label, errors, and flexible layouts
+---
+
+The `<x-forms::form-group>` component wraps form inputs with labels, error messages, and help text. It supports inline layouts, floating labels, and consistent spacing.
+
+## Basic Usage
+
+```blade
+<x-forms::form-group name="email" label="Email Address" required>
+    <input type="email" name="email" class="form-control" />
+</x-forms::form-group>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" default="">
+  The name of the form field. Used to match labels with inputs and display validation errors.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  Label text to display. If empty and name is provided, the label is auto-generated from the field name.
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Marks the field as required. Displays a required indicator (asterisk by default) next to the label.
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Enables inline/horizontal layout where label and input are side-by-side.
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Enables Bootstrap floating label style. The label appears inside the input and floats up when focused.
+</ParamField>
+
+<ParamField path="wrap" type="boolean" default="true">
+  Whether to wrap the content in a div with spacing classes. Set to `false` to disable wrapper.
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Whether to display the label. Set to `false` to hide the label while maintaining structure.
+</ParamField>
+
+<ParamField path="blankLabel" type="boolean" default="false">
+  Creates an empty label for alignment purposes without displaying text.
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="col-sm-3 col-lg-2 col-form-label">
+  CSS classes for the label in inline layout. Default value comes from framework config.
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="col-sm-9 col-lg-10">
+  CSS classes for the input wrapper in inline layout. Default value comes from framework config.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the CSS framework for this component.
+</ParamField>
+
+## Standard Layout
+
+The default layout displays the label above the input:
+
+```blade
+<x-forms::form-group name="username" label="Username" required>
+    <input type="text" name="username" class="form-control" />
+</x-forms::form-group>
+```
+
+Renders as:
+
+```html
+<div class="mb-4">
+    <label for="username" class="form-label">Username <span class="required">*</span></label>
+    <input type="text" name="username" class="form-control" />
+</div>
+```
+
+## Inline Layout
+
+Display label and input side-by-side using Bootstrap grid:
+
+```blade
+<x-forms::form-group name="email" label="Email" inline>
+    <input type="email" name="email" class="form-control" />
+</x-forms::form-group>
+```
+
+Renders as:
+
+```html
+<div class="mb-4 row">
+    <label for="email" class="col-sm-3 col-lg-2 col-form-label">Email</label>
+    <div class="col-sm-9 col-lg-10">
+        <input type="email" name="email" class="form-control" />
+    </div>
+</div>
+```
+
+## Floating Labels
+
+Bootstrap 5 floating labels style:
+
+```blade
+<x-forms::form-group name="password" label="Password" floating>
+    <input type="password" name="password" class="form-control" placeholder="Password" />
+</x-forms::form-group>
+```
+
+Renders as:
+
+```html
+<div class="mb-4 form-floating">
+    <input type="password" name="password" class="form-control" placeholder="Password" />
+    <label for="password">Password</label>
+</div>
+```
+
+<Note>
+  With floating labels, the label is rendered **after** the input element, and inputs must have a `placeholder` attribute.
+</Note>
+
+## Custom Inline Classes
+
+Customize the column widths for inline layouts:
+
+```blade
+<x-forms::form-group 
+    name="title" 
+    label="Title"
+    inline
+    inline-label-class="col-md-4 col-form-label"
+    inline-input-class="col-md-8"
+>
+    <input type="text" name="title" class="form-control" />
+</x-forms::form-group>
+```
+
+## Without Wrapper
+
+Disable the wrapper for custom layouts:
+
+```blade
+<x-forms::form-group name="city" label="City" :wrap="false">
+    <input type="text" name="city" class="form-control" />
+</x-forms::form-group>
+```
+
+Only renders the label and slot content without the wrapping div.
+
+## Hidden Label
+
+Maintain structure but hide the label visually:
+
+```blade
+<x-forms::form-group name="search" label="Search" :show-label="false">
+    <input type="text" name="search" class="form-control" placeholder="Search..." />
+</x-forms::form-group>
+```
+
+## Blank Label for Alignment
+
+Useful in inline forms to align inputs without labels:
+
+```blade
+<x-forms::form-group name="agree" blank-label inline>
+    <div class="form-check">
+        <input type="checkbox" name="agree" class="form-check-input" />
+        <label class="form-check-label">I agree to the terms</label>
+    </div>
+</x-forms::form-group>
+```
+
+## Usage with Input Components
+
+Most input components automatically use form-group internally:
+
+```blade
+<!-- These already include form-group -->
+<x-forms::text name="name" label="Name" inline />
+<x-forms::email name="email" label="Email" floating />
+```
+
+Use form-group directly when building custom inputs:
+
+```blade
+<x-forms::form-group name="custom" label="Custom Field" required>
+    <div class="input-group">
+        <span class="input-group-text">$</span>
+        <input type="text" name="custom" class="form-control" />
+        <span class="input-group-text">.00</span>
+    </div>
+</x-forms::form-group>
+```
+
+## Complete Example
+
+```blade
+<x-forms::form action="/profile" method="POST">
+    <!-- Standard layout -->
+    <x-forms::form-group name="name" label="Full Name" required>
+        <input type="text" name="name" class="form-control" />
+    </x-forms::form-group>
+    
+    <!-- Inline layout -->
+    <x-forms::form-group name="email" label="Email" inline>
+        <input type="email" name="email" class="form-control" />
+    </x-forms::form-group>
+    
+    <!-- Floating labels -->
+    <x-forms::form-group name="password" label="Password" floating>
+        <input type="password" name="password" class="form-control" placeholder="Password" />
+    </x-forms::form-group>
+    
+    <button type="submit" class="btn btn-primary">Submit</button>
+</x-forms::form>
+```

@@ -1,0 +1,502 @@
+---
+title: FormatsValues
+description: Trait for formatting and checking value types in form components
+---
+
+## Overview
+
+The `FormatsValues` trait provides methods for formatting values for display in form components and checking value types. It includes support for PHP Enums, Eloquent models, booleans, and collections.
+
+**Namespace:** `Javaabu\Forms\Support`
+
+## Trait Definition
+
+```php
+trait FormatsValues
+```
+
+## Dependencies
+
+This trait works with:
+- PHP 8.1+ `BackedEnum`
+- `Illuminate\Database\Eloquent\Model`
+- `Illuminate\Support\Collection`
+
+## Methods
+
+### getEnumLabel
+
+```php
+public function getEnumLabel(): string
+```
+
+Retrieves a human-readable label from a BackedEnum value.
+
+**Returns:** `string` - The enum label, or empty string if not an enum
+
+**Label Resolution:**
+1. If enum has `getLabel()` method, uses that
+2. Otherwise uses the enum's `name` property
+3. Returns empty string if value is not an enum
+
+**Example:**
+```php
+enum Status: string
+{
+    case Active = 'active';
+    case Inactive = 'inactive';
+    
+    public function getLabel(): string
+    {
+        return match($this) {
+            self::Active => 'Active User',
+            self::Inactive => 'Inactive User',
+        };
+    }
+}
+
+// In component
+$this->value = Status::Active;
+$label = $this->getEnumLabel();
+// Returns: "Active User"
+
+// Without getLabel() method
+$label = $this->getEnumLabel();
+// Returns: "Active" (the name property)
+```
+
+### isStatusEnum
+
+```php
+public function isStatusEnum(): bool
+```
+
+Checks if the value is a status enum (an enum with a `getColor()` method).
+
+**Returns:** `bool` - True if value is a BackedEnum with getColor() method
+
+**Example:**
+```php
+enum OrderStatus: string
+{
+    case Pending = 'pending';
+    case Completed = 'completed';
+    case Cancelled = 'cancelled';
+    
+    public function getColor(): string
+    {
+        return match($this) {
+            self::Pending => 'warning',
+            self::Completed => 'success',
+            self::Cancelled => 'danger',
+        };
+    }
+}
+
+// In component
+$this->value = OrderStatus::Pending;
+$isStatus = $this->isStatusEnum();
+// Returns: true
+
+// Can be used to render status badges
+if ($this->isStatusEnum()) {
+    $color = $this->value->getColor();
+    // Render: <span class="badge badge-warning">Pending</span>
+}
+```
+
+### isAdminModel
+
+```php
+public function isAdminModel(): bool
+```
+
+Checks if the value is an Eloquent model with an admin link.
+
+**Returns:** `bool` - True if value is a Model with getAdminLinkAttribute() method
+
+**Example:**
+```php
+class User extends Model
+{
+    public function getAdminLinkAttribute(): string
+    {
+        return route('admin.users.show', $this);
+    }
+}
+
+// In component
+$this->value = User::find(1);
+$isAdminModel = $this->isAdminModel();
+// Returns: true
+
+// Use to render as link
+if ($this->isAdminModel()) {
+    $url = $this->value->admin_link;
+    // Render: <a href="/admin/users/1">John Doe</a>
+}
+```
+
+### checkIfIsAdminModel
+
+```php
+public function checkIfIsAdminModel(mixed $value): bool
+```
+
+<ParamField path="value" type="mixed" required>
+  The value to check.
+</ParamField>
+
+Checks if a specific value is an admin model.
+
+**Returns:** `bool` - True if value is a Model with getAdminLinkAttribute() method
+
+**Example:**
+```php
+$user = User::find(1);
+$isAdminModel = $this->checkIfIsAdminModel($user);
+// Returns: true
+
+$isAdminModel = $this->checkIfIsAdminModel('string');
+// Returns: false
+```
+
+### isAdminModelCollection
+
+```php
+public function isAdminModelCollection(): bool
+```
+
+Checks if the value is a Collection of admin models.
+
+**Returns:** `bool` - True if value is a Collection where all items are admin models
+
+**Validation:**
+1. Value must be a Collection
+2. All items in collection must be admin models
+3. Returns false if any item is not an admin model
+
+**Example:**
+```php
+class User extends Model
+{
+    public function getAdminLinkAttribute(): string
+    {
+        return route('admin.users.show', $this);
+    }
+}
+
+// In component
+$this->value = User::whereIn('id', [1, 2, 3])->get();
+$isCollection = $this->isAdminModelCollection();
+// Returns: true
+
+// Can be used to render list of links
+if ($this->isAdminModelCollection()) {
+    foreach ($this->value as $item) {
+        // Render: <a href="{$item->admin_link}">{$item->name}</a>
+    }
+}
+```
+
+### formatValue
+
+```php
+public function formatValue()
+```
+
+Formats the component's value for display.
+
+**Returns:** `mixed` - The formatted value
+
+**Formatting Rules:**
+
+1. **BackedEnum:** Returns enum label via `getEnumLabel()`
+2. **Boolean:** Returns translated "Yes" or "No"
+3. **Empty (non-numeric):** Returns translated "Blank"
+4. **Other:** Returns value as-is
+
+**Example:**
+```php
+// Enum
+$this->value = Status::Active;
+$formatted = $this->formatValue();
+// Returns: "Active User"
+
+// Boolean
+$this->value = true;
+$formatted = $this->formatValue();
+// Returns: "Yes" (translated)
+
+$this->value = false;
+$formatted = $this->formatValue();
+// Returns: "No" (translated)
+
+// Empty
+$this->value = '';
+$formatted = $this->formatValue();
+// Returns: "Blank" (translated)
+
+// Numeric zero
+$this->value = 0;
+$formatted = $this->formatValue();
+// Returns: 0 (not "Blank")
+
+// Regular value
+$this->value = 'John Doe';
+$formatted = $this->formatValue();
+// Returns: "John Doe"
+```
+
+## Usage in Components
+
+### Text Entry Component
+
+```php
+use Javaabu\Forms\Support\FormatsValues;
+use Javaabu\Forms\Views\Components\Component;
+
+class TextEntry extends Component
+{
+    use FormatsValues;
+    
+    public $value;
+    protected string $view = 'text-entry';
+    
+    public function __construct($value)
+    {
+        parent::__construct();
+        $this->value = $value;
+    }
+    
+    public function displayValue(): string
+    {
+        return $this->formatValue();
+    }
+}
+```
+
+Blade view:
+
+```blade
+<div class="form-entry">
+    <span>{{ $displayValue() }}</span>
+</div>
+```
+
+### Status Entry Component
+
+```php
+use Javaabu\Forms\Support\FormatsValues;
+use Javaabu\Forms\Views\Components\Component;
+
+class Status extends Component
+{
+    use FormatsValues;
+    
+    public $value;
+    protected string $view = 'status';
+    
+    public function __construct($value)
+    {
+        parent::__construct();
+        $this->value = $value;
+    }
+    
+    public function getBadgeClass(): string
+    {
+        if ($this->isStatusEnum()) {
+            $color = $this->value->getColor();
+            return "badge badge-{$color}";
+        }
+        
+        return 'badge badge-secondary';
+    }
+}
+```
+
+Blade view:
+
+```blade
+<span class="{{ $getBadgeClass() }}">
+    {{ $getEnumLabel() }}
+</span>
+```
+
+### Boolean Entry Component
+
+```php
+use Javaabu\Forms\Support\FormatsValues;
+use Javaabu\Forms\Views\Components\Component;
+
+class BooleanEntry extends Component
+{
+    use FormatsValues;
+    
+    public $value;
+    protected string $view = 'boolean-entry';
+    
+    public function __construct($value)
+    {
+        parent::__construct();
+        $this->value = $value;
+    }
+    
+    public function getIcon(): string
+    {
+        return $this->value ? 'check-circle' : 'times-circle';
+    }
+    
+    public function getClass(): string
+    {
+        return $this->value ? 'text-success' : 'text-danger';
+    }
+}
+```
+
+Blade view:
+
+```blade
+<span class="{{ $getClass() }}">
+    <i class="fas fa-{{ $getIcon() }}"></i>
+    {{ $formatValue() }}
+</span>
+```
+
+## Blade Component Usage
+
+### Display Enum Value
+
+```blade
+<x-forms::text-entry :value="$user->status" />
+{{-- If status is enum, displays: "Active User" --}}
+{{-- If status is enum with getColor(), renders colored badge --}}
+```
+
+### Display Boolean Value
+
+```blade
+<x-forms::boolean-entry :value="$user->is_active" />
+{{-- Displays: "Yes" or "No" with icon --}}
+```
+
+### Display Model Link
+
+```blade
+@if($isAdminModel())
+    <a href="{{ $value->admin_link }}">
+        {{ $value->name }}
+    </a>
+@else
+    {{ $formatValue() }}
+@endif
+```
+
+### Display Collection of Models
+
+```blade
+@if($isAdminModelCollection())
+    <ul>
+        @foreach($value as $item)
+            <li>
+                <a href="{{ $item->admin_link }}">
+                    {{ $item->name }}
+                </a>
+            </li>
+        @endforeach
+    </ul>
+@else
+    {{ $formatValue() }}
+@endif
+```
+
+## Complete Example with Infolist
+
+```php
+use Javaabu\Forms\Support\FormatsValues;
+use Javaabu\Forms\Views\Components\Component;
+
+class Infolist extends Component
+{
+    use FormatsValues;
+    
+    public string $label;
+    public $value;
+    protected string $view = 'infolist';
+    
+    public function __construct(string $label, $value)
+    {
+        parent::__construct();
+        $this->label = $label;
+        $this->value = $value;
+    }
+    
+    public function renderValue(): string
+    {
+        // Status enum with color
+        if ($this->isStatusEnum()) {
+            $color = $this->value->getColor();
+            $label = $this->getEnumLabel();
+            return "<span class='badge badge-{$color}'>{$label}</span>";
+        }
+        
+        // Single admin model
+        if ($this->isAdminModel()) {
+            $url = $this->value->admin_link;
+            $name = $this->value->name;
+            return "<a href='{$url}'>{$name}</a>";
+        }
+        
+        // Collection of admin models
+        if ($this->isAdminModelCollection()) {
+            $links = $this->value->map(function ($item) {
+                return "<a href='{$item->admin_link}'>{$item->name}</a>";
+            });
+            return $links->implode(', ');
+        }
+        
+        // Default formatting
+        return e($this->formatValue());
+    }
+}
+```
+
+Blade view:
+
+```blade
+<div class="info-item">
+    <dt>{{ $label }}</dt>
+    <dd>{!! $renderValue() !!}</dd>
+</div>
+```
+
+Usage:
+
+```blade
+<dl class="info-list">
+    <x-forms::infolist label="Name" :value="$user->name" />
+    <x-forms::infolist label="Status" :value="$user->status" />
+    <x-forms::infolist label="Active" :value="$user->is_active" />
+    <x-forms::infolist label="Department" :value="$user->department" />
+    <x-forms::infolist label="Roles" :value="$user->roles" />
+</dl>
+```
+
+## Translation Keys
+
+The trait uses the following translation keys:
+
+```php
+// lang/en/forms.php or lang/vendor/forms/en/strings.php
+return [
+    'yes' => 'Yes',
+    'no' => 'No',
+    'blank' => '-',
+];
+```
+
+## Related
+
+- [Component Base Class](/api/component)
+- [HandlesBoundValues Trait](/api/traits/handles-bound-values)
+- [HandlesDefaultAndOldValue Trait](/api/traits/handles-default-and-old-value)

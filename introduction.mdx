@@ -1,0 +1,163 @@
+---
+title: Introduction
+description: Laravel Blade components for form elements - 70+ components with model binding, validation, and framework support
+---
+
+<img
+  className="block dark:hidden"
+  src="/logo/light.svg"
+  alt="Javaabu Forms"
+  width="200"
+/>
+<img
+  className="hidden dark:block"
+  src="/logo/dark.svg"
+  alt="Javaabu Forms"
+  width="200"
+/>
+
+# Javaabu Forms
+
+A comprehensive Laravel package providing **70+ Blade components** for form elements. Built to reduce boilerplate code while maintaining flexibility and ease of customization.
+
+Inspired by [protonemedia/laravel-form-components](https://github.com/protonemedia/laravel-form-components), Javaabu Forms takes form creation to the next level with automatic model binding, built-in validation display, and multi-framework support.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Model Binding" icon="link">
+    Seamlessly bind Eloquent models to forms with automatic value population and support for nested relationships
+  </Card>
+  <Card title="Automatic Validation" icon="circle-exclamation">
+    Built-in validation error display that integrates with Laravel's validation system
+  </Card>
+  <Card title="Multiple Frameworks" icon="paintbrush">
+    Bootstrap 5 and Material Admin 26 support out of the box, fully customizable
+  </Card>
+  <Card title="70+ Components" icon="grid">
+    Text inputs, selects, textareas, dates, files, checkboxes, radios, Select2, WYSIWYG, maps, and more
+  </Card>
+  <Card title="Clean Syntax" icon="code">
+    Use semantic `<x-forms::input />` syntax instead of verbose HTML
+  </Card>
+  <Card title="Zero Configuration" icon="bolt">
+    Works immediately with sensible defaults, fully publishable for deep customization
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+Here's how clean your forms can look with Javaabu Forms:
+
+```blade
+<x-forms::form :model="$user" method="PUT" action="{{ route('users.update', $user) }}">
+    <x-forms::text name="name" :label="__('Name')" required />
+    <x-forms::email name="email" :label="__('Email')" required />
+    <x-forms::textarea name="bio" :label="__('Biography')" rows="5" />
+    <x-forms::select name="role" :label="__('Role')" :options="['admin' => 'Admin', 'user' => 'User']" />
+    
+    <x-forms::submit>Update User</x-forms::submit>
+</x-forms::form>
+```
+
+<Note>
+  The form automatically:
+  - Binds `$user` data to all fields
+  - Handles CSRF protection
+  - Displays validation errors
+  - Renders proper labels and layout
+</Note>
+
+## Component Categories
+
+<CardGroup cols={3}>
+  <Card title="Form Inputs" icon="input-text" href="/components/inputs/text">
+    Text, email, password, number, tel, URL, hidden, latitude, longitude
+  </Card>
+  <Card title="Select & Choices" icon="list-dropdown" href="/components/selection/select">
+    Select, Select2 (AJAX, tags, icons), radio buttons
+  </Card>
+  <Card title="Date & Time" icon="calendar" href="/components/datetime/date">
+    Date picker, datetime picker, time picker with icon triggers
+  </Card>
+  <Card title="File Uploads" icon="upload" href="/components/files/file">
+    File upload, image upload with Spatie Media Library integration
+  </Card>
+  <Card title="Rich Content" icon="pen-to-square" href="/advanced/wysiwyg">
+    WYSIWYG editor, textarea with formatting
+  </Card>
+  <Card title="Layout & UI" icon="table-cells" href="/components/ui/card">
+    Forms, buttons, cards, tables, tabs, accordions, modals, alerts
+  </Card>
+  <Card title="Special Inputs" icon="location-dot" href="/components/location/map-input">
+    Map input with Google Maps, checkboxes with multiple selection
+  </Card>
+  <Card title="Data Display" icon="eye" href="/components/display/text-entry">
+    Text entries, boolean entries, infolists, status badges
+  </Card>
+  <Card title="Search & Filters" icon="filter" href="/advanced/search-form">
+    Search forms, bulk actions, per-page selector, pagination
+  </Card>
+</CardGroup>
+
+## Getting Started
+
+<Steps>
+  <Step title="Install the Package">
+    Follow the [Installation](/installation) guide to add Javaabu Forms to your Laravel project via Composer
+  </Step>
+  <Step title="Review Requirements">
+    Check the [Requirements](/requirements) to ensure your environment meets the minimum PHP and Laravel versions
+  </Step>
+  <Step title="Quick Start">
+    Jump into the [Quickstart](/quickstart) to create your first form with model binding in under 5 minutes
+  </Step>
+  <Step title="Explore Components">
+    Browse the component documentation to discover all available form elements and their options
+  </Step>
+</Steps>
+
+## Why Javaabu Forms?
+
+**Before Javaabu Forms:**
+```blade
+<div class="form-group">
+    <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+    <input type="text" class="form-control @error('title') is-invalid @enderror" 
+           id="title" name="title" value="{{ old('title', $post->title ?? '') }}" required>
+    @error('title')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+```
+
+**With Javaabu Forms:**
+```blade
+<x-forms::text name="title" :label="__('Title')" required :model="$post" />
+```
+
+<Tip>
+  Both examples produce identical output, but Javaabu Forms reduces 7 lines of boilerplate to a single declarative component.
+</Tip>
+
+## Framework Support
+
+Javaabu Forms comes with pre-built templates for:
+
+- **Bootstrap 5** (default)
+- **Material Admin 26**
+
+You can publish and customize views to support any CSS framework, or create your own framework configuration in the config file.
+
+## Community & Support
+
+<CardGroup cols={2}>
+  <Card title="GitHub Repository" icon="github" href="https://github.com/Javaabu/forms">
+    Star the project, report issues, or contribute
+  </Card>
+  <Card title="Packagist" icon="box" href="https://packagist.org/packages/javaabu/forms">
+    View package statistics and version history
+  </Card>
+</CardGroup>
+
+Found a bug or security issue? Email [info@javaabu.com](mailto:info@javaabu.com) instead of using the issue tracker.

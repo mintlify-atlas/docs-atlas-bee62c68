@@ -1,0 +1,256 @@
+---
+title: Time
+description: Time picker input component with clock icon and clear button
+---
+
+The Time component renders a time input with an integrated time picker, clock icon, and clear button. It extends the Date component with time-specific icon defaults.
+
+## Basic Usage
+
+```blade
+<x-forms::time
+    name="meeting_time"
+    label="Meeting Time"
+/>
+```
+
+## Attributes
+
+<ParamField path="name" type="string" required>
+  The name attribute for the input field.
+</ParamField>
+
+<ParamField path="label" type="string" default="">
+  The label text displayed above the input. If empty, a label will be auto-generated from the name.
+</ParamField>
+
+<ParamField path="model" type="Model|null" default="null">
+  The Eloquent model instance to bind the input to. When provided, the component will automatically populate the value from the model.
+</ParamField>
+
+<ParamField path="default" type="mixed" default="null">
+  Default value for the input when no model or old value exists.
+</ParamField>
+
+<ParamField path="icon" type="string" default="">
+  Custom icon class for the clock icon. Defaults to framework-configured icon:
+  - Bootstrap 5: `fa-regular fa-clock`
+  - Material Admin 26: `zmdi zmdi-clock`
+</ParamField>
+
+<ParamField path="clearIcon" type="string" default="">
+  Custom icon class for the clear button. Defaults to framework-configured icon:
+  - Bootstrap 5: `fa-regular fa-close`
+  - Material Admin 26: `zmdi zmdi-close`
+</ParamField>
+
+<ParamField path="clearBtnClass" type="string" default="">
+  Custom CSS classes for the clear button. Defaults to framework-configured classes:
+  - Bootstrap 5: `btn btn-outline-secondary btn-date-clear disable-w-input`
+  - Material Admin 26: `text-body btn-date-clear disable-w-input`
+</ParamField>
+
+<ParamField path="iconWrapperClass" type="string" default="">
+  CSS classes for the icon wrapper element. Defaults to `date-icon-wrapper`.
+</ParamField>
+
+<ParamField path="showErrors" type="boolean" default="true">
+  Display validation errors below the input.
+</ParamField>
+
+<ParamField path="showLabel" type="boolean" default="true">
+  Show or hide the label element.
+</ParamField>
+
+<ParamField path="placeholder" type="string" default="">
+  Placeholder text for the input. Auto-generated from label if `showPlaceholder` is true.
+</ParamField>
+
+<ParamField path="showPlaceholder" type="boolean" default="false">
+  Automatically generate placeholder from label.
+</ParamField>
+
+<ParamField path="required" type="boolean" default="false">
+  Mark the field as required with an asterisk in the label.
+</ParamField>
+
+<ParamField path="inline" type="boolean" default="false">
+  Render the input in horizontal/inline layout.
+</ParamField>
+
+<ParamField path="floating" type="boolean" default="false">
+  Use Bootstrap floating label style.
+</ParamField>
+
+<ParamField path="inlineLabelClass" type="string" default="">
+  Custom CSS classes for inline label. Defaults to framework configuration.
+</ParamField>
+
+<ParamField path="inlineInputClass" type="string" default="">
+  Custom CSS classes for inline input wrapper. Defaults to framework configuration.
+</ParamField>
+
+<ParamField path="showJsErrors" type="boolean" default="false">
+  Enable JavaScript validation error display.
+</ParamField>
+
+<ParamField path="framework" type="string" default="">
+  Override the default CSS framework. Options: `bootstrap-5`, `material-admin-26`.
+</ParamField>
+
+## Examples
+
+### Basic Time Input
+
+```blade
+<x-forms::time
+    name="start_time"
+    label="Start Time"
+    :required="true"
+/>
+```
+
+### With Model Binding
+
+```blade
+<x-forms::time
+    name="opening_time"
+    label="Opening Time"
+    :model="$store"
+/>
+```
+
+### With Custom Icons
+
+```blade
+<x-forms::time
+    name="alarm_time"
+    label="Alarm Time"
+    icon="fas fa-alarm-clock"
+    clearIcon="fas fa-times"
+/>
+```
+
+### Inline Layout
+
+```blade
+<x-forms::time
+    name="appointment_time"
+    label="Appointment Time"
+    :inline="true"
+/>
+```
+
+### Floating Label
+
+```blade
+<x-forms::time
+    name="departure_time"
+    label="Departure Time"
+    :floating="true"
+/>
+```
+
+### With Placeholder
+
+```blade
+<x-forms::time
+    name="scheduled_time"
+    label="Scheduled Time"
+    placeholder="Select time"
+/>
+```
+
+### With Default Value
+
+```blade
+{{-- Default to current time --}}
+<x-forms::time
+    name="check_in"
+    label="Check-in Time"
+    :default="now()->format('H:i')"
+/>
+
+{{-- Default to specific time --}}
+<x-forms::time
+    name="meeting_time"
+    label="Meeting Time"
+    default="09:00"
+/>
+```
+
+### Office Hours Example
+
+```blade
+<div class="row">
+    <div class="col-md-6">
+        <x-forms::time
+            name="office_open"
+            label="Office Opens"
+            default="09:00"
+            :required="true"
+        />
+    </div>
+    <div class="col-md-6">
+        <x-forms::time
+            name="office_close"
+            label="Office Closes"
+            default="17:00"
+            :required="true"
+        />
+    </div>
+</div>
+```
+
+### With Additional Attributes
+
+```blade
+<x-forms::time
+    name="reminder_time"
+    label="Reminder Time"
+    class="custom-time-input"
+    id="reminder-time-input"
+    data-min-time="08:00"
+    data-max-time="18:00"
+    step="900"
+/>
+```
+
+## Configuration
+
+The Time component uses configuration from `config/forms.php`:
+
+### Framework Icon Settings
+
+```php
+'frameworks' => [
+    'bootstrap-5' => [
+        'icon-prefix' => 'fa-regular',
+        'time-icon' => 'fa-clock',
+        'date-icon-wrapper-class' => 'date-icon-wrapper',
+        'date-clear-icon' => 'fa-close',
+        'date-clear-btn-class' => 'btn btn-outline-secondary btn-date-clear disable-w-input',
+    ],
+    
+    'material-admin-26' => [
+        'icon-prefix' => 'zmdi',
+        'time-icon' => 'zmdi-clock',
+        'date-icon-wrapper-class' => 'date-icon-wrapper',
+        'date-clear-icon' => 'zmdi-close',
+        'date-clear-btn-class' => 'text-body btn-date-clear disable-w-input',
+    ]
+]
+```
+
+## Implementation Details
+
+The Time component:
+- Renders with the `time-picker` CSS class for JavaScript initialization
+- Displays a clock icon in an input group prepend
+- Includes a clear button to reset the time value
+- Extends the Date component with `type="time"` hardcoded
+- Uses the time-specific icon from framework configuration
+- Shares all base functionality with the Date component
+
+**Source**: `src/Views/Components/Time.php:5`
+**View**: `resources/views/bootstrap-5/input.blade.php:6`

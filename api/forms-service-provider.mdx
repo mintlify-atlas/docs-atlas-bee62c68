@@ -1,0 +1,249 @@
+---
+title: FormsServiceProvider
+description: Laravel service provider for the Javaabu Forms package
+---
+
+## Overview
+
+The `FormsServiceProvider` registers all services, components, views, translations, commands, and Blade directives for the Javaabu Forms package.
+
+**Namespace:** `Javaabu\Forms`
+
+**Extends:** `Illuminate\Support\ServiceProvider`
+
+## Class Definition
+
+```php
+class FormsServiceProvider extends ServiceProvider
+```
+
+## Methods
+
+### boot
+
+```php
+public function boot(): void
+```
+
+Bootstraps the application services including:
+- Publishing configuration, translations, and views
+- Loading translations and views
+- Registering Blade directives
+- Registering component namespace
+
+**Returns:** `void`
+
+#### Publishes
+
+When running in console mode, the following assets can be published:
+
+**Configuration:**
+```bash
+php artisan vendor:publish --tag=forms-config
+```
+Publishes `config/config.php` to `config/forms.php`
+
+**Translations:**
+```bash
+php artisan vendor:publish --tag=forms-translations
+```
+Publishes language files to `lang/vendor/forms`
+
+**Views:**
+```bash
+php artisan vendor:publish --tag=forms-views
+```
+Publishes view files to `resources/views/vendor/forms`
+
+#### Blade Directives
+
+Registers two custom Blade directives:
+
+**@model Directive:**
+```blade
+@model($user)
+    <!-- Form components here -->
+@endmodel
+```
+
+Compiles to:
+```php
+<?php app(\Javaabu\Forms\FormsDataBinder::class)->bind($user); ?>
+```
+
+**@endmodel Directive:**
+```blade
+@endmodel
+```
+
+Compiles to:
+```php
+<?php app(\Javaabu\Forms\FormsDataBinder::class)->pop(); ?>
+```
+
+#### Component Namespace
+
+Registers the component namespace `forms` for all components in `Javaabu\Forms\Views\Components`:
+
+```blade
+<x-forms::text name="email" />
+<x-forms::submit>Save</x-forms::submit>
+```
+
+### register
+
+```php
+public function register(): void
+```
+
+Registers the application services including:
+- Merging configuration files
+- Registering the `FormsDataBinder` singleton
+- Registering the `forms` middleware alias
+- Registering Artisan commands
+
+**Returns:** `void`
+
+#### Services Registered
+
+**FormsDataBinder Singleton:**
+```php
+$this->app->singleton(FormsDataBinder::class, fn () => new FormsDataBinder());
+```
+
+**Forms Middleware:**
+```php
+app('router')->aliasMiddleware('forms', OverrideFormsDefaults::class);
+```
+
+#### Commands Registered
+
+When running in console mode:
+- `Javaabu\Forms\Commands\PublishViewCommand`
+- `Javaabu\Forms\Commands\DiffViewsCommand`
+
+### mergeConfig
+
+```php
+protected function mergeConfig(): void
+```
+
+Merges package configuration with user-defined configuration. Performs deep merging for the nested `frameworks` configuration.
+
+**Returns:** `void`
+
+**Configuration Merging:**
+
+1. Merges top-level config:
+   ```php
+   $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'forms');
+   ```
+
+2. Deep merges each framework configuration:
+   ```php
+   foreach ($default_frameworks as $framework => $configs) {
+       $user_config = config('forms.frameworks.' . $framework);
+       config()->set(
+           'forms.frameworks.' . $framework,
+           array_merge($configs, is_array($user_config) ? $user_config : [])
+       );
+   }
+   ```
+
+This ensures that user-defined framework configurations extend rather than replace the default configurations.
+
+## Usage Example
+
+### Registering the Service Provider
+
+In Laravel 11+, the service provider is auto-discovered. For older versions, add to `config/app.php`:
+
+```php
+'providers' => [
+    // Other providers...
+    Javaabu\Forms\FormsServiceProvider::class,
+],
+```
+
+### Publishing Assets
+
+```bash
+# Publish all assets
+php artisan vendor:publish --provider="Javaabu\Forms\FormsServiceProvider"
+
+# Publish specific assets
+php artisan vendor:publish --tag=forms-config
+php artisan vendor:publish --tag=forms-views
+php artisan vendor:publish --tag=forms-translations
+```
+
+### Using Registered Services
+
+**Access FormsDataBinder:**
+```php
+$binder = app(Javaabu\Forms\FormsDataBinder::class);
+$binder->bind($user);
+```
+
+**Use Forms Middleware:**
+```php
+Route::middleware('forms')->group(function () {
+    // Routes that need form defaults override
+});
+```
+
+**Use Blade Directives:**
+```blade
+@model($user)
+    <x-forms::text name="name" />
+@endmodel
+```
+
+**Use Components:**
+```blade
+<x-forms::form method="POST" action="/users">
+    <x-forms::text name="email" />
+    <x-forms::submit>Create</x-forms::submit>
+</x-forms::form>
+```
+
+## Configuration Structure
+
+The service provider expects a configuration file with the following structure:
+
+```php
+return [
+    'framework' => 'bootstrap5',
+    
+    'frameworks' => [
+        'bootstrap5' => [
+            'icon-prefix' => 'fas fa',
+            // Other bootstrap5 configs...
+        ],
+        'tailwind' => [
+            'icon-prefix' => 'fa-solid',
+            // Other tailwind configs...
+        ],
+    ],
+    
+    'use_eloquent_date_casting' => true,
+    
+    // Other configurations...
+];
+```
+
+## Registered Commands
+
+The service provider registers two Artisan commands:
+
+1. **forms:publish-view** - Publish specific view files for customization
+2. **forms:diff-views** - Compare published views with package views
+
+See the [PublishViewCommand](/api/commands/publish-view) and [DiffViewsCommand](/api/commands/diff-views) documentation for details.
+
+## Related
+
+- [FormsDataBinder](/api/forms-data-binder)
+- [Component Base Class](/api/component)
+- [PublishViewCommand](/api/commands/publish-view)
+- [DiffViewsCommand](/api/commands/diff-views)
